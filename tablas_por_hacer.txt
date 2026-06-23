@@ -1,0 +1,18 @@
+//                   ----- ANUNCIO ----- done
+//                   ----- CHAT ----- done
+//                   ----- CIUDAD ----- done
+//                   ----- COMARCA ----- done
+//                   ----- COMENTARIO ----- done
+//                   ----- GENERO_MUSICAL -----
+//                   ----- GRUPO -----
+//                   ----- GRUPO_GENERO -----
+//                   ----- INSTRUMENTO ----- done
+//                   ----- MENSAJE -----
+//                   ----- MENSAJE_LEIDO -----
+//                   ----- MULTIMEDIA -----
+//                   ----- PERFIL -----
+//                   ----- PERFIL_CHAT -----
+//                   ----- PERFIL_GENERO_MUSICAL -----
+//                   ----- PERFIL_INSTRUMENTO -----
+//                   ----- TIPO_ANUNCIO -----
+//                   ----- TIPO_ARCHIVO -----
