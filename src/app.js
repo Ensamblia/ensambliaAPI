@@ -12,6 +12,7 @@ import comarcaRoutes from './routes/comarcaRoutes.js'
 import comentarioRoutes from './routes/comentarioRoutes.js'
 import grupoGeneroRoutes from './routes/grupoGeneroRoutes.js'
 import mensajeRoutes from './routes/mensajeRoutes.js'
+import mensajeLeidoRoutes from './routes/mensajeLeidoRoutes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -27,6 +28,7 @@ app.use('/api/comarcas', comarcaRoutes)
 app.use('/api/comentarios', comentarioRoutes)
 app.use('/api/grupo-generos', grupoGeneroRoutes)
 app.use('/api/mensajes', mensajeRoutes)
+app.use('/api/mensaje-leidos', mensajeLeidoRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
