@@ -14,6 +14,7 @@ import grupoGeneroRoutes from './routes/grupoGeneroRoutes.js'
 import mensajeRoutes from './routes/mensajeRoutes.js'
 import mensajeLeidoRoutes from './routes/mensajeLeidoRoutes.js'
 import perfilRoutes from './routes/perfilRoutes.js'
+import perfilChatRoutes from './routes/perfilChatRoutes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -31,6 +32,7 @@ app.use('/api/grupo-generos', grupoGeneroRoutes)
 app.use('/api/mensajes', mensajeRoutes)
 app.use('/api/mensaje-leidos', mensajeLeidoRoutes)
 app.use('/api/perfiles', perfilRoutes)
+app.use('/api/perfil-chats', perfilChatRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
