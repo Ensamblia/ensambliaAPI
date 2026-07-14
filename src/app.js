@@ -16,6 +16,7 @@ import perfilChatRoutes from './routes/perfilChatRoutes.js'
 import perfilGeneroMusicalRoutes from './routes/perfilGeneroMusicalRoutes.js'
 import generoMusicalRoutes from './routes/generoMusicalRoutes.js'
 import perfilInstrumentoRoutes from './routes/perfilInstrumentoRoutes.js'
+import tipoAnuncioRoutes from './routes/tipoAnuncioRoutes.js'
 
 
 dotenv.config()
@@ -40,6 +41,7 @@ app.use('/api/perfil-chats', perfilChatRoutes)
 app.use('/api/perfil-genero-musicales', perfilGeneroMusicalRoutes)
 app.use('/api/genero_musical', generoMusicalRoutes)
 app.use('/api/perfil-instrumentos', perfilInstrumentoRoutes)
+app.use('/api/tipo-anuncios', tipoAnuncioRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
