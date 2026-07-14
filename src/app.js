@@ -8,6 +8,12 @@ import chatRoutes from './routes/chatRoutes.js'
 import ciudadRoutes from './routes/ciudadRoutes.js'
 import comarcaRoutes from './routes/comarcaRoutes.js'
 import comentarioRoutes from './routes/comentarioRoutes.js'
+import grupoGeneroRoutes from './routes/grupoGeneroRoutes.js'
+import mensajeRoutes from './routes/mensajeRoutes.js'
+import mensajeLeidoRoutes from './routes/mensajeLeidoRoutes.js'
+import perfilRoutes from './routes/perfilRoutes.js'
+import perfilChatRoutes from './routes/perfilChatRoutes.js'
+import perfilGeneroMusicalRoutes from './routes/perfilGeneroMusicalRoutes.js'
 import generoMusicalRoutes from './routes/generoMusicalRoutes.js'
 
 
@@ -25,6 +31,12 @@ app.use('/api/chats', chatRoutes)
 app.use('/api/ciudades', ciudadRoutes)
 app.use('/api/comarcas', comarcaRoutes)
 app.use('/api/comentarios', comentarioRoutes)
+app.use('/api/grupo-generos', grupoGeneroRoutes)
+app.use('/api/mensajes', mensajeRoutes)
+app.use('/api/mensaje-leidos', mensajeLeidoRoutes)
+app.use('/api/perfiles', perfilRoutes)
+app.use('/api/perfil-chats', perfilChatRoutes)
+app.use('/api/perfil-genero-musicales', perfilGeneroMusicalRoutes)
 app.use('/api/genero_musical', generoMusicalRoutes)
 
 app.listen(PORT, () => {
