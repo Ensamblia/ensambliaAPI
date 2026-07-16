@@ -18,6 +18,7 @@ import generoMusicalRoutes from './routes/generoMusicalRoutes.js'
 import perfilInstrumentoRoutes from './routes/perfilInstrumentoRoutes.js'
 import tipoAnuncioRoutes from './routes/tipoAnuncioRoutes.js'
 import multimediaRoutes from './routes/multimediaRoutes.js'
+import tipoArchivoRoutes from './routes/tipoArchivoRoutes.js'  // ← NUEVO
 
 dotenv.config()
 const app = express()
@@ -43,6 +44,7 @@ app.use('/api/genero_musical', generoMusicalRoutes)
 app.use('/api/perfil-instrumentos', perfilInstrumentoRoutes)
 app.use('/api/tipo-anuncios', tipoAnuncioRoutes)
 app.use('/api/multimedia', multimediaRoutes)
+app.use('/api/tipo-archivos', tipoArchivoRoutes)  // ← NUEVO
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
