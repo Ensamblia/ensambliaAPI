@@ -135,7 +135,6 @@ const updateMultimedia = async (req, res) => {
             "anuncio_id"
         ]
 
-        // Validar que al menos un campo venga en el payload
         const hasValidField = Object.keys(payload).some(field => allowedFields.includes(field))
         if (!hasValidField) {
             return res.status(400).json({
@@ -143,7 +142,6 @@ const updateMultimedia = async (req, res) => {
             })
         }
 
-        // Validaciones específicas
         if (payload.nombre !== undefined && (typeof payload.nombre !== 'string' || payload.nombre.trim() === '')) {
             return res.status(400).json({
                 error: "nombre no puede estar vacío"
@@ -211,7 +209,6 @@ const createMultimedia = async (req, res) => {
             anuncio_id
         } = req.body
 
-        // Validaciones
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
                 error: "nombre es un campo obligatorio"
