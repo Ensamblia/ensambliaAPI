@@ -1,19 +1,18 @@
 import express from 'express'
 const router = express.Router()
-import comentarioController from '../controllers/comentarioController.js';
+import comentarioController from '../controllers/comentarioController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
+router.get('/', authMiddleware, comentarioController.getComentarios)
+router.get('/perfil', authMiddleware, comentarioController.getByPerfilId)
+router.get('/anuncio', authMiddleware, comentarioController.getByAnuncioId)
 
+router.get('/:id', authMiddleware, comentarioController.getById)
 
-router.get('/', comentarioController.getComentarios)
-router.get('/perfil', comentarioController.getByPerfilId)
-router.get('/anuncio', comentarioController.getByAnuncioId)
+router.post('/', authMiddleware, comentarioController.createComentario)
 
-router.get('/:id', comentarioController.getById)
+router.put('/:id', authMiddleware, comentarioController.updateComentario)
 
-router.post('/', comentarioController.createComentario)
-
-router.put('/:id', comentarioController.updateComentario)
-
-router.delete('/:id', comentarioController.deleteComentario)
+router.delete('/:id', authMiddleware, comentarioController.deleteComentario)
 
 export default router

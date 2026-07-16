@@ -1,19 +1,18 @@
 import express from 'express'
 const router = express.Router()
-import mensajeController from '../controllers/mensajeController.js';
+import mensajeController from '../controllers/mensajeController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
+router.get('/', authMiddleware, mensajeController.getMensajes)
+router.get('/chat', authMiddleware, mensajeController.getByChatId)
+router.get('/perfil', authMiddleware, mensajeController.getByPerfilId)
 
+router.get('/:id', authMiddleware, mensajeController.getById)
 
-router.get('/', mensajeController.getMensajes)
-router.get('/chat', mensajeController.getByChatId)
-router.get('/perfil', mensajeController.getByPerfilId)
+router.post('/', authMiddleware, mensajeController.createMensaje)
 
-router.get('/:id', mensajeController.getById)
+router.put('/:id', authMiddleware, mensajeController.updateMensaje)
 
-router.post('/', mensajeController.createMensaje)
-
-router.put('/:id', mensajeController.updateMensaje)
-
-router.delete('/:id', mensajeController.deleteMensaje)
+router.delete('/:id', authMiddleware, mensajeController.deleteMensaje)
 
 export default router
