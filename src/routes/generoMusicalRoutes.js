@@ -1,16 +1,15 @@
 import express from 'express'
 const router = express.Router()
-import generoMusicalController from '../controllers/generoMusicalController.js';
+import generoMusicalController from '../controllers/generoMusicalController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
+router.get('/', authMiddleware, generoMusicalController.getGeneroMusical)
+router.get('/:id', authMiddleware, generoMusicalController.getById)
 
+router.post('/', authMiddleware, generoMusicalController.createGeneroMusical)
 
-router.get('/', generoMusicalController.getGeneroMusical)
-router.get('/:id', generoMusicalController.getById)
+router.put('/:id', authMiddleware, generoMusicalController.updateGeneroMusical)
 
-router.post('/', generoMusicalController.createGeneroMusical)
-
-router.put('/:id', generoMusicalController.updateGeneroMusical)
-
-router.delete('/:id', generoMusicalController.deleteGeneroMusical)
+router.delete('/:id', authMiddleware, generoMusicalController.deleteGeneroMusical)
 
 export default router

@@ -1,15 +1,16 @@
 import express from 'express'
 const router = express.Router()
 import perfilChatController from '../controllers/perfilChatController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
-router.get('/', perfilChatController.getPerfilChats)
-router.get('/perfil', perfilChatController.getByPerfilId)
-router.get('/chat', perfilChatController.getByChatId)
+router.get('/', authMiddleware, perfilChatController.getPerfilChats)
+router.get('/perfil', authMiddleware, perfilChatController.getByPerfilId)
+router.get('/chat', authMiddleware, perfilChatController.getByChatId)
 
-router.get('/:perfil_id/:chat_id', perfilChatController.getById)
+router.get('/:perfil_id/:chat_id', authMiddleware, perfilChatController.getById)
 
-router.post('/', perfilChatController.createPerfilChat)
+router.post('/', authMiddleware, perfilChatController.createPerfilChat)
 
-router.delete('/:perfil_id/:chat_id', perfilChatController.deletePerfilChat)
+router.delete('/:perfil_id/:chat_id', authMiddleware, perfilChatController.deletePerfilChat)
 
 export default router
