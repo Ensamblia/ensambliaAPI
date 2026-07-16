@@ -2,14 +2,48 @@ import express from 'express'
 const router = express.Router()
 import tipoArchivoController from '../controllers/tipoArchivoController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createTipoArchivoValidators,
+    updateTipoArchivoValidators,
+    getTipoArchivoByIdValidators,
+    deleteTipoArchivoValidators,
+    getTipoArchivosValidators
+} from '../validators/tipoArchivoValidator.js'
 
-router.get('/', authMiddleware, tipoArchivoController.getTipoArchivos)
-router.get('/:id', authMiddleware, tipoArchivoController.getById)
+router.get('/',
+    authMiddleware,
+    getTipoArchivosValidators,
+    handleValidation,
+    tipoArchivoController.getTipoArchivos
+)
 
-router.post('/', authMiddleware, tipoArchivoController.createTipoArchivo)
+router.get('/:id',
+    authMiddleware,
+    getTipoArchivoByIdValidators,
+    handleValidation,
+    tipoArchivoController.getById
+)
 
-router.put('/:id', authMiddleware, tipoArchivoController.updateTipoArchivo)
+router.post('/',
+    authMiddleware,
+    createTipoArchivoValidators,
+    handleValidation,
+    tipoArchivoController.createTipoArchivo
+)
 
-router.delete('/:id', authMiddleware, tipoArchivoController.deleteTipoArchivo)
+router.put('/:id',
+    authMiddleware,
+    updateTipoArchivoValidators,
+    handleValidation,
+    tipoArchivoController.updateTipoArchivo
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteTipoArchivoValidators,
+    handleValidation,
+    tipoArchivoController.deleteTipoArchivo
+)
 
 export default router

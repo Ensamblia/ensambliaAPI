@@ -2,14 +2,48 @@ import express from 'express'
 const router = express.Router()
 import comarcaController from '../controllers/comarcaController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createComarcaValidators,
+    updateComarcaValidators,
+    getComarcaByIdValidators,
+    deleteComarcaValidators,
+    getComarcasValidators
+} from '../validators/comarcaValidator.js'
 
-router.get('/', authMiddleware, comarcaController.getComarcas)
-router.get('/:id', authMiddleware, comarcaController.getById)
+router.get('/',
+    authMiddleware,
+    getComarcasValidators,
+    handleValidation,
+    comarcaController.getComarcas
+)
 
-router.post('/', authMiddleware, comarcaController.createComarca)
+router.get('/:id',
+    authMiddleware,
+    getComarcaByIdValidators,
+    handleValidation,
+    comarcaController.getById
+)
 
-router.put('/:id', authMiddleware, comarcaController.updateComarca)
+router.post('/',
+    authMiddleware,
+    createComarcaValidators,
+    handleValidation,
+    comarcaController.createComarca
+)
 
-router.delete('/:id', authMiddleware, comarcaController.deleteComarca)
+router.put('/:id',
+    authMiddleware,
+    updateComarcaValidators,
+    handleValidation,
+    comarcaController.updateComarca
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteComarcaValidators,
+    handleValidation,
+    comarcaController.deleteComarca
+)
 
 export default router
