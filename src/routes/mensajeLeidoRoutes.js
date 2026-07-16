@@ -2,12 +2,40 @@ import express from 'express'
 const router = express.Router()
 import mensajeLeidoController from '../controllers/mensajeLeidoController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createMensajeLeidoValidators,
+    getMensajeLeidoByIdValidators,
+    deleteMensajeLeidoValidators,
+    getMensajeLeidosValidators
+} from '../validators/mensajeLeidoValidator.js'
 
-router.get('/', authMiddleware, mensajeLeidoController.getMensajeLeidos)
-router.get('/:mensaje_id/:perfil_id', authMiddleware, mensajeLeidoController.getById)
+router.get('/',
+    authMiddleware,
+    getMensajeLeidosValidators,
+    handleValidation,
+    mensajeLeidoController.getMensajeLeidos
+)
 
-router.post('/', authMiddleware, mensajeLeidoController.createMensajeLeido)
+router.get('/:mensaje_id/:perfil_id',
+    authMiddleware,
+    getMensajeLeidoByIdValidators,
+    handleValidation,
+    mensajeLeidoController.getById
+)
 
-router.delete('/:mensaje_id/:perfil_id', authMiddleware, mensajeLeidoController.deleteMensajeLeido)
+router.post('/',
+    authMiddleware,
+    createMensajeLeidoValidators,
+    handleValidation,
+    mensajeLeidoController.createMensajeLeido
+)
+
+router.delete('/:mensaje_id/:perfil_id',
+    authMiddleware,
+    deleteMensajeLeidoValidators,
+    handleValidation,
+    mensajeLeidoController.deleteMensajeLeido
+)
 
 export default router

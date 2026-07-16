@@ -2,14 +2,48 @@ import express from 'express'
 const router = express.Router()
 import generoMusicalController from '../controllers/generoMusicalController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createGeneroMusicalValidators,
+    updateGeneroMusicalValidators,
+    getGeneroMusicalByIdValidators,
+    deleteGeneroMusicalValidators,
+    getGeneroMusicalesValidators
+} from '../validators/generoMusicalValidator.js'
 
-router.get('/', authMiddleware, generoMusicalController.getGeneroMusical)
-router.get('/:id', authMiddleware, generoMusicalController.getById)
+router.get('/',
+    authMiddleware,
+    getGeneroMusicalesValidators,
+    handleValidation,
+    generoMusicalController.getGeneroMusical
+)
 
-router.post('/', authMiddleware, generoMusicalController.createGeneroMusical)
+router.get('/:id',
+    authMiddleware,
+    getGeneroMusicalByIdValidators,
+    handleValidation,
+    generoMusicalController.getById
+)
 
-router.put('/:id', authMiddleware, generoMusicalController.updateGeneroMusical)
+router.post('/',
+    authMiddleware,
+    createGeneroMusicalValidators,
+    handleValidation,
+    generoMusicalController.createGeneroMusical
+)
 
-router.delete('/:id', authMiddleware, generoMusicalController.deleteGeneroMusical)
+router.put('/:id',
+    authMiddleware,
+    updateGeneroMusicalValidators,
+    handleValidation,
+    generoMusicalController.updateGeneroMusical
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteGeneroMusicalValidators,
+    handleValidation,
+    generoMusicalController.deleteGeneroMusical
+)
 
 export default router

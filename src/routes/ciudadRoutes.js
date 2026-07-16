@@ -2,14 +2,48 @@ import express from 'express'
 const router = express.Router()
 import ciudadController from '../controllers/ciudadController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createCiudadValidators,
+    updateCiudadValidators,
+    getCiudadByIdValidators,
+    deleteCiudadValidators,
+    getCiudadesValidators
+} from '../validators/ciudadValidator.js'
 
-router.get('/', authMiddleware, ciudadController.getCiudades)
-router.get('/:id', authMiddleware, ciudadController.getById)
+router.get('/',
+    authMiddleware,
+    getCiudadesValidators,
+    handleValidation,
+    ciudadController.getCiudades
+)
 
-router.post('/', authMiddleware, ciudadController.createCiudad)
+router.get('/:id',
+    authMiddleware,
+    getCiudadByIdValidators,
+    handleValidation,
+    ciudadController.getById
+)
 
-router.put('/:id', authMiddleware, ciudadController.updateCiudad)
+router.post('/',
+    authMiddleware,
+    createCiudadValidators,
+    handleValidation,
+    ciudadController.createCiudad
+)
 
-router.delete('/:id', authMiddleware, ciudadController.deleteCiudad)
+router.put('/:id',
+    authMiddleware,
+    updateCiudadValidators,
+    handleValidation,
+    ciudadController.updateCiudad
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteCiudadValidators,
+    handleValidation,
+    ciudadController.deleteCiudad
+)
 
 export default router
