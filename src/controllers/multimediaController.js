@@ -176,6 +176,20 @@ const updateMultimedia = async (req, res) => {
             }
         }
 
+        if (payload.anuncio_id !== undefined && payload.anuncio_id !== null) {
+            const anuncio = await anuncioModel.getById(payload.anuncio_id)
+            if (!anuncio) {
+                return res.status(404).json({
+                    error: `Anuncio no encontrado: ${payload.anuncio_id}`
+                })
+            }
+            if (anuncio.perfil_id !== miPerfilId) {
+                return res.status(403).json({
+                    error: "No puedes vincular tu archivo al anuncio de otro usuario"
+                })
+            }
+        }
+
         for (const field in payload) {
             if (!allowedFields.includes(field)) continue
 
