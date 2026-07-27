@@ -1,6 +1,9 @@
 import express from 'express'
 const router = express.Router()
 import perfilChatController from '../controllers/perfilChatController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+
+router.use(authMiddleware)
 
 router.get('/', perfilChatController.getPerfilChats)
 router.get('/perfil', perfilChatController.getByPerfilId)

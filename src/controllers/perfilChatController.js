@@ -1,4 +1,10 @@
 import perfilChatModel from '../models/perfilChatModel.js'
+import perfilModel from '../models/perfilModel.js'
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
 
 const getPerfilChats = async (req, res) => {
     try {
@@ -46,6 +52,14 @@ const getById = async (req, res) => {
 const getByPerfilId = async (req, res) => {
     try {
         const { perfil_id } = req.query
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || Number(perfil_id) !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes ver los chats de otro perfil"
+            })
+        }
+
         const data = await perfilChatModel.getByPerfilId(perfil_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -68,7 +82,16 @@ const getByPerfilId = async (req, res) => {
 const getByChatId = async (req, res) => {
     try {
         const { chat_id } = req.query
-        const data = await perfilChatModel.getByChatId(chat_id)
+
+        const miPerfilId = await getMiPerfilId(req)
+        const participantes = await perfilChatModel.getByChatId(chat_id)
+        if (!miPerfilId || !participantes.some((p) => p.perfil_id === miPerfilId)) {
+            return res.status(403).json({
+                error: "No participas en este chat"
+            })
+        }
+
+        const data = participantes
         if (data.length === 0) {
             return res.status(404).json({
                 error: "Nothing found"

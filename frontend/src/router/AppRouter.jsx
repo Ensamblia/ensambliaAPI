@@ -31,7 +31,7 @@ export function AppRouter() {
           <Route path="/"          element={<HomePage />} />
           <Route path="/anuncios"  element={<AnunciosPage />} />
           <Route path="/perfil"    element={<RequireAuth><PerfilPage /></RequireAuth>} />
-          <Route path="/chat"      element={<ChatPage />} />
+          <Route path="/chat"      element={<RequireAuth><ChatPage /></RequireAuth>} />
           <Route path="/login"     element={<LoginPage />} />
           <Route path="/register"  element={<RegisterPage />} />
           <Route path="*"          element={<Navigate to="/" replace />} />

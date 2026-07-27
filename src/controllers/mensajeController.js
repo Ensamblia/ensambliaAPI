@@ -1,4 +1,16 @@
 import mensajeModel from "../models/mensajeModel.js"
+import perfilModel from "../models/perfilModel.js"
+import perfilChatModel from "../models/perfilChatModel.js"
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
+
+const esParticipante = async (chat_id, perfil_id) => {
+    const participantes = await perfilChatModel.getByChatId(chat_id)
+    return participantes.some((p) => p.perfil_id === perfil_id)
+}
 
 const getMensajes = async (req, res) => {
     try {
@@ -46,6 +58,14 @@ const getById = async (req, res) => {
 const getByChatId = async (req, res) => {
     try {
         const { chat_id } = req.query
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || !(await esParticipante(chat_id, miPerfilId))) {
+            return res.status(403).json({
+                error: "No participas en este chat"
+            })
+        }
+
         const data = await mensajeModel.getByChatId(chat_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -68,6 +88,14 @@ const getByChatId = async (req, res) => {
 const getByPerfilId = async (req, res) => {
     try {
         const { perfil_id } = req.query
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || Number(perfil_id) !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes ver los mensajes de otro perfil"
+            })
+        }
+
         const data = await mensajeModel.getByPerfilId(perfil_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -90,12 +118,21 @@ const getByPerfilId = async (req, res) => {
 const deleteMensaje = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await mensajeModel.deleteMensaje(id)
-        if (!data) {
+
+        const existente = await mensajeModel.getById(id)
+        if (!existente) {
             return res.status(404).json({
                 error: "Mensaje not found"
             });
         }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes borrar un mensaje que no es tuyo"
+            })
+        }
+
+        const data = await mensajeModel.deleteMensaje(id)
         res.json(data)
 
     } catch (error) {
@@ -113,6 +150,20 @@ const deleteMensaje = async (req, res) => {
 const updateMensaje = async (req, res) => {
     try {
         const { id } = req.params
+
+        const existente = await mensajeModel.getById(id)
+        if (!existente) {
+            return res.status(404).json({
+                error: "mensaje not found"
+            });
+        }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes editar un mensaje que no es tuyo"
+            })
+        }
+
         const payload = req.body || {}
         const updates = []
         const values = []
@@ -177,8 +228,7 @@ const createMensaje = async (req, res) => {
         const {
             contenido,
             esta_eliminado,
-            chat_id,
-            perfil_id
+            chat_id
         } = req.body
 
         if (!contenido || contenido.trim() === '') {
@@ -193,12 +243,17 @@ const createMensaje = async (req, res) => {
             });
         }
 
-        if (perfil_id !== undefined && !Number.isInteger(perfil_id)) {
-            return res.status(400).json({
-                error: "perfil_id must be integer"
-            });
+        const perfil_id = await getMiPerfilId(req)
+        if (!perfil_id) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de enviar mensajes"
+            })
         }
-
+        if (!(await esParticipante(chat_id, perfil_id))) {
+            return res.status(403).json({
+                error: "No participas en este chat"
+            })
+        }
 
         const columns = [
             "contenido",
