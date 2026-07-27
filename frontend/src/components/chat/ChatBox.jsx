@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../api/axios';
 
 /* ── Layout ── */
@@ -229,6 +229,9 @@ const newChatBtnDisabled = {
 };
 
 export function ChatBox() {
+  const [searchParams] = useSearchParams();
+  const chatIdFromUrl = Number(searchParams.get('chat')) || null;
+
   const [loading, setLoading]   = useState(true);
   const [miPerfilId, setMiPerfilId] = useState(null);
   const [convs, setConvs]       = useState([]);
@@ -274,7 +277,11 @@ export function ChatBox() {
           };
         }));
 
-        if (!cancelado) setConvs(conversaciones);
+        if (cancelado) return;
+        setConvs(conversaciones);
+        if (chatIdFromUrl && conversaciones.some((c) => c.chat_id === chatIdFromUrl)) {
+          setActiveId(chatIdFromUrl);
+        }
       } finally {
         if (!cancelado) setLoading(false);
       }

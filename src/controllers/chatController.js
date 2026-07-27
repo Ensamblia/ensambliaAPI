@@ -75,6 +75,61 @@ const getById = async (req, res) => {
     }
 }
 
+const iniciarConversacion = async (req, res) => {
+    try {
+        const otroPerfilId = Number(req.params.otro_perfil_id)
+        if (!Number.isInteger(otroPerfilId)) {
+            return res.status(400).json({
+                error: "otro_perfil_id debe ser un entero"
+            })
+        }
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de iniciar una conversación"
+            })
+        }
+
+        if (otroPerfilId === miPerfilId) {
+            return res.status(400).json({
+                error: "No puedes iniciar un chat contigo mismo"
+            })
+        }
+
+        const otroPerfil = await perfilModel.getById(otroPerfilId)
+        if (!otroPerfil) {
+            return res.status(404).json({
+                error: `Perfil no encontrado: ${otroPerfilId}`
+            })
+        }
+
+        const misPerfilChats = await perfilChatModel.getByPerfilId(miPerfilId).catch(() => [])
+        for (const { chat_id } of misPerfilChats) {
+            const participantes = await perfilChatModel.getByChatId(chat_id)
+            const idsParticipantes = participantes.map((p) => p.perfil_id)
+            if (idsParticipantes.length === 2 && idsParticipantes.includes(otroPerfilId)) {
+                return res.status(200).json({ chat_id })
+            }
+        }
+
+        const chat = await chatModel.createChat()
+        await perfilChatModel.createPerfilChat(miPerfilId, chat.chat_id)
+        await perfilChatModel.createPerfilChat(otroPerfilId, chat.chat_id)
+
+        res.status(201).json({ chat_id: chat.chat_id })
+    } catch (error) {
+        res.status(500).json({
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            hint: error.hint,
+            position: error.position
+        })
+    }
+}
+
 const deleteChat = async (req, res) => {
     try {
         const { id } = req.params
@@ -109,5 +164,6 @@ const deleteChat = async (req, res) => {
 export default {
     getChats,
     getById,
-    deleteChat
+    deleteChat,
+    iniciarConversacion
 }
