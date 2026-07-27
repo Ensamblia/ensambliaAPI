@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from '../components/navbar/Navbar';
+import { AuthContext } from '../context/AuthContext';
 import { HomePage }     from '../pages/HomePage';
 import { AnunciosPage } from '../pages/AnunciosPage';
 import { PerfilPage }   from '../pages/PerfilPage';
@@ -16,6 +17,11 @@ const layoutStyle = {
   fontFamily: "'Open Sans', sans-serif",
 };
 
+function RequireAuth({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" replace />;
+}
+
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -24,7 +30,7 @@ export function AppRouter() {
         <Routes>
           <Route path="/"          element={<HomePage />} />
           <Route path="/anuncios"  element={<AnunciosPage />} />
-          <Route path="/perfil"    element={<PerfilPage />} />
+          <Route path="/perfil"    element={<RequireAuth><PerfilPage /></RequireAuth>} />
           <Route path="/chat"      element={<ChatPage />} />
           <Route path="/login"     element={<LoginPage />} />
           <Route path="/register"  element={<RegisterPage />} />

@@ -2,6 +2,28 @@ import perfilModel from '../models/perfilModel.js'
 
 const SEXOS_PERMITIDOS = ["Hombre", "Mujer", "Otro", "Prefiero no decir"]
 
+const getMe = async (req, res) => {
+    try {
+        const usuario_id = req.usuario.usuario_id
+        const data = await perfilModel.getByUsuarioId(usuario_id)
+        if (data.length === 0) {
+            return res.status(404).json({
+                error: "Todavía no has creado tu perfil"
+            })
+        }
+        res.status(200).json(data[0])
+    } catch (error) {
+        res.status(500).json({
+            name: error.name,
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            hint: error.hint,
+            position: error.position
+        })
+    }
+}
+
 const getPerfiles = async (req, res) => {
     try {
         const data = await perfilModel.getPerfiles()
@@ -92,12 +114,20 @@ const getByComarcaId = async (req, res) => {
 const deletePerfil = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await perfilModel.deletePerfil(id)
-        if (!data) {
+
+        const existente = await perfilModel.getById(id)
+        if (!existente) {
             return res.status(404).json({
                 error: "Perfil no encontrado"
             });
         }
+        if (existente.usuario_id !== req.usuario.usuario_id) {
+            return res.status(403).json({
+                error: "No puedes borrar el perfil de otro usuario"
+            });
+        }
+
+        const data = await perfilModel.deletePerfil(id)
         res.json(data)
     } catch (error) {
         res.status(500).json({
@@ -114,6 +144,19 @@ const deletePerfil = async (req, res) => {
 const updatePerfil = async (req, res) => {
     try {
         const { id } = req.params
+
+        const existente = await perfilModel.getById(id)
+        if (!existente) {
+            return res.status(404).json({
+                error: "Perfil not found"
+            });
+        }
+        if (existente.usuario_id !== req.usuario.usuario_id) {
+            return res.status(403).json({
+                error: "No puedes editar el perfil de otro usuario"
+            });
+        }
+
         const payload = req.body || {}
         const updates = []
         const values = []
@@ -127,8 +170,7 @@ const updatePerfil = async (req, res) => {
             "sexo",
             "disponibilidad",
             "descripcion",
-            "comarca_id",
-            "usuario_id"
+            "comarca_id"
         ]
 
         const textFields = ["nombre", "apellido", "correo", "descripcion"]
@@ -140,7 +182,7 @@ const updatePerfil = async (req, res) => {
             }
         }
 
-        const integerFields = ["numero_telefono", "edad", "comarca_id", "usuario_id"]
+        const integerFields = ["numero_telefono", "edad", "comarca_id"]
         for (const field of integerFields) {
             if (payload[field] !== undefined && payload[field] !== null && !Number.isInteger(payload[field])) {
                 return res.status(400).json({
@@ -210,9 +252,10 @@ const createPerfil = async (req, res) => {
             sexo,
             disponibilidad,
             descripcion,
-            comarca_id,
-            usuario_id
+            comarca_id
         } = req.body
+
+        const usuario_id = req.usuario.usuario_id
 
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
@@ -308,6 +351,7 @@ const createPerfil = async (req, res) => {
 
 export default {
     getPerfiles,
+    getMe,
     getById,
     getByUsuarioId,
     getByComarcaId,
