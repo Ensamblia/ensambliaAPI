@@ -9,6 +9,9 @@ import ciudadRoutes from './routes/ciudadRoutes.js'
 import comarcaRoutes from './routes/comarcaRoutes.js'
 import comentarioRoutes from './routes/comentarioRoutes.js'
 import grupoGeneroRoutes from './routes/grupoGeneroRoutes.js'
+import grupoRoutes from './routes/grupoRoutes.js'
+import multimediaRoutes from './routes/multimediaRoutes.js'
+import tipoArchivoRoutes from './routes/tipoArchivoRoutes.js'
 import mensajeRoutes from './routes/mensajeRoutes.js'
 import mensajeLeidoRoutes from './routes/mensajeLeidoRoutes.js'
 import perfilRoutes from './routes/perfilRoutes.js'
@@ -34,6 +37,9 @@ app.use('/api/ciudades', ciudadRoutes)
 app.use('/api/comarcas', comarcaRoutes)
 app.use('/api/comentarios', comentarioRoutes)
 app.use('/api/grupo-generos', grupoGeneroRoutes)
+app.use('/api/grupos', grupoRoutes)
+app.use('/api/multimedias', multimediaRoutes)
+app.use('/api/tipo-archivos', tipoArchivoRoutes)
 app.use('/api/mensajes', mensajeRoutes)
 app.use('/api/mensaje-leidos', mensajeLeidoRoutes)
 app.use('/api/perfiles', perfilRoutes)
