@@ -14,7 +14,19 @@ const esParticipante = async (chat_id, perfil_id) => {
 
 const getMensajes = async (req, res) => {
     try {
-        const data = await mensajeModel.getMensajes()
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId) {
+            return res.status(404).json({
+                error: "Nothing found"
+            })
+        }
+
+        const misPerfilChats = await perfilChatModel.getByPerfilId(miPerfilId).catch(() => [])
+        const misMensajes = await Promise.all(
+            misPerfilChats.map((pc) => mensajeModel.getByChatId(pc.chat_id))
+        )
+        const data = misMensajes.flat()
+
         if (data.length === 0) {
             return res.status(404).json({
                 error: "Nothing found"
@@ -42,6 +54,14 @@ const getById = async (req, res) => {
                 error: `Nothing found for id: ${id}`
             });
         }
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || !(await esParticipante(data.chat_id, miPerfilId))) {
+            return res.status(403).json({
+                error: "No participas en el chat de este mensaje"
+            })
+        }
+
         res.status(200).json(data)
     } catch (error) {
         res.status(500).json({

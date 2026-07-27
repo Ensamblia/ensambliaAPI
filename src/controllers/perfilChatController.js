@@ -8,7 +8,19 @@ const getMiPerfilId = async (req) => {
 
 const getPerfilChats = async (req, res) => {
     try {
-        const data = await perfilChatModel.getPerfilChats()
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId) {
+            return res.status(404).json({
+                error: "Nothing found"
+            })
+        }
+
+        const misChats = await perfilChatModel.getByPerfilId(miPerfilId).catch(() => [])
+        const misChatIds = new Set(misChats.map((pc) => pc.chat_id))
+
+        const todos = await perfilChatModel.getPerfilChats()
+        const data = todos.filter((pc) => misChatIds.has(pc.chat_id))
+
         if (data.length === 0) {
             return res.status(404).json({
                 error: "Nothing found"
@@ -30,6 +42,22 @@ const getPerfilChats = async (req, res) => {
 const getById = async (req, res) => {
     try {
         const { perfil_id, chat_id } = req.params
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId) {
+            return res.status(403).json({
+                error: "No participas en este chat"
+            })
+        }
+        if (Number(perfil_id) !== miPerfilId) {
+            const participantes = await perfilChatModel.getByChatId(chat_id).catch(() => [])
+            if (!participantes.some((p) => p.perfil_id === miPerfilId)) {
+                return res.status(403).json({
+                    error: "No participas en este chat"
+                })
+            }
+        }
+
         const data = await perfilChatModel.getById(perfil_id, chat_id)
         if (!data) {
             return res.status(404).json({
