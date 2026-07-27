@@ -1,4 +1,10 @@
 import anuncioModel from '../models/anuncioModel.js'
+import perfilModel from '../models/perfilModel.js'
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
 
 const getAnuncios = async (req, res) => {
     try {
@@ -46,12 +52,21 @@ const getById = async (req, res) => {
 const deleteAnuncio = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await anuncioModel.deleteAnuncio(id)
-        if (!data) {
+
+        const existente = await anuncioModel.getById(id)
+        if (!existente) {
             return res.status(404).json({
                 error: "Anuncio not found"
             });
         }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes borrar el anuncio de otro usuario"
+            })
+        }
+
+        const data = await anuncioModel.deleteAnuncio(id)
         res.json(data)
 
     } catch (error) {
@@ -69,6 +84,20 @@ const deleteAnuncio = async (req, res) => {
 const updateAnuncio = async (req, res) => {
     try {
         const { id } = req.params
+
+        const existente = await anuncioModel.getById(id)
+        if (!existente) {
+            return res.status(404).json({
+                error: "Anuncio not found"
+            });
+        }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes editar el anuncio de otro usuario"
+            })
+        }
+
         const payload = req.body || {}
         const updates = []
         const values = []
@@ -139,7 +168,6 @@ const createAnuncio = async (req, res) => {
         const {
             titulo,
             contenido,
-            perfil_id,
             tipo_anuncio_id
         } = req.body
 
@@ -149,10 +177,11 @@ const createAnuncio = async (req, res) => {
             })
         }
 
-        if (perfil_id !== undefined && !Number.isInteger(perfil_id)) {
-            return res.status(400).json({
-                error: "perfil_id must be integer"
-            });
+        const perfil_id = await getMiPerfilId(req)
+        if (!perfil_id) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de publicar un anuncio"
+            })
         }
 
         if (tipo_anuncio_id !== undefined && !Number.isInteger(tipo_anuncio_id)) {

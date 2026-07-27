@@ -1,4 +1,10 @@
 import comentarioModel from "../models/comentarioModel.js"
+import perfilModel from "../models/perfilModel.js"
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
 
 const getComentarios = async (req, res) => {
     try {
@@ -90,12 +96,21 @@ const getByAnuncioId = async (req, res) => {
 const deleteComentario = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await comentarioModel.deleteComentario(id)
-        if (!data) {
+
+        const existente = await comentarioModel.getById(id)
+        if (!existente) {
             return res.status(404).json({
                 error: "Comentario not found"
             });
         }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes borrar el comentario de otro usuario"
+            })
+        }
+
+        const data = await comentarioModel.deleteComentario(id)
         res.json(data)
 
     } catch (error) {
@@ -113,6 +128,20 @@ const deleteComentario = async (req, res) => {
 const updateComentario = async (req, res) => {
     try {
         const { id } = req.params
+
+        const existente = await comentarioModel.getById(id)
+        if (!existente) {
+            return res.status(404).json({
+                error: "comentario not found"
+            });
+        }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes editar el comentario de otro usuario"
+            })
+        }
+
         const payload = req.body || {}
         const updates = []
         const values = []
@@ -182,8 +211,7 @@ const createComentario = async (req, res) => {
         const {
             contenido,
             esta_eliminado,
-            anuncio_id,
-            perfil_id
+            anuncio_id
         } = req.body
 
         if (!contenido || contenido.trim() === '') {
@@ -198,12 +226,12 @@ const createComentario = async (req, res) => {
             });
         }
 
-        if (perfil_id !== undefined && !Number.isInteger(perfil_id)) {
-            return res.status(400).json({
-                error: "perfil_id must be integer"
-            });
+        const perfil_id = await getMiPerfilId(req)
+        if (!perfil_id) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de comentar"
+            })
         }
-
 
         const columns = [
             "contenido",

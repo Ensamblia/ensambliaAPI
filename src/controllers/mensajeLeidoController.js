@@ -1,4 +1,12 @@
 import mensajeLeidoModel from '../models/mensajeLeidoModel.js'
+import mensajeModel from '../models/mensajeModel.js'
+import perfilModel from '../models/perfilModel.js'
+import perfilChatModel from '../models/perfilChatModel.js'
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
 
 const getMensajeLeidos = async (req, res) => {
     try {
@@ -45,7 +53,7 @@ const getById = async (req, res) => {
 
 const createMensajeLeido = async (req, res) => {
     try {
-        const { mensaje_id, perfil_id } = req.body
+        const { mensaje_id } = req.body
 
         if (mensaje_id === undefined || !Number.isInteger(mensaje_id)) {
             return res.status(400).json({
@@ -53,9 +61,23 @@ const createMensajeLeido = async (req, res) => {
             })
         }
 
-        if (perfil_id === undefined || !Number.isInteger(perfil_id)) {
-            return res.status(400).json({
-                error: "perfil_id es un campo obligatorio y debe ser un entero"
+        const perfil_id = await getMiPerfilId(req)
+        if (!perfil_id) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de marcar mensajes como leídos"
+            })
+        }
+
+        const mensaje = await mensajeModel.getById(mensaje_id)
+        if (!mensaje) {
+            return res.status(404).json({
+                error: `Mensaje no encontrado: ${mensaje_id}`
+            })
+        }
+        const participantes = await perfilChatModel.getByChatId(mensaje.chat_id)
+        if (!participantes.some((p) => p.perfil_id === perfil_id)) {
+            return res.status(403).json({
+                error: "No participas en el chat de este mensaje"
             })
         }
 
@@ -81,6 +103,14 @@ const createMensajeLeido = async (req, res) => {
 const deleteMensajeLeido = async (req, res) => {
     try {
         const { mensaje_id, perfil_id } = req.params
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || Number(perfil_id) !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes borrar la marca de leído de otro perfil"
+            })
+        }
+
         const data = await mensajeLeidoModel.deleteMensajeLeido(mensaje_id, perfil_id)
         if (!data) {
             return res.status(404).json({

@@ -126,6 +126,13 @@ const createPerfilChat = async (req, res) => {
             })
         }
 
+        const miPerfilId = await getMiPerfilId(req)
+        if (perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes añadir a otro perfil a un chat"
+            })
+        }
+
         const data = await perfilChatModel.createPerfilChat(perfil_id, chat_id)
         if (!data) {
             return res.status(404).json({
@@ -148,6 +155,14 @@ const createPerfilChat = async (req, res) => {
 const deletePerfilChat = async (req, res) => {
     try {
         const { perfil_id, chat_id } = req.params
+
+        const miPerfilId = await getMiPerfilId(req)
+        if (!miPerfilId || Number(perfil_id) !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes sacar a otro perfil de un chat"
+            })
+        }
+
         const data = await perfilChatModel.deletePerfilChat(perfil_id, chat_id)
         if (!data) {
             return res.status(404).json({
