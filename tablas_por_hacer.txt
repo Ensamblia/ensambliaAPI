@@ -3,16 +3,19 @@
 //                   ----- CIUDAD ----- done
 //                   ----- COMARCA ----- done
 //                   ----- COMENTARIO ----- done
-//                   ----- GENERO_MUSICAL -----
-//                   ----- GRUPO -----
-//                   ----- GRUPO_GENERO -----
+//                   ----- GENERO_MUSICAL ----- done
+//                   ----- GRUPO ----- done
+//                   ----- GRUPO_GENERO ----- done
 //                   ----- INSTRUMENTO ----- done
-//                   ----- MENSAJE -----
-//                   ----- MENSAJE_LEIDO -----
-//                   ----- MULTIMEDIA -----
-//                   ----- PERFIL -----
-//                   ----- PERFIL_CHAT -----
-//                   ----- PERFIL_GENERO_MUSICAL -----
-//                   ----- PERFIL_INSTRUMENTO -----
-//                   ----- TIPO_ANUNCIO -----
-//                   ----- TIPO_ARCHIVO -----
+//                   ----- MENSAJE ----- done
+//                   ----- MENSAJE_LEIDO ----- done
+//                   ----- MULTIMEDIA ----- done
+//                   ----- PERFIL ----- done
+//                   ----- PERFIL_CHAT ----- done
+//                   ----- PERFIL_GENERO_MUSICAL ----- done
+//                   ----- PERFIL_INSTRUMENTO ----- done
+//                   ----- TIPO_ANUNCIO ----- done
+//                   ----- TIPO_ARCHIVO ----- done
+
+// Pendiente (no CRUD, encontrado al revisar el esquema): PERFIL_GRUPO
+// (qué perfiles pertenecen a qué grupo/banda) no tiene modelo/controlador/rutas.
