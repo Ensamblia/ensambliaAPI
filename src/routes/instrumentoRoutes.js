@@ -1,14 +1,15 @@
 import express from 'express'
 const router = express.Router()
 import instrumentoController from '../controllers/instrumentoController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
 router.get('/', instrumentoController.getInstrumentos)
 router.get('/:id', instrumentoController.getById)
 
-router.post('/', instrumentoController.createInstrumento)
+router.post('/', authMiddleware, instrumentoController.createInstrumento)
 
-router.put('/:id', instrumentoController.updateInstrumento)
+router.put('/:id', authMiddleware, instrumentoController.updateInstrumento)
 
-router.delete('/:id', instrumentoController.deleteInstrumento)
+router.delete('/:id', authMiddleware, instrumentoController.deleteInstrumento)
 
 export default router

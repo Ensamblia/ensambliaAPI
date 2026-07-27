@@ -1,16 +1,17 @@
 import express from 'express'
 const router = express.Router()
 import ciudadController from '../controllers/ciudadController.js';
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
 
 
 
 router.get('/', ciudadController.getCiudades)
 router.get('/:id', ciudadController.getById)
 
-router.post('/', ciudadController.createCiudad)
+router.post('/', authMiddleware, ciudadController.createCiudad)
 
-router.put('/:id', ciudadController.updateCiudad)
+router.put('/:id', authMiddleware, ciudadController.updateCiudad)
 
-router.delete('/:id', ciudadController.deleteCiudad)
+router.delete('/:id', authMiddleware, ciudadController.deleteCiudad)
 
 export default router
