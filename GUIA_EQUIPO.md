@@ -100,20 +100,39 @@ origin/Marga-front (Rama base)
 ---
 
 ### Paso 2: Encender el Backend (API Express)
-1. En la raíz del repositorio (`ensambliaAPI`), asegúrate de tener tu archivo `.env` con las variables de conexión:
+
+> ⚠️ **IMPORTANTE**: el archivo `.env` **ya no se sube al repositorio** (antes se subía por error, con contraseñas reales incluidas). Cada persona del equipo tiene su propio `.env` en local, y nunca se hace `git add .env`. En el repo solo encontrarás `.env.example`, que es la plantilla sin valores reales.
+
+1. En la raíz del repositorio (`ensambliaAPI`), copia la plantilla a tu propio `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *(en Windows/PowerShell: `copy .env.example .env`)*
+
+2. Rellena las variables en tu `.env` local:
    ```env
    PORT=3000
    DB_PORT=5434
    DB_HOST=localhost
    DB_USER=root
-   DB_PASSWORD=ensamblia2026
+   DB_PASSWORD=          # pídesela a un compañero por privado (Discord/WhatsApp del equipo), no está en el repo
    DB_NAME=EMNSAMBLIA_DB
+
+   JWT_SECRET=           # genera el tuyo propio, no hace falta que coincida con el de nadie más
+   JWT_EXPIRES_IN=2h
    ```
-2. Instala las dependencias del backend (solo la primera vez):
+
+   Para generar tu `JWT_SECRET`, ejecuta esto una vez en tu terminal y pega el resultado:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+   No es necesario compartir este valor con nadie: cada backend local firma y valida sus propios tokens, así que el `JWT_SECRET` de cada persona puede (y debe) ser distinto.
+
+3. Instala las dependencias del backend (solo la primera vez):
    ```bash
    npm install
    ```
-3. Arranca el servidor del backend:
+4. Arranca el servidor del backend:
    ```bash
    npm run dev
    ```
@@ -202,6 +221,24 @@ La aplicación cliente (React) se comunica con el servidor de la API Node.js/Exp
      );
    }
    ```
+
+---
+
+### 🔐 5.2 Autenticación (Login / Registro)
+
+Ya existen las vistas de inicio de sesión y registro, conectadas de verdad al backend:
+
+- `frontend/src/pages/LoginPage.jsx` → `POST /api/auth/login`
+- `frontend/src/pages/RegisterPage.jsx` → `POST /api/auth/register`
+
+**¿Cómo se guarda la sesión?**
+- `frontend/src/context/AuthContext.jsx` guarda `{ usuario, token }` en `localStorage` (claves `ensamblia_token` y `ensamblia_usuario`) y expone `login(usuario, token)` / `logout()` a través de `useContext(AuthContext)`.
+- La sesión sobrevive a un refresh de la página (se lee de `localStorage` al arrancar la app).
+- `frontend/src/api/axios.js` añade automáticamente la cabecera `Authorization: Bearer <token>` a **todas** las peticiones si hay sesión activa, así que no hace falta añadirla a mano en cada llamada nueva.
+- `frontend/src/components/navbar/Navbar.jsx` muestra el nombre de usuario + botón "Cerrar sesión" cuando hay sesión, o el enlace "Iniciar sesión" cuando no la hay.
+- `frontend/src/App.jsx` envuelve toda la app en `<AuthProvider>` — si creas otro punto de entrada, recuerda envolverlo también.
+
+**Importante:** de momento no hay rutas protegidas (por ejemplo, `/perfil` es visible sin haber iniciado sesión). Si tu tarea necesita proteger una ruta, pregunta antes de implementarlo para no pisar el trabajo de otra persona.
 
 ---
 
