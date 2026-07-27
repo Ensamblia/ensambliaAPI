@@ -94,7 +94,7 @@ origin/Marga-front (Rama base)
      - **Host**: `localhost` (o nombre del servicio docker)
      - **Puerto**: `5434`
      - **Usuario**: `root`
-     - **Contraseña**: `ensamblia2026`
+     - **Contraseña**: la misma que uses en tu `DB_PASSWORD` del backend (pídesela a un compañero por privado, no está en el repo)
      - **Base de Datos**: `EMNSAMBLIA_DB`
 
 ---
