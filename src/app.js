@@ -17,6 +17,7 @@ import mensajeLeidoRoutes from './routes/mensajeLeidoRoutes.js'
 import perfilRoutes from './routes/perfilRoutes.js'
 import perfilChatRoutes from './routes/perfilChatRoutes.js'
 import perfilGeneroMusicalRoutes from './routes/perfilGeneroMusicalRoutes.js'
+import perfilGrupoRoutes from './routes/perfilGrupoRoutes.js'
 import generoMusicalRoutes from './routes/generoMusicalRoutes.js'
 import perfilInstrumentoRoutes from './routes/perfilInstrumentoRoutes.js'
 import tipoAnuncioRoutes from './routes/tipoAnuncioRoutes.js'
@@ -45,6 +46,7 @@ app.use('/api/mensaje-leidos', mensajeLeidoRoutes)
 app.use('/api/perfiles', perfilRoutes)
 app.use('/api/perfil-chats', perfilChatRoutes)
 app.use('/api/perfil-genero-musicales', perfilGeneroMusicalRoutes)
+app.use('/api/perfil-grupos', perfilGrupoRoutes)
 app.use('/api/genero_musical', generoMusicalRoutes)
 app.use('/api/perfil-instrumentos', perfilInstrumentoRoutes)
 app.use('/api/tipo-anuncios', tipoAnuncioRoutes)

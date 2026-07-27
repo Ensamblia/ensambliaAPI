@@ -13,9 +13,7 @@
 //                   ----- PERFIL ----- done
 //                   ----- PERFIL_CHAT ----- done
 //                   ----- PERFIL_GENERO_MUSICAL ----- done
+//                   ----- PERFIL_GRUPO ----- done
 //                   ----- PERFIL_INSTRUMENTO ----- done
 //                   ----- TIPO_ANUNCIO ----- done
 //                   ----- TIPO_ARCHIVO ----- done
-
-// Pendiente (no CRUD, encontrado al revisar el esquema): PERFIL_GRUPO
-// (qué perfiles pertenecen a qué grupo/banda) no tiene modelo/controlador/rutas.
