@@ -13,14 +13,8 @@ const getMe = async (req, res) => {
         }
         res.status(200).json(data[0])
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -34,14 +28,8 @@ const getPerfiles = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -56,14 +44,8 @@ const getById = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -78,14 +60,8 @@ const getByUsuarioId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -100,14 +76,8 @@ const getByComarcaId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -130,14 +100,8 @@ const deletePerfil = async (req, res) => {
         const data = await perfilModel.deletePerfil(id)
         res.json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -229,14 +193,8 @@ const updatePerfil = async (req, res) => {
         }
         res.status(201).json(result)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -338,14 +296,8 @@ const createPerfil = async (req, res) => {
         res.status(201).json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 

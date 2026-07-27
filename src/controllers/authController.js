@@ -40,14 +40,8 @@ const register = async (req, res) => {
             token
         })
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 
 

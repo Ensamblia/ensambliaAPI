@@ -34,14 +34,8 @@ const getMensajes = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -64,14 +58,8 @@ const getById = async (req, res) => {
 
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -94,14 +82,8 @@ const getByChatId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -124,14 +106,8 @@ const getByPerfilId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -156,14 +132,8 @@ const deleteMensaje = async (req, res) => {
         res.json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -231,14 +201,8 @@ const updateMensaje = async (req, res) => {
         }
         res.status(201).json(result)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -298,14 +262,8 @@ const createMensaje = async (req, res) => {
         res.status(201).json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
