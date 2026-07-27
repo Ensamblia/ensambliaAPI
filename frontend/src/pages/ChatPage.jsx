@@ -1,9 +1,6 @@
 import React from 'react';
+import { ChatBox } from '../components/chat/ChatBox';
 
 export function ChatPage() {
-  return (
-    <div>
-      <h1>Mensajes y Mensajería</h1>
-    </div>
-  );
+  return <ChatBox />;
 }
