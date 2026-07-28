@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { AutorNombre } from '../perfil/AutorNombre';
 
 /* Pill tag on card */
 const typeTag = {
@@ -51,6 +52,16 @@ const body = {
   fontSize: '13.5px',
   color: '#8A8A8A',
   lineHeight: 1.6,
+  margin: 0,
+};
+
+const porLine = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '12px',
+  color: '#8A8A8A',
   margin: 0,
 };
 
@@ -172,6 +183,10 @@ export function AnuncioCard({ anuncio }) {
       {tipoLabel && <span style={accentTag}>{tipoLabel}</span>}
 
       <h3 style={title}>{anuncio?.titulo || 'Sin título'}</h3>
+
+      <p style={porLine}>
+        por <AutorNombre perfilId={anuncio?.perfil_id} />
+      </p>
 
       <p style={body}>
         {contenido.length > 130 ? contenido.slice(0, 130) + '…' : contenido || 'Sin descripción.'}
