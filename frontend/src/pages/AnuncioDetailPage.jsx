@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { Comentarios } from '../components/comentarios/Comentarios';
+import { AutorNombre } from '../components/perfil/AutorNombre';
 
 const page = {
   maxWidth: '720px',
@@ -51,6 +52,13 @@ const dateText = {
   fontSize: '12px',
   color: '#D4D4D4',
   letterSpacing: '0.01em',
+  marginBottom: '20px',
+};
+
+const porLine = {
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '13px',
+  color: '#8A8A8A',
   marginBottom: '20px',
 };
 
@@ -143,6 +151,9 @@ export function AnuncioDetailPage() {
           )}
           <h1 style={title}>{anuncio.titulo || 'Sin título'}</h1>
           <div style={dateText}>{fecha || '—'}</div>
+          <p style={porLine}>
+            Publicado por <AutorNombre perfilId={anuncio.perfil_id} />
+          </p>
           <p style={body}>{anuncio.contenido || 'Sin descripción.'}</p>
 
           <Comentarios anuncioId={anuncio.anuncio_id} />
