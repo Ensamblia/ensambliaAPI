@@ -1,19 +1,59 @@
 import express from 'express'
 const router = express.Router()
-import comentarioController from '../controllers/comentarioController.js';
+import comentarioController from '../controllers/comentarioController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createComentarioValidators,
+    updateComentarioValidators,
+    getComentarioByIdValidators,
+    deleteComentarioValidators,
+    getComentariosValidators
+} from '../controllers/middlewares/validators/comentarioValidator.js'
 
+router.get('/',
+    getComentariosValidators,
+    handleValidation,
+    comentarioController.getComentarios
+)
 
+router.get('/perfil',
+    getComentariosValidators,
+    handleValidation,
+    comentarioController.getByPerfilId
+)
 
-router.get('/', comentarioController.getComentarios)
-router.get('/perfil', comentarioController.getByPerfilId)
-router.get('/anuncio', comentarioController.getByAnuncioId)
+router.get('/anuncio',
+    getComentariosValidators,
+    handleValidation,
+    comentarioController.getByAnuncioId
+)
 
-router.get('/:id', comentarioController.getById)
+router.get('/:id',
+    getComentarioByIdValidators,
+    handleValidation,
+    comentarioController.getById
+)
 
-router.post('/', comentarioController.createComentario)
+router.post('/',
+    authMiddleware,
+    createComentarioValidators,
+    handleValidation,
+    comentarioController.createComentario
+)
 
-router.put('/:id', comentarioController.updateComentario)
+router.put('/:id',
+    authMiddleware,
+    updateComentarioValidators,
+    handleValidation,
+    comentarioController.updateComentario
+)
 
-router.delete('/:id', comentarioController.deleteComentario)
+router.delete('/:id',
+    authMiddleware,
+    deleteComentarioValidators,
+    handleValidation,
+    comentarioController.deleteComentario
+)
 
 export default router

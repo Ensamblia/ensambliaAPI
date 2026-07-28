@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../api/axios';
 
 /* Pill tag on card */
 const typeTag = {
@@ -77,6 +79,37 @@ const arrowBtn = {
   display: 'flex',
   alignItems: 'center',
   gap: '3px',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+};
+
+const footerActions = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+};
+
+const contactBtn = {
+  ...arrowBtn,
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+};
+
+const contactBtnDisabled = {
+  ...contactBtn,
+  color: '#D4D4D4',
+  cursor: 'not-allowed',
+};
+
+const errorText = {
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '12px',
+  color: '#B3261E',
+  margin: 0,
 };
 
 const TIPO_LABELS = {
@@ -87,6 +120,10 @@ const TIPO_LABELS = {
 };
 
 export function AnuncioCard({ anuncio }) {
+  const navigate = useNavigate();
+  const [contactando, setContactando] = useState(false);
+  const [error, setError] = useState('');
+
   const fecha = anuncio?.created_at
     ? new Date(anuncio.created_at).toLocaleDateString('es-ES', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -95,6 +132,28 @@ export function AnuncioCard({ anuncio }) {
 
   const tipoLabel = TIPO_LABELS[anuncio?.tipo_anuncio_id] || null;
   const contenido = anuncio?.contenido || '';
+
+  const handleContactar = async (e) => {
+    e.stopPropagation();
+    setError('');
+    setContactando(true);
+    try {
+      const res = await api.post(`/chats/con/${anuncio.perfil_id}`);
+      navigate(`/chat?chat=${res.data.chat_id}`);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        navigate('/login');
+      } else if (err.response?.status === 403) {
+        setError('Necesitas crear tu perfil antes de contactar.');
+      } else if (err.response?.status === 400) {
+        setError(err.response.data?.error || 'No puedes contactar contigo mismo.');
+      } else {
+        setError('No se pudo iniciar la conversación.');
+      }
+    } finally {
+      setContactando(false);
+    }
+  };
 
   return (
     <div
@@ -118,9 +177,30 @@ export function AnuncioCard({ anuncio }) {
         {contenido.length > 130 ? contenido.slice(0, 130) + '…' : contenido || 'Sin descripción.'}
       </p>
 
+      {error && <p style={errorText}>{error}</p>}
+
       <div style={footer}>
         <span style={dateText}>{fecha || '—'}</span>
-        <span style={arrowBtn}>Ver más <span style={{ fontSize: '14px' }}>→</span></span>
+        <div style={footerActions}>
+          <button
+            type="button"
+            disabled={contactando}
+            style={contactando ? contactBtnDisabled : contactBtn}
+            onClick={handleContactar}
+          >
+            {contactando ? 'Contactando…' : 'Contactar'}
+          </button>
+          <button
+            type="button"
+            style={arrowBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/anuncios/${anuncio.anuncio_id}`);
+            }}
+          >
+            Ver más <span style={{ fontSize: '14px' }}>→</span>
+          </button>
+        </div>
       </div>
     </div>
   );

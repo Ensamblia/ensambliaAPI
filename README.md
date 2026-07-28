@@ -95,7 +95,7 @@ ensambliaAPI/
 - [x] **Base de Datos**: Esquema inicial configurado con Docker y semilla de datos.
 - [x] **API REST Backend**: Controladores y rutas operativas (`anuncios`, `perfiles`, `auth`, `instrumentos`, etc.).
 - [x] **Conexión Front-Back**: Cliente Axios integrado y consumiendo endpoints desde React.
-- [ ] **Autenticación & JWT**: Implementación del flujo completo de inicio de sesión/registro.
+- [x] **Autenticación & JWT**: Login/registro, rutas protegidas (backend con `authMiddleware` + comprobación de dueño, frontend con `RequireAuth`).
 - [ ] **Diseño & UI/UX**: Estilización avanzada con componentes interactivos.
 
 ---

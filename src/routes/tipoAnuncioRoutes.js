@@ -1,14 +1,47 @@
 import express from 'express'
 const router = express.Router()
-import tipoAnuncioController from '../controllers/tipoAnuncioController.js';
+import tipoAnuncioController from '../controllers/tipoAnuncioController.js'
+import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createTipoAnuncioValidators,
+    updateTipoAnuncioValidators,
+    getTipoAnuncioByIdValidators,
+    deleteTipoAnuncioValidators,
+    getTipoAnunciosValidators
+} from '../controllers/middlewares/validators/tipoAnuncioValidator.js'
 
-router.get('/', tipoAnuncioController.getTipoAnuncios)
-router.get('/:id', tipoAnuncioController.getById)
+router.get('/',
+    getTipoAnunciosValidators,
+    handleValidation,
+    tipoAnuncioController.getTipoAnuncios
+)
 
-router.post('/', tipoAnuncioController.createTipoAnuncio)
+router.get('/:id',
+    getTipoAnuncioByIdValidators,
+    handleValidation,
+    tipoAnuncioController.getById
+)
 
-router.put('/:id', tipoAnuncioController.updateTipoAnuncio)
+router.post('/',
+    authMiddleware,
+    createTipoAnuncioValidators,
+    handleValidation,
+    tipoAnuncioController.createTipoAnuncio
+)
 
-router.delete('/:id', tipoAnuncioController.deleteTipoAnuncio)
+router.put('/:id',
+    authMiddleware,
+    updateTipoAnuncioValidators,
+    handleValidation,
+    tipoAnuncioController.updateTipoAnuncio
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteTipoAnuncioValidators,
+    handleValidation,
+    tipoAnuncioController.deleteTipoAnuncio
+)
 
 export default router

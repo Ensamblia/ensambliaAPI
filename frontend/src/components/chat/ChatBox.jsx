@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import api from '../../api/axios';
 
 /* ── Layout ── */
 const layout = {
@@ -211,42 +213,115 @@ const emptyText = {
   letterSpacing: '-0.01em',
 };
 
-/* ── Data ── */
-const SAMPLE = [
-  { id: 1, nombre: 'Carlos M.',  preview: 'Te llevo mañana la guitarra', mensajes: [
-    { texto: '¡Hola! ¿sigues buscando bajista?', isOwn: false },
-    { texto: 'Sí, claro. ¿cuándo podemos quedar?', isOwn: true },
-    { texto: 'Te llevo mañana la guitarra para que escuches', isOwn: false },
-  ]},
-  { id: 2, nombre: 'Laura P.',   preview: 'Perfecto, hasta el viernes', mensajes: [
-    { texto: 'Vi tu anuncio de guitarrista', isOwn: false },
-    { texto: 'Genial, ¿qué género tocas?', isOwn: true },
-    { texto: 'Perfecto, hasta el viernes', isOwn: true },
-  ]},
-  { id: 3, nombre: 'DJ Marcos',  preview: 'Mando el contrato esta tarde', mensajes: [
-    { texto: 'Hola, busco músico para sesión de estudio', isOwn: false },
-    { texto: 'Mando el contrato esta tarde', isOwn: false },
-  ]},
-];
+const noticeBanner = {
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '14px',
+  color: '#8A6D00',
+  padding: '24px',
+};
+
+const noticeLink = { color: '#FF5C35', fontWeight: 600 };
+
+const newChatBtnDisabled = {
+  ...newChatBtn,
+  cursor: 'not-allowed',
+  color: '#D4D4D4',
+};
 
 export function ChatBox() {
+  const [searchParams] = useSearchParams();
+  const chatIdFromUrl = Number(searchParams.get('chat')) || null;
+
+  const [loading, setLoading]   = useState(true);
+  const [miPerfilId, setMiPerfilId] = useState(null);
+  const [convs, setConvs]       = useState([]);
   const [activeId, setActiveId] = useState(null);
-  const [input,    setInput]    = useState('');
-  const [convs,    setConvs]    = useState(SAMPLE);
+  const [input, setInput]       = useState('');
+  const [enviando, setEnviando] = useState(false);
 
-  const active = convs.find((c) => c.id === activeId);
+  useEffect(() => {
+    let cancelado = false;
 
-  const enviar = () => {
-    if (!input.trim() || !activeId) return;
-    setConvs((prev) =>
-      prev.map((c) =>
-        c.id === activeId
-          ? { ...c, mensajes: [...c.mensajes, { texto: input, isOwn: true }], preview: input }
+    async function cargar() {
+      try {
+        let perfil;
+        try {
+          perfil = (await api.get('/perfiles/me')).data;
+        } catch (err) {
+          if (err.response?.status === 404) {
+            if (!cancelado) setLoading(false);
+            return;
+          }
+          throw err;
+        }
+        if (cancelado) return;
+        setMiPerfilId(perfil.perfil_id);
+
+        const misChats = (await api.get('/perfil-chats/perfil', { params: { perfil_id: perfil.perfil_id } })
+          .catch((err) => (err.response?.status === 404 ? { data: [] } : Promise.reject(err)))).data;
+
+        const conversaciones = await Promise.all(misChats.map(async ({ chat_id }) => {
+          const participantes = (await api.get('/perfil-chats/chat', { params: { chat_id } })).data;
+          const otro = participantes.find((p) => p.perfil_id !== perfil.perfil_id);
+
+          const [otroPerfil, mensajes] = await Promise.all([
+            otro ? api.get(`/perfiles/${otro.perfil_id}`).then((r) => r.data).catch(() => null) : null,
+            api.get('/mensajes/chat', { params: { chat_id } }).then((r) => r.data).catch(() => []),
+          ]);
+
+          return {
+            chat_id,
+            nombre: otroPerfil ? `${otroPerfil.nombre} ${otroPerfil.apellido}`.trim() : 'Conversación',
+            mensajes,
+            preview: mensajes.length ? mensajes[mensajes.length - 1].contenido : '',
+          };
+        }));
+
+        if (cancelado) return;
+        setConvs(conversaciones);
+        if (chatIdFromUrl && conversaciones.some((c) => c.chat_id === chatIdFromUrl)) {
+          setActiveId(chatIdFromUrl);
+        }
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    }
+
+    cargar();
+    return () => { cancelado = true; };
+  }, []);
+
+  const active = convs.find((c) => c.chat_id === activeId);
+
+  const enviar = async () => {
+    if (!input.trim() || !activeId || enviando) return;
+    setEnviando(true);
+    try {
+      const nuevo = (await api.post('/mensajes', { contenido: input, chat_id: activeId })).data;
+      setConvs((prev) => prev.map((c) =>
+        c.chat_id === activeId
+          ? { ...c, mensajes: [...c.mensajes, nuevo], preview: nuevo.contenido }
           : c
-      )
-    );
-    setInput('');
+      ));
+      setInput('');
+    } catch (err) {
+      // el mensaje simplemente no se añade; el usuario puede reintentar
+    } finally {
+      setEnviando(false);
+    }
   };
+
+  if (loading) {
+    return <div style={{ ...layout, alignItems: 'center', justifyContent: 'center' }}><span style={emptyText}>Cargando…</span></div>;
+  }
+
+  if (!miPerfilId) {
+    return (
+      <div style={noticeBanner}>
+        Necesitas crear tu perfil antes de usar el chat. <Link to="/perfil" style={noticeLink}>Crear mi perfil</Link>
+      </div>
+    );
+  }
 
   return (
     <div style={layout}>
@@ -254,25 +329,24 @@ export function ChatBox() {
       <aside style={sidebar}>
         <div style={sidebarTop}>
           <span style={sidebarTitle}>Mensajes</span>
-          <button
-            style={newChatBtn}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#F2F2F2'; e.currentTarget.style.color = '#0F0F0F'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#8A8A8A'; }}
-            title="Nueva conversación"
-          >
+          <button style={newChatBtnDisabled} disabled title="Próximamente">
             +
           </button>
         </div>
 
+        {convs.length === 0 && (
+          <p style={{ ...emptyText, padding: '20px' }}>No tienes conversaciones todavía.</p>
+        )}
+
         {convs.map((c) => (
           <div
-            key={c.id}
-            style={getConvItem(c.id === activeId)}
-            onClick={() => setActiveId(c.id)}
-            onMouseEnter={(e) => { if (c.id !== activeId) e.currentTarget.style.background = '#F9F9F9'; }}
-            onMouseLeave={(e) => { if (c.id !== activeId) e.currentTarget.style.background = 'transparent'; }}
+            key={c.chat_id}
+            style={getConvItem(c.chat_id === activeId)}
+            onClick={() => setActiveId(c.chat_id)}
+            onMouseEnter={(e) => { if (c.chat_id !== activeId) e.currentTarget.style.background = '#F9F9F9'; }}
+            onMouseLeave={(e) => { if (c.chat_id !== activeId) e.currentTarget.style.background = 'transparent'; }}
           >
-            <div style={getAvatar(c.id === activeId)}>{c.nombre[0]}</div>
+            <div style={getAvatar(c.chat_id === activeId)}>{c.nombre[0]}</div>
             <div style={convMeta}>
               <div style={convName}>{c.nombre}</div>
               <div style={convPreview}>{c.preview}</div>
@@ -288,14 +362,13 @@ export function ChatBox() {
             <div style={getAvatar(true)}>{active.nombre[0]}</div>
             <div>
               <div style={chatHeaderName}>{active.nombre}</div>
-              <div style={chatHeaderSub}>músico · Barcelona</div>
             </div>
           </div>
 
           <div style={messagesArea}>
-            {active.mensajes.map((m, i) => (
-              <div key={i} style={msgRow(m.isOwn)}>
-                <div style={bubble(m.isOwn)}>{m.texto}</div>
+            {active.mensajes.map((m) => (
+              <div key={m.mensaje_id} style={msgRow(m.perfil_id === miPerfilId)}>
+                <div style={bubble(m.perfil_id === miPerfilId)}>{m.contenido}</div>
               </div>
             ))}
           </div>
