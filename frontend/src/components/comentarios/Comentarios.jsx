@@ -301,7 +301,7 @@ export function Comentarios({ anuncioId }) {
             return (
               <div key={c.comentario_id} style={item}>
                 <div style={itemHeader}>
-                  <span style={authorName}>{nombre}</span>
+                  <Link to={`/perfiles/${c.perfil_id}`} style={authorName}>{nombre}</Link>
                   <span style={dateText}>{fecha}</span>
                 </div>
 
