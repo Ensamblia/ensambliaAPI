@@ -79,6 +79,10 @@ const arrowBtn = {
   display: 'flex',
   alignItems: 'center',
   gap: '3px',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
 };
 
 const footerActions = {
@@ -186,7 +190,16 @@ export function AnuncioCard({ anuncio }) {
           >
             {contactando ? 'Contactando…' : 'Contactar'}
           </button>
-          <span style={arrowBtn}>Ver más <span style={{ fontSize: '14px' }}>→</span></span>
+          <button
+            type="button"
+            style={arrowBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/anuncios/${anuncio.anuncio_id}`);
+            }}
+          >
+            Ver más <span style={{ fontSize: '14px' }}>→</span>
+          </button>
         </div>
       </div>
     </div>
