@@ -2,12 +2,38 @@ import express from 'express'
 const router = express.Router()
 import grupoGeneroController from '../controllers/grupoGeneroController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createGrupoGeneroValidators,
+    getGrupoGeneroByIdValidators,
+    deleteGrupoGeneroValidators,
+    getGrupoGenerosValidators
+} from '../controllers/middlewares/validators/grupoGeneroValidator.js'
 
-router.get('/', grupoGeneroController.getGrupoGeneros)
-router.get('/:grupo_id/:genero_id', grupoGeneroController.getById)
+router.get('/',
+    getGrupoGenerosValidators,
+    handleValidation,
+    grupoGeneroController.getGrupoGeneros
+)
 
-router.post('/', authMiddleware, grupoGeneroController.createGrupoGenero)
+router.get('/:grupo_id/:genero_id',
+    getGrupoGeneroByIdValidators,
+    handleValidation,
+    grupoGeneroController.getById
+)
 
-router.delete('/:grupo_id/:genero_id', authMiddleware, grupoGeneroController.deleteGrupoGenero)
+router.post('/',
+    authMiddleware,
+    createGrupoGeneroValidators,
+    handleValidation,
+    grupoGeneroController.createGrupoGenero
+)
+
+router.delete('/:grupo_id/:genero_id',
+    authMiddleware,
+    deleteGrupoGeneroValidators,
+    handleValidation,
+    grupoGeneroController.deleteGrupoGenero
+)
 
 export default router

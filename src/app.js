@@ -23,7 +23,6 @@ import perfilInstrumentoRoutes from './routes/perfilInstrumentoRoutes.js'
 import tipoAnuncioRoutes from './routes/tipoAnuncioRoutes.js'
 import usuarioRoutes from './routes/usuarioRoutes.js'
 
-
 dotenv.config()
 const app = express()
 const PORT = process.env.PORT || 3000

@@ -7,9 +7,9 @@ const getMiPerfilId = async (req) => {
     return perfiles[0]?.perfil_id ?? null
 }
 
-const getMultimedias = async (req, res) => {
+const getMultimedia = async (req, res) => {
     try {
-        const data = await multimediaModel.getMultimedias()
+        const data = await multimediaModel.getMultimedia()
         if (data.length === 0) {
             return res.status(404).json({
                 error: "Nothing found"
@@ -41,6 +41,11 @@ const getById = async (req, res) => {
 const getByPerfilId = async (req, res) => {
     try {
         const { perfil_id } = req.query
+        if (!perfil_id) {
+            return res.status(400).json({
+                error: "perfil_id es un parámetro requerido"
+            })
+        }
         const data = await multimediaModel.getByPerfilId(perfil_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -57,6 +62,11 @@ const getByPerfilId = async (req, res) => {
 const getByAnuncioId = async (req, res) => {
     try {
         const { anuncio_id } = req.query
+        if (!anuncio_id) {
+            return res.status(400).json({
+                error: "anuncio_id es un parámetro requerido"
+            })
+        }
         const data = await multimediaModel.getByAnuncioId(anuncio_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -125,13 +135,20 @@ const updateMultimedia = async (req, res) => {
             "anuncio_id"
         ]
 
-        if (payload.nombre !== undefined && (!payload.nombre || payload.nombre.trim() === '')) {
+        const hasValidField = Object.keys(payload).some(field => allowedFields.includes(field))
+        if (!hasValidField) {
+            return res.status(400).json({
+                error: "Debe enviar al menos un campo válido para actualizar"
+            })
+        }
+
+        if (payload.nombre !== undefined && (typeof payload.nombre !== 'string' || payload.nombre.trim() === '')) {
             return res.status(400).json({
                 error: "nombre no puede estar vacío"
             })
         }
 
-        if (payload.ruta_archivo !== undefined && (!payload.ruta_archivo || payload.ruta_archivo.trim() === '')) {
+        if (payload.ruta_archivo !== undefined && (typeof payload.ruta_archivo !== 'string' || payload.ruta_archivo.trim() === '')) {
             return res.status(400).json({
                 error: "ruta_archivo no puede estar vacío"
             })
@@ -160,12 +177,10 @@ const updateMultimedia = async (req, res) => {
             }
         }
 
-        for (const field in payload) {
-            if (!allowedFields.includes(field)) continue
-
+        for (const field of allowedFields) {
             if (payload[field] !== undefined) {
                 values.push(payload[field])
-                updates.push(`${field} = $${values.length}`);
+                updates.push(`${field} = $${values.length}`)
             }
         }
 
@@ -184,7 +199,7 @@ const updateMultimedia = async (req, res) => {
                 error: "Multimedia not found"
             });
         }
-        res.status(201).json(result)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Error interno del servidor" })
@@ -193,7 +208,6 @@ const updateMultimedia = async (req, res) => {
 
 const createMultimedia = async (req, res) => {
     try {
-
         const {
             nombre,
             ruta_archivo,
@@ -204,24 +218,32 @@ const createMultimedia = async (req, res) => {
 
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
-                error: "nombre is a mandatory field. Cannot be undefined or null"
+                error: "nombre es un campo obligatorio"
             })
         }
 
         if (!ruta_archivo || ruta_archivo.trim() === '') {
             return res.status(400).json({
-                error: "ruta_archivo is a mandatory field. Cannot be undefined or null"
+                error: "ruta_archivo es un campo obligatorio"
             })
         }
 
-        const integerFields = { tamano_bytes, tipo_id, anuncio_id }
-        for (const field in integerFields) {
-            const value = integerFields[field]
-            if (value !== undefined && value !== null && !Number.isInteger(value)) {
-                return res.status(400).json({
-                    error: `${field} must be integer`
-                })
-            }
+        if (tipo_id !== undefined && tipo_id !== null && !Number.isInteger(tipo_id)) {
+            return res.status(400).json({
+                error: "tipo_id debe ser un entero"
+            })
+        }
+
+        if (tamano_bytes !== undefined && tamano_bytes !== null && !Number.isInteger(tamano_bytes)) {
+            return res.status(400).json({
+                error: "tamano_bytes debe ser un entero"
+            })
+        }
+
+        if (anuncio_id !== undefined && anuncio_id !== null && !Number.isInteger(anuncio_id)) {
+            return res.status(400).json({
+                error: "anuncio_id debe ser un entero"
+            })
         }
 
         const perfil_id = await getMiPerfilId(req)
@@ -266,7 +288,7 @@ const createMultimedia = async (req, res) => {
         const data = await multimediaModel.createMultimedia(columns, values)
         if (!data) {
             return res.status(404).json({
-                error: "Multimedia not added :("
+                error: "Multimedia no añadida correctamente"
             });
         }
         res.status(201).json(data)
@@ -278,7 +300,7 @@ const createMultimedia = async (req, res) => {
 }
 
 export default {
-    getMultimedias,
+    getMultimedia,
     getById,
     getByPerfilId,
     getByAnuncioId,

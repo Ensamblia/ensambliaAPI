@@ -1,6 +1,6 @@
 import pool from '../db.js'
 
-const getMultimedias = async () => {
+const getMultimedia = async () => {
     const query = `
                     SELECT * FROM ensamblia.multimedia
                     ORDER BY fecha_subida DESC
@@ -73,7 +73,7 @@ const createMultimedia = async (columns, values) => {
 }
 
 export default {
-    getMultimedias,
+    getMultimedia,
     getById,
     getByPerfilId,
     getByAnuncioId,

@@ -1,20 +1,63 @@
 import express from 'express'
 const router = express.Router()
-import mensajeController from '../controllers/mensajeController.js';
+import mensajeController from '../controllers/mensajeController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createMensajeValidators,
+    updateMensajeValidators,
+    getMensajeByIdValidators,
+    deleteMensajeValidators,
+    getMensajesValidators
+} from '../controllers/middlewares/validators/mensajeValidator.js'
 
-router.use(authMiddleware)
+router.get('/',
+    authMiddleware,
+    getMensajesValidators,
+    handleValidation,
+    mensajeController.getMensajes
+)
 
-router.get('/', mensajeController.getMensajes)
-router.get('/chat', mensajeController.getByChatId)
-router.get('/perfil', mensajeController.getByPerfilId)
+router.get('/chat',
+    authMiddleware,
+    getMensajesValidators,
+    handleValidation,
+    mensajeController.getByChatId
+)
 
-router.get('/:id', mensajeController.getById)
+router.get('/perfil',
+    authMiddleware,
+    getMensajesValidators,
+    handleValidation,
+    mensajeController.getByPerfilId
+)
 
-router.post('/', mensajeController.createMensaje)
+router.get('/:id',
+    authMiddleware,
+    getMensajeByIdValidators,
+    handleValidation,
+    mensajeController.getById
+)
 
-router.put('/:id', mensajeController.updateMensaje)
+router.post('/',
+    authMiddleware,
+    createMensajeValidators,
+    handleValidation,
+    mensajeController.createMensaje
+)
 
-router.delete('/:id', mensajeController.deleteMensaje)
+router.put('/:id',
+    authMiddleware,
+    updateMensajeValidators,
+    handleValidation,
+    mensajeController.updateMensaje
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteMensajeValidators,
+    handleValidation,
+    mensajeController.deleteMensaje
+)
 
 export default router

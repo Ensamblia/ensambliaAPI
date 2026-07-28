@@ -2,14 +2,46 @@ import express from 'express'
 const router = express.Router()
 import grupoController from '../controllers/grupoController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createGrupoValidators,
+    updateGrupoValidators,
+    getGrupoByIdValidators,
+    deleteGrupoValidators,
+    getGruposValidators
+} from '../controllers/middlewares/validators/grupoValidator.js'
 
-router.get('/', grupoController.getGrupos)
-router.get('/:id', grupoController.getById)
+router.get('/',
+    getGruposValidators,
+    handleValidation,
+    grupoController.getGrupos
+)
 
-router.post('/', authMiddleware, grupoController.createGrupo)
+router.get('/:id',
+    getGrupoByIdValidators,
+    handleValidation,
+    grupoController.getById
+)
 
-router.put('/:id', authMiddleware, grupoController.updateGrupo)
+router.post('/',
+    authMiddleware,
+    createGrupoValidators,
+    handleValidation,
+    grupoController.createGrupo
+)
 
-router.delete('/:id', authMiddleware, grupoController.deleteGrupo)
+router.put('/:id',
+    authMiddleware,
+    updateGrupoValidators,
+    handleValidation,
+    grupoController.updateGrupo
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteGrupoValidators,
+    handleValidation,
+    grupoController.deleteGrupo
+)
 
 export default router

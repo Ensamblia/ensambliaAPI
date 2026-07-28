@@ -2,17 +2,58 @@ import express from 'express'
 const router = express.Router()
 import multimediaController from '../controllers/multimediaController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createMultimediaValidators,
+    updateMultimediaValidators,
+    getMultimediaByIdValidators,
+    deleteMultimediaValidators,
+    getMultimediaValidators
+} from '../controllers/middlewares/validators/multimediaValidator.js'
 
-router.get('/', multimediaController.getMultimedias)
-router.get('/perfil', multimediaController.getByPerfilId)
-router.get('/anuncio', multimediaController.getByAnuncioId)
+router.get('/',
+    getMultimediaValidators,
+    handleValidation,
+    multimediaController.getMultimedia
+)
 
-router.get('/:id', multimediaController.getById)
+router.get('/perfil',
+    getMultimediaValidators,
+    handleValidation,
+    multimediaController.getByPerfilId
+)
 
-router.post('/', authMiddleware, multimediaController.createMultimedia)
+router.get('/anuncio',
+    getMultimediaValidators,
+    handleValidation,
+    multimediaController.getByAnuncioId
+)
 
-router.put('/:id', authMiddleware, multimediaController.updateMultimedia)
+router.get('/:id',
+    getMultimediaByIdValidators,
+    handleValidation,
+    multimediaController.getById
+)
 
-router.delete('/:id', authMiddleware, multimediaController.deleteMultimedia)
+router.post('/',
+    authMiddleware,
+    createMultimediaValidators,
+    handleValidation,
+    multimediaController.createMultimedia
+)
+
+router.put('/:id',
+    authMiddleware,
+    updateMultimediaValidators,
+    handleValidation,
+    multimediaController.updateMultimedia
+)
+
+router.delete('/:id',
+    authMiddleware,
+    deleteMultimediaValidators,
+    handleValidation,
+    multimediaController.deleteMultimedia
+)
 
 export default router

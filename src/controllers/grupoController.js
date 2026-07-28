@@ -60,18 +60,29 @@ const updateGrupo = async (req, res) => {
             "descripcion"
         ]
 
-        if (payload.nombre !== undefined && (!payload.nombre || payload.nombre.trim() === '')) {
+        const hasValidField = Object.keys(payload).some(field => allowedFields.includes(field))
+        if (!hasValidField) {
             return res.status(400).json({
-                error: "Nombre no puede estar vacío"
+                error: "Debe enviar al menos un campo válido para actualizar"
             })
         }
 
-        for (const field in payload) {
-            if (!allowedFields.includes(field)) continue
+        if (payload.nombre !== undefined && (typeof payload.nombre !== 'string' || payload.nombre.trim() === '')) {
+            return res.status(400).json({
+                error: "nombre no puede estar vacío"
+            })
+        }
 
+        if (payload.descripcion !== undefined && (typeof payload.descripcion !== 'string')) {
+            return res.status(400).json({
+                error: "descripcion debe ser un texto"
+            })
+        }
+
+        for (const field of allowedFields) {
             if (payload[field] !== undefined) {
                 values.push(payload[field])
-                updates.push(`${field} = $${values.length}`);
+                updates.push(`${field} = $${values.length}`)
             }
         }
 
@@ -90,7 +101,7 @@ const updateGrupo = async (req, res) => {
                 error: "Grupo not found"
             });
         }
-        res.status(201).json(result)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Error interno del servidor" })
@@ -107,7 +118,13 @@ const createGrupo = async (req, res) => {
 
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
-                error: "Nombre is a mandatory field. Cannot be undefined or null"
+                error: "nombre es un campo obligatorio"
+            })
+        }
+
+        if (descripcion !== undefined && descripcion !== null && typeof descripcion !== 'string') {
+            return res.status(400).json({
+                error: "descripcion debe ser un texto"
             })
         }
 
@@ -124,7 +141,7 @@ const createGrupo = async (req, res) => {
         const data = await grupoModel.createGrupo(columns, values)
         if (!data) {
             return res.status(404).json({
-                error: "Grupo not added :("
+                error: "Grupo no añadido correctamente"
             });
         }
         res.status(201).json(data)

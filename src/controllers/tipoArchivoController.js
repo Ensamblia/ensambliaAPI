@@ -61,8 +61,15 @@ const updateTipoArchivo = async (req, res) => {
             "mime_type"
         ]
 
-        const textFields = ["nombre", "extension", "mime_type"]
-        for (const field of textFields) {
+        const hasValidField = Object.keys(payload).some(field => allowedFields.includes(field))
+        if (!hasValidField) {
+            return res.status(400).json({
+                error: "Debe enviar al menos un campo válido para actualizar"
+            })
+        }
+
+        const stringFields = ["nombre", "extension", "mime_type"]
+        for (const field of stringFields) {
             if (payload[field] !== undefined && (typeof payload[field] !== 'string' || payload[field].trim() === '')) {
                 return res.status(400).json({
                     error: `${field} no puede estar vacío`
@@ -70,12 +77,16 @@ const updateTipoArchivo = async (req, res) => {
             }
         }
 
-        for (const field in payload) {
-            if (!allowedFields.includes(field)) continue
+        if (payload.extension !== undefined && !payload.extension.startsWith('.')) {
+            return res.status(400).json({
+                error: "extension debe comenzar con un punto (ej: '.jpg')"
+            })
+        }
 
+        for (const field of allowedFields) {
             if (payload[field] !== undefined) {
                 values.push(payload[field])
-                updates.push(`${field} = $${values.length}`);
+                updates.push(`${field} = $${values.length}`)
             }
         }
 
@@ -94,7 +105,7 @@ const updateTipoArchivo = async (req, res) => {
                 error: "Tipo_archivo not found"
             });
         }
-        res.status(201).json(result)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Error interno del servidor" })
@@ -112,19 +123,25 @@ const createTipoArchivo = async (req, res) => {
 
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
-                error: "nombre is a mandatory field. Cannot be undefined or null"
+                error: "nombre es un campo obligatorio"
             })
         }
 
         if (!extension || extension.trim() === '') {
             return res.status(400).json({
-                error: "extension is a mandatory field. Cannot be undefined or null"
+                error: "extension es un campo obligatorio"
+            })
+        }
+
+        if (!extension.startsWith('.')) {
+            return res.status(400).json({
+                error: "extension debe comenzar con un punto (ej: '.jpg')"
             })
         }
 
         if (!mime_type || mime_type.trim() === '') {
             return res.status(400).json({
-                error: "mime_type is a mandatory field. Cannot be undefined or null"
+                error: "mime_type es un campo obligatorio"
             })
         }
 
@@ -143,7 +160,7 @@ const createTipoArchivo = async (req, res) => {
         const data = await tipoArchivoModel.createTipoArchivo(columns, values)
         if (!data) {
             return res.status(404).json({
-                error: "Tipo_archivo not added :("
+                error: "Tipo_archivo no añadido correctamente"
             });
         }
         res.status(201).json(data)

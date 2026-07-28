@@ -35,6 +35,11 @@ const getById = async (req, res) => {
 const getByPerfilId = async (req, res) => {
     try {
         const { perfil_id } = req.query
+        if (!perfil_id) {
+            return res.status(400).json({
+                error: "perfil_id es un parámetro requerido"
+            })
+        }
         const data = await perfilGrupoModel.getByPerfilId(perfil_id)
         if (data.length === 0) {
             return res.status(404).json({
@@ -51,6 +56,11 @@ const getByPerfilId = async (req, res) => {
 const getByGrupoId = async (req, res) => {
     try {
         const { grupo_id } = req.query
+        if (!grupo_id) {
+            return res.status(400).json({
+                error: "grupo_id es un parámetro requerido"
+            })
+        }
         const data = await perfilGrupoModel.getByGrupoId(grupo_id)
         if (data.length === 0) {
             return res.status(404).json({

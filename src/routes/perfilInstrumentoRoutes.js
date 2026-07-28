@@ -2,15 +2,50 @@ import express from 'express'
 const router = express.Router()
 import perfilInstrumentoController from '../controllers/perfilInstrumentoController.js'
 import { authMiddleware } from '../controllers/middlewares/authMiddleware.js'
+import { handleValidation } from '../controllers/middlewares/handleValidation.js'
+import {
+    createPerfilInstrumentoValidators,
+    getPerfilInstrumentoByIdValidators,
+    deletePerfilInstrumentoValidators,
+    getPerfilInstrumentosValidators
+} from '../controllers/middlewares/validators/perfilInstrumentoValidator.js'
 
-router.get('/', perfilInstrumentoController.getPerfilInstrumentos)
-router.get('/perfil', perfilInstrumentoController.getByPerfilId)
-router.get('/instrumento', perfilInstrumentoController.getByInstrumentoId)
+router.get('/',
+    getPerfilInstrumentosValidators,
+    handleValidation,
+    perfilInstrumentoController.getPerfilInstrumentos
+)
 
-router.get('/:perfil_id/:instrumento_id', perfilInstrumentoController.getById)
+router.get('/perfil',
+    getPerfilInstrumentosValidators,
+    handleValidation,
+    perfilInstrumentoController.getByPerfilId
+)
 
-router.post('/', authMiddleware, perfilInstrumentoController.createPerfilInstrumento)
+router.get('/instrumento',
+    getPerfilInstrumentosValidators,
+    handleValidation,
+    perfilInstrumentoController.getByInstrumentoId
+)
 
-router.delete('/:perfil_id/:instrumento_id', authMiddleware, perfilInstrumentoController.deletePerfilInstrumento)
+router.get('/:perfil_id/:instrumento_id',
+    getPerfilInstrumentoByIdValidators,
+    handleValidation,
+    perfilInstrumentoController.getById
+)
+
+router.post('/',
+    authMiddleware,
+    createPerfilInstrumentoValidators,
+    handleValidation,
+    perfilInstrumentoController.createPerfilInstrumento
+)
+
+router.delete('/:perfil_id/:instrumento_id',
+    authMiddleware,
+    deletePerfilInstrumentoValidators,
+    handleValidation,
+    perfilInstrumentoController.deletePerfilInstrumento
+)
 
 export default router
