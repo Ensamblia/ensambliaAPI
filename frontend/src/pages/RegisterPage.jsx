@@ -114,6 +114,7 @@ export function RegisterPage() {
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [adminKey, setAdminKey] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -132,7 +133,9 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', { usuario, password });
+      const payload = { usuario, password };
+      if (adminKey.trim()) payload.admin_key = adminKey.trim();
+      const res = await api.post('/auth/register', payload);
       login(res.data.usuario.usuario, res.data.token);
       navigate('/perfil');
     } catch (err) {
@@ -189,6 +192,20 @@ export function RegisterPage() {
             onFocus={addFocusStyles}
             onBlur={removeFocusStyles}
             autoComplete="new-password"
+          />
+        </div>
+
+        <div style={fieldGroup}>
+          <label style={labelStyle} htmlFor="adminKey">Clave de administrador (opcional)</label>
+          <input
+            id="adminKey"
+            type="password"
+            style={inputStyle}
+            value={adminKey}
+            onChange={(e) => setAdminKey(e.target.value)}
+            onFocus={addFocusStyles}
+            onBlur={removeFocusStyles}
+            autoComplete="off"
           />
         </div>
 

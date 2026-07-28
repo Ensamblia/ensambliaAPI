@@ -48,7 +48,7 @@ const deleteAnuncio = async (req, res) => {
             });
         }
         const miPerfilId = await getMiPerfilId(req)
-        if (existente.perfil_id !== miPerfilId) {
+        if (existente.perfil_id !== miPerfilId && !req.usuario.es_admin) {
             return res.status(403).json({
                 error: "No puedes borrar el anuncio de otro usuario"
             })
@@ -74,7 +74,7 @@ const updateAnuncio = async (req, res) => {
             });
         }
         const miPerfilId = await getMiPerfilId(req)
-        if (existente.perfil_id !== miPerfilId) {
+        if (existente.perfil_id !== miPerfilId && !req.usuario.es_admin) {
             return res.status(403).json({
                 error: "No puedes editar el anuncio de otro usuario"
             })

@@ -21,6 +21,7 @@ import perfilGrupoRoutes from './routes/perfilGrupoRoutes.js'
 import generoMusicalRoutes from './routes/generoMusicalRoutes.js'
 import perfilInstrumentoRoutes from './routes/perfilInstrumentoRoutes.js'
 import tipoAnuncioRoutes from './routes/tipoAnuncioRoutes.js'
+import usuarioRoutes from './routes/usuarioRoutes.js'
 
 
 dotenv.config()
@@ -50,6 +51,7 @@ app.use('/api/perfil-grupos', perfilGrupoRoutes)
 app.use('/api/genero_musical', generoMusicalRoutes)
 app.use('/api/perfil-instrumentos', perfilInstrumentoRoutes)
 app.use('/api/tipo-anuncios', tipoAnuncioRoutes)
+app.use('/api/usuarios', usuarioRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)
