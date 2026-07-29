@@ -3,6 +3,9 @@ node_modules/
 frontend/node_modules/
 frontend/dist/
 
+ensamblia_db/
+pgadmin/pgpass
+
 .claude/
 CLAUDE.md
 .remember/
