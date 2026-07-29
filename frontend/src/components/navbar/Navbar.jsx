@@ -103,8 +103,8 @@ const btnLogoutStyle = {
 
 const LINKS = [
   { to: '/anuncios', label: 'Anuncios' },
-  { to: '/perfil',   label: 'Mi perfil' },
-  { to: '/chat',     label: 'Mensajes' },
+  { to: '/perfil',   label: 'Mi perfil', authOnly: true },
+  { to: '/chat',     label: 'Mensajes', authOnly: true },
 ];
 
 export function Navbar() {
@@ -126,7 +126,7 @@ export function Navbar() {
 
       {/* Links */}
       <ul style={navLinks}>
-        {LINKS.map(({ to, label }) => (
+        {LINKS.filter((link) => !link.authOnly || user).map(({ to, label }) => (
           <li key={to}>
             <NavLink to={to} style={({ isActive }) => getLinkStyle(isActive)}>
               {label}
