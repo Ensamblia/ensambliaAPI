@@ -9,17 +9,15 @@ import {
     getComarcaByIdValidators,
     deleteComarcaValidators,
     getComarcasValidators
-} from '../validators/comarcaValidator.js'
+} from '../controllers/middlewares/validators/comarcaValidator.js'
 
 router.get('/',
-    authMiddleware,
     getComarcasValidators,
     handleValidation,
     comarcaController.getComarcas
 )
 
 router.get('/:id',
-    authMiddleware,
     getComarcaByIdValidators,
     handleValidation,
     comarcaController.getById

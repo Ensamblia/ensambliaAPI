@@ -8,31 +8,27 @@ import {
     getPerfilGrupoByIdValidators,
     deletePerfilGrupoValidators,
     getPerfilGruposValidators
-} from '../validators/perfilGrupoValidator.js'
+} from '../controllers/middlewares/validators/perfilGrupoValidator.js'
 
 router.get('/',
-    authMiddleware,
     getPerfilGruposValidators,
     handleValidation,
     perfilGrupoController.getPerfilGrupos
 )
 
 router.get('/perfil',
-    authMiddleware,
     getPerfilGruposValidators,
     handleValidation,
     perfilGrupoController.getByPerfilId
 )
 
 router.get('/grupo',
-    authMiddleware,
     getPerfilGruposValidators,
     handleValidation,
     perfilGrupoController.getByGrupoId
 )
 
 router.get('/:perfil_id/:grupo_id',
-    authMiddleware,
     getPerfilGrupoByIdValidators,
     handleValidation,
     perfilGrupoController.getById

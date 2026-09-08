@@ -8,17 +8,15 @@ import {
     getGrupoGeneroByIdValidators,
     deleteGrupoGeneroValidators,
     getGrupoGenerosValidators
-} from '../validators/grupoGeneroValidator.js'
+} from '../controllers/middlewares/validators/grupoGeneroValidator.js'
 
 router.get('/',
-    authMiddleware,
     getGrupoGenerosValidators,
     handleValidation,
     grupoGeneroController.getGrupoGeneros
 )
 
 router.get('/:grupo_id/:genero_id',
-    authMiddleware,
     getGrupoGeneroByIdValidators,
     handleValidation,
     grupoGeneroController.getById

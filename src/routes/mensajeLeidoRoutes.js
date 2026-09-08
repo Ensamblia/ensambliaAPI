@@ -8,7 +8,7 @@ import {
     getMensajeLeidoByIdValidators,
     deleteMensajeLeidoValidators,
     getMensajeLeidosValidators
-} from '../validators/mensajeLeidoValidator.js'
+} from '../controllers/middlewares/validators/mensajeLeidoValidator.js'
 
 router.get('/',
     authMiddleware,

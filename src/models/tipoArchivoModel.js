@@ -52,7 +52,6 @@ const createTipoArchivo = async (columns, values) => {
     return (result.rows[0])
 }
 
-
 export default {
     getTipoArchivos,
     getById,

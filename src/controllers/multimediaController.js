@@ -1,4 +1,11 @@
 import multimediaModel from "../models/multimediaModel.js"
+import perfilModel from "../models/perfilModel.js"
+import anuncioModel from "../models/anuncioModel.js"
+
+const getMiPerfilId = async (req) => {
+    const perfiles = await perfilModel.getByUsuarioId(req.usuario.usuario_id)
+    return perfiles[0]?.perfil_id ?? null
+}
 
 const getMultimedia = async (req, res) => {
     try {
@@ -10,14 +17,8 @@ const getMultimedia = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -32,14 +33,8 @@ const getById = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -59,14 +54,8 @@ const getByPerfilId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -86,42 +75,54 @@ const getByAnuncioId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
 const deleteMultimedia = async (req, res) => {
     try {
         const { id } = req.params
-        const data = await multimediaModel.deleteMultimedia(id)
-        if (!data) {
+
+        const existente = await multimediaModel.getById(id)
+        if (!existente) {
             return res.status(404).json({
                 error: "Multimedia not found"
             });
         }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes borrar el archivo de otro usuario"
+            })
+        }
+
+        const data = await multimediaModel.deleteMultimedia(id)
         res.json(data)
+
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
 const updateMultimedia = async (req, res) => {
     try {
         const { id } = req.params
+
+        const existente = await multimediaModel.getById(id)
+        if (!existente) {
+            return res.status(404).json({
+                error: "Multimedia not found"
+            });
+        }
+        const miPerfilId = await getMiPerfilId(req)
+        if (existente.perfil_id !== miPerfilId) {
+            return res.status(403).json({
+                error: "No puedes editar el archivo de otro usuario"
+            })
+        }
+
         const payload = req.body || {}
         const updates = []
         const values = []
@@ -131,7 +132,6 @@ const updateMultimedia = async (req, res) => {
             "ruta_archivo",
             "tamano_bytes",
             "tipo_id",
-            "perfil_id",
             "anuncio_id"
         ]
 
@@ -154,11 +154,25 @@ const updateMultimedia = async (req, res) => {
             })
         }
 
-        const integerFields = ["tamano_bytes", "tipo_id", "perfil_id", "anuncio_id"]
+        const integerFields = ["tamano_bytes", "tipo_id", "anuncio_id"]
         for (const field of integerFields) {
             if (payload[field] !== undefined && payload[field] !== null && !Number.isInteger(payload[field])) {
                 return res.status(400).json({
                     error: `${field} debe ser un entero`
+                })
+            }
+        }
+
+        if (payload.anuncio_id !== undefined && payload.anuncio_id !== null) {
+            const anuncio = await anuncioModel.getById(payload.anuncio_id)
+            if (!anuncio) {
+                return res.status(404).json({
+                    error: `Anuncio no encontrado: ${payload.anuncio_id}`
+                })
+            }
+            if (anuncio.perfil_id !== miPerfilId) {
+                return res.status(403).json({
+                    error: "No puedes vincular tu archivo al anuncio de otro usuario"
                 })
             }
         }
@@ -187,14 +201,8 @@ const updateMultimedia = async (req, res) => {
         }
         res.status(200).json(result)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -205,7 +213,6 @@ const createMultimedia = async (req, res) => {
             ruta_archivo,
             tamano_bytes,
             tipo_id,
-            perfil_id,
             anuncio_id
         } = req.body
 
@@ -227,9 +234,9 @@ const createMultimedia = async (req, res) => {
             })
         }
 
-        if (perfil_id !== undefined && perfil_id !== null && !Number.isInteger(perfil_id)) {
+        if (tamano_bytes !== undefined && tamano_bytes !== null && !Number.isInteger(tamano_bytes)) {
             return res.status(400).json({
-                error: "perfil_id debe ser un entero"
+                error: "tamano_bytes debe ser un entero"
             })
         }
 
@@ -237,6 +244,27 @@ const createMultimedia = async (req, res) => {
             return res.status(400).json({
                 error: "anuncio_id debe ser un entero"
             })
+        }
+
+        const perfil_id = await getMiPerfilId(req)
+        if (!perfil_id) {
+            return res.status(403).json({
+                error: "Necesitas crear tu perfil antes de subir un archivo"
+            })
+        }
+
+        if (anuncio_id !== undefined && anuncio_id !== null) {
+            const anuncio = await anuncioModel.getById(anuncio_id)
+            if (!anuncio) {
+                return res.status(404).json({
+                    error: `Anuncio no encontrado: ${anuncio_id}`
+                })
+            }
+            if (anuncio.perfil_id !== perfil_id) {
+                return res.status(403).json({
+                    error: "No puedes subir un archivo al anuncio de otro usuario"
+                })
+            }
         }
 
         const columns = [
@@ -253,7 +281,7 @@ const createMultimedia = async (req, res) => {
             ruta_archivo,
             tamano_bytes ?? null,
             tipo_id ?? null,
-            perfil_id ?? null,
+            perfil_id,
             anuncio_id ?? null
         ]
 
@@ -266,14 +294,8 @@ const createMultimedia = async (req, res) => {
         res.status(201).json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 

@@ -1,0 +1,12 @@
+node_modules/
+.env
+frontend/node_modules/
+frontend/dist/
+
+ensamblia_db/
+pgadmin/pgpass
+
+.claude/
+CLAUDE.md
+.remember/
+docs/superpowers/

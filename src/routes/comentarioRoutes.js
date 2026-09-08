@@ -9,31 +9,27 @@ import {
     getComentarioByIdValidators,
     deleteComentarioValidators,
     getComentariosValidators
-} from '../validators/comentarioValidator.js'
+} from '../controllers/middlewares/validators/comentarioValidator.js'
 
 router.get('/',
-    authMiddleware,
     getComentariosValidators,
     handleValidation,
     comentarioController.getComentarios
 )
 
 router.get('/perfil',
-    authMiddleware,
     getComentariosValidators,
     handleValidation,
     comentarioController.getByPerfilId
 )
 
 router.get('/anuncio',
-    authMiddleware,
     getComentariosValidators,
     handleValidation,
     comentarioController.getByAnuncioId
 )
 
 router.get('/:id',
-    authMiddleware,
     getComentarioByIdValidators,
     handleValidation,
     comentarioController.getById

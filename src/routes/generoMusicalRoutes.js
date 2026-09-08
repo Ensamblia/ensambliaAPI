@@ -9,17 +9,15 @@ import {
     getGeneroMusicalByIdValidators,
     deleteGeneroMusicalValidators,
     getGeneroMusicalesValidators
-} from '../validators/generoMusicalValidator.js'
+} from '../controllers/middlewares/validators/generoMusicalValidator.js'
 
 router.get('/',
-    authMiddleware,
     getGeneroMusicalesValidators,
     handleValidation,
     generoMusicalController.getGeneroMusical
 )
 
 router.get('/:id',
-    authMiddleware,
     getGeneroMusicalByIdValidators,
     handleValidation,
     generoMusicalController.getById

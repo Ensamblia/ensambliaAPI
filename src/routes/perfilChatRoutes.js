@@ -8,7 +8,7 @@ import {
     getPerfilChatByIdValidators,
     deletePerfilChatValidators,
     getPerfilChatsValidators
-} from '../validators/perfilChatValidator.js'
+} from '../controllers/middlewares/validators/perfilChatValidator.js'
 
 router.get('/',
     authMiddleware,

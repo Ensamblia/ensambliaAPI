@@ -1,4 +1,5 @@
 import perfilGrupoModel from '../models/perfilGrupoModel.js'
+import perfilModel from '../models/perfilModel.js'
 
 const getPerfilGrupos = async (req, res) => {
     try {
@@ -10,14 +11,8 @@ const getPerfilGrupos = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -32,14 +27,8 @@ const getById = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -59,14 +48,8 @@ const getByPerfilId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -86,14 +69,8 @@ const getByGrupoId = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -113,6 +90,18 @@ const createPerfilGrupo = async (req, res) => {
             })
         }
 
+        const perfil = await perfilModel.getById(perfil_id)
+        if (!perfil) {
+            return res.status(404).json({
+                error: `Perfil no encontrado: ${perfil_id}`
+            })
+        }
+        if (perfil.usuario_id !== req.usuario.usuario_id) {
+            return res.status(403).json({
+                error: "No puedes modificar el perfil de otro usuario"
+            })
+        }
+
         const data = await perfilGrupoModel.createPerfilGrupo(perfil_id, grupo_id)
         if (!data) {
             return res.status(404).json({
@@ -121,20 +110,27 @@ const createPerfilGrupo = async (req, res) => {
         }
         res.status(201).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
 const deletePerfilGrupo = async (req, res) => {
     try {
         const { perfil_id, grupo_id } = req.params
+
+        const perfil = await perfilModel.getById(perfil_id)
+        if (!perfil) {
+            return res.status(404).json({
+                error: `Perfil no encontrado: ${perfil_id}`
+            })
+        }
+        if (perfil.usuario_id !== req.usuario.usuario_id) {
+            return res.status(403).json({
+                error: "No puedes modificar el perfil de otro usuario"
+            })
+        }
+
         const data = await perfilGrupoModel.deletePerfilGrupo(perfil_id, grupo_id)
         if (!data) {
             return res.status(404).json({
@@ -143,14 +139,8 @@ const deletePerfilGrupo = async (req, res) => {
         }
         res.json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 

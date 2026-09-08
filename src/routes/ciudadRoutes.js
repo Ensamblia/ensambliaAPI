@@ -9,17 +9,15 @@ import {
     getCiudadByIdValidators,
     deleteCiudadValidators,
     getCiudadesValidators
-} from '../validators/ciudadValidator.js'
+} from '../controllers/middlewares/validators/ciudadValidator.js'
 
 router.get('/',
-    authMiddleware,
     getCiudadesValidators,
     handleValidation,
     ciudadController.getCiudades
 )
 
 router.get('/:id',
-    authMiddleware,
     getCiudadByIdValidators,
     handleValidation,
     ciudadController.getById

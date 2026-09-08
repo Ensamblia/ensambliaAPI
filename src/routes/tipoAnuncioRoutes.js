@@ -9,17 +9,15 @@ import {
     getTipoAnuncioByIdValidators,
     deleteTipoAnuncioValidators,
     getTipoAnunciosValidators
-} from '../validators/tipoAnuncioValidator.js'
+} from '../controllers/middlewares/validators/tipoAnuncioValidator.js'
 
 router.get('/',
-    authMiddleware,
     getTipoAnunciosValidators,
     handleValidation,
     tipoAnuncioController.getTipoAnuncios
 )
 
 router.get('/:id',
-    authMiddleware,
     getTipoAnuncioByIdValidators,
     handleValidation,
     tipoAnuncioController.getById

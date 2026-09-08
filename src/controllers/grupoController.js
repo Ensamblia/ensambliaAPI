@@ -10,14 +10,8 @@ const getGrupos = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -32,14 +26,8 @@ const getById = async (req, res) => {
         }
         res.status(200).json(data)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -55,14 +43,8 @@ const deleteGrupo = async (req, res) => {
         res.json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -78,7 +60,6 @@ const updateGrupo = async (req, res) => {
             "descripcion"
         ]
 
-        // Validar que al menos un campo venga en el payload
         const hasValidField = Object.keys(payload).some(field => allowedFields.includes(field))
         if (!hasValidField) {
             return res.status(400).json({
@@ -86,7 +67,6 @@ const updateGrupo = async (req, res) => {
             })
         }
 
-        // Validaciones específicas
         if (payload.nombre !== undefined && (typeof payload.nombre !== 'string' || payload.nombre.trim() === '')) {
             return res.status(400).json({
                 error: "nombre no puede estar vacío"
@@ -123,14 +103,8 @@ const updateGrupo = async (req, res) => {
         }
         res.status(200).json(result)
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 
@@ -142,7 +116,6 @@ const createGrupo = async (req, res) => {
             descripcion
         } = req.body
 
-        // Validaciones
         if (!nombre || nombre.trim() === '') {
             return res.status(400).json({
                 error: "nombre es un campo obligatorio"
@@ -174,14 +147,8 @@ const createGrupo = async (req, res) => {
         res.status(201).json(data)
 
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 }
 

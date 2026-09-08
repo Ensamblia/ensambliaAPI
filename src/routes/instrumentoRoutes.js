@@ -9,17 +9,15 @@ import {
     getInstrumentoByIdValidators,
     deleteInstrumentoValidators,
     getInstrumentosValidators
-} from '../validators/instrumentoValidator.js'
+} from '../controllers/middlewares/validators/instrumentoValidator.js'
 
 router.get('/',
-    authMiddleware,
     getInstrumentosValidators,
     handleValidation,
     instrumentoController.getInstrumentos
 )
 
 router.get('/:id',
-    authMiddleware,
     getInstrumentoByIdValidators,
     handleValidation,
     instrumentoController.getById

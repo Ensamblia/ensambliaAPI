@@ -8,31 +8,27 @@ import {
     getPerfilInstrumentoByIdValidators,
     deletePerfilInstrumentoValidators,
     getPerfilInstrumentosValidators
-} from '../validators/perfilInstrumentoValidator.js'
+} from '../controllers/middlewares/validators/perfilInstrumentoValidator.js'
 
 router.get('/',
-    authMiddleware,
     getPerfilInstrumentosValidators,
     handleValidation,
     perfilInstrumentoController.getPerfilInstrumentos
 )
 
 router.get('/perfil',
-    authMiddleware,
     getPerfilInstrumentosValidators,
     handleValidation,
     perfilInstrumentoController.getByPerfilId
 )
 
 router.get('/instrumento',
-    authMiddleware,
     getPerfilInstrumentosValidators,
     handleValidation,
     perfilInstrumentoController.getByInstrumentoId
 )
 
 router.get('/:perfil_id/:instrumento_id',
-    authMiddleware,
     getPerfilInstrumentoByIdValidators,
     handleValidation,
     perfilInstrumentoController.getById

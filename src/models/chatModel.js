@@ -29,8 +29,18 @@ const deleteChat = async (id) => {
     return (result.rows[0])
 }
 
+const createChat = async () => {
+    const query = `
+                    INSERT INTO ensamblia.chat DEFAULT VALUES
+                    RETURNING *
+                    `
+    const result = await pool.query(query)
+    return (result.rows[0])
+}
+
 export default {
     getChats,
     getById,
-    deleteChat
+    deleteChat,
+    createChat
 }

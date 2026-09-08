@@ -7,7 +7,7 @@ import {
     getChatByIdValidators,
     deleteChatValidators,
     getChatsValidators
-} from '../validators/chatValidator.js'
+} from '../controllers/middlewares/validators/chatValidator.js'
 
 router.get('/',
     authMiddleware,
@@ -21,6 +21,11 @@ router.get('/:id',
     getChatByIdValidators,
     handleValidation,
     chatController.getById
+)
+
+router.post('/con/:otro_perfil_id',
+    authMiddleware,
+    chatController.iniciarConversacion
 )
 
 router.delete('/:id',

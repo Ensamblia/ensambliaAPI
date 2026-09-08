@@ -9,31 +9,27 @@ import {
     getMultimediaByIdValidators,
     deleteMultimediaValidators,
     getMultimediaValidators
-} from '../validators/multimediaValidator.js'
+} from '../controllers/middlewares/validators/multimediaValidator.js'
 
 router.get('/',
-    authMiddleware,
     getMultimediaValidators,
     handleValidation,
     multimediaController.getMultimedia
 )
 
 router.get('/perfil',
-    authMiddleware,
     getMultimediaValidators,
     handleValidation,
     multimediaController.getByPerfilId
 )
 
 router.get('/anuncio',
-    authMiddleware,
     getMultimediaValidators,
     handleValidation,
     multimediaController.getByAnuncioId
 )
 
 router.get('/:id',
-    authMiddleware,
     getMultimediaByIdValidators,
     handleValidation,
     multimediaController.getById

@@ -8,31 +8,27 @@ import {
     getPerfilGeneroMusicalByIdValidators,
     deletePerfilGeneroMusicalValidators,
     getPerfilGeneroMusicalesValidators
-} from '../validators/perfilGeneroMusicalValidator.js'
+} from '../controllers/middlewares/validators/perfilGeneroMusicalValidator.js'
 
 router.get('/',
-    authMiddleware,
     getPerfilGeneroMusicalesValidators,
     handleValidation,
     perfilGeneroMusicalController.getPerfilGeneroMusicales
 )
 
 router.get('/perfil',
-    authMiddleware,
     getPerfilGeneroMusicalesValidators,
     handleValidation,
     perfilGeneroMusicalController.getByPerfilId
 )
 
 router.get('/genero',
-    authMiddleware,
     getPerfilGeneroMusicalesValidators,
     handleValidation,
     perfilGeneroMusicalController.getByGeneroId
 )
 
 router.get('/:perfil_id/:genero_id',
-    authMiddleware,
     getPerfilGeneroMusicalByIdValidators,
     handleValidation,
     perfilGeneroMusicalController.getById

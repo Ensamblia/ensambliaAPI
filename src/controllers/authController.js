@@ -12,7 +12,7 @@ import usuarioModel from '../models/usuarioModel.js'
 
 const register = async (req, res) => {
     try {
-        const { usuario, password } = req.body
+        const { usuario, password, admin_key } = req.body
 
         if (!process.env.JWT_SECRET) {
             return res.status(500).json({ message: "JWT_SECRET not set" });
@@ -25,11 +25,15 @@ const register = async (req, res) => {
             })
         }
 
+        const esAdmin = Boolean(
+            process.env.ADMIN_BOOTSTRAP_KEY && admin_key === process.env.ADMIN_BOOTSTRAP_KEY
+        )
+
         const passwordHash = await bcrypt.hash(password, 10)
-        const nuevoUsuario = await usuarioModel.createUser(usuario, passwordHash)
+        const nuevoUsuario = await usuarioModel.createUser(usuario, passwordHash, esAdmin)
 
         const token = jwt.sign(
-            { usuario_id: nuevoUsuario.usuario_id, usuario: nuevoUsuario.usuario },
+            { usuario_id: nuevoUsuario.usuario_id, usuario: nuevoUsuario.usuario, es_admin: nuevoUsuario.es_admin },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || "2h" }
         )
@@ -40,14 +44,8 @@ const register = async (req, res) => {
             token
         })
     } catch (error) {
-        res.status(500).json({
-            name: error.name,
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            hint: error.hint,
-            position: error.position
-        })
+        console.error(error)
+        res.status(500).json({ error: "Error interno del servidor" })
     }
 
 
@@ -69,7 +67,7 @@ const login = async (req, res) => {
         }
 
         const tokenDb = jwt.sign(
-            { usuario_id: usuarioDb.usuario_id, usuario: usuarioDb.usuario },
+            { usuario_id: usuarioDb.usuario_id, usuario: usuarioDb.usuario, es_admin: usuarioDb.es_admin },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || "2h" }
         )

@@ -9,31 +9,29 @@ import {
     getPerfilByIdValidators,
     deletePerfilValidators,
     getPerfilesValidators
-} from '../validators/perfilValidator.js'
+} from '../controllers/middlewares/validators/perfilValidator.js'
 
 router.get('/',
-    authMiddleware,
     getPerfilesValidators,
     handleValidation,
     perfilController.getPerfiles
 )
 
 router.get('/usuario',
-    authMiddleware,
     getPerfilesValidators,
     handleValidation,
     perfilController.getByUsuarioId
 )
 
 router.get('/comarca',
-    authMiddleware,
     getPerfilesValidators,
     handleValidation,
     perfilController.getByComarcaId
 )
 
+router.get('/me', authMiddleware, perfilController.getMe)
+
 router.get('/:id',
-    authMiddleware,
     getPerfilByIdValidators,
     handleValidation,
     perfilController.getById

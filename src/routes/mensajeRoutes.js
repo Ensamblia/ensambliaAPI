@@ -9,7 +9,7 @@ import {
     getMensajeByIdValidators,
     deleteMensajeValidators,
     getMensajesValidators
-} from '../validators/mensajeValidator.js'
+} from '../controllers/middlewares/validators/mensajeValidator.js'
 
 router.get('/',
     authMiddleware,

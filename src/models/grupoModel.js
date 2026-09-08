@@ -52,7 +52,6 @@ const createGrupo = async (columns, values) => {
     return (result.rows[0])
 }
 
-
 export default {
     getGrupos,
     getById,

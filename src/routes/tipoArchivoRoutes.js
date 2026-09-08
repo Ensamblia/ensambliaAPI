@@ -9,17 +9,15 @@ import {
     getTipoArchivoByIdValidators,
     deleteTipoArchivoValidators,
     getTipoArchivosValidators
-} from '../validators/tipoArchivoValidator.js'
+} from '../controllers/middlewares/validators/tipoArchivoValidator.js'
 
 router.get('/',
-    authMiddleware,
     getTipoArchivosValidators,
     handleValidation,
     tipoArchivoController.getTipoArchivos
 )
 
 router.get('/:id',
-    authMiddleware,
     getTipoArchivoByIdValidators,
     handleValidation,
     tipoArchivoController.getById
