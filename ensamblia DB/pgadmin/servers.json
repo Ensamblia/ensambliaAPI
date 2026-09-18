@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Mi Base de Datos Ensamblia",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "EMNSAMBLIA_DB",
+      "Username": "root",
+      "PassFile": "/pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}
