@@ -207,6 +207,82 @@ Consultas útiles:
 
 ---
 
+## 📄 Paginación, Búsqueda, Filtrado y Ordenación
+
+### Paginación (LimitOffset)
+
+Los endpoints de **listados grandes** devuelven respuestas paginadas:
+
+```
+GET /api/anuncios?limit=20&offset=0
+```
+
+**Respuesta:**
+```json
+{
+    "count": 47,
+    "next": "http://localhost:8000/api/anuncios?limit=20&offset=20",
+    "previous": null,
+    "results": [
+        { "anuncio_id": 1, "titulo": "..." },
+        { "anuncio_id": 2, "titulo": "..." }
+    ]
+}
+```
+
+**Parámetros:**
+- `?limit=20` → tamaño de página (máximo 100, default 20)
+- `?offset=40` → desplazamiento
+
+**Endpoints paginados**: `anuncios`, `perfiles`, `comentarios`, `mensajes`, `multimedia`, `usuarios`.
+
+**Endpoints NO paginados**: catálogos (`comarcas`, `ciudades`, `instrumentos`, `genero_musical`, `grupos`, `tipo-anuncios`, `tipo-archivos`) y pivotes (`perfil-chats`, `perfil-grupos`, `perfil-genero-musicales`, `perfil-instrumentos`, `grupo-generos`, `mensaje-leidos`).
+
+### Búsqueda
+
+```
+GET /api/anuncios?search=guitarra
+GET /api/perfiles?search=luis
+```
+
+Busca en campos de texto relevantes por cada recurso.
+
+### Filtrado
+
+```
+GET /api/anuncios?tipo_anuncio=1
+GET /api/perfiles?comarca=1&disponibilidad=true
+GET /api/comentarios?anuncio=1&esta_eliminado=false
+GET /api/anuncios?fecha_publicacion__gte=2026-01-01
+```
+
+> ⚠️ Los filtros usan el **nombre del campo del modelo** (`tipo_anuncio`), no el de la columna (`tipo_anuncio_id`).
+
+### Ordenación
+
+```
+GET /api/anuncios?ordering=-fecha_publicacion
+GET /api/perfiles?ordering=edad,-fecha_creacion
+```
+
+Prefijo `-` para orden descendente. Múltiples campos separados por coma.
+
+### En el front (React)
+
+Las respuestas paginadas ya **NO** son arrays planos:
+
+```javascript
+// ❌ Antes
+const lista = res.data;
+
+// ✅ Ahora
+const lista = res.data.results;
+
+// ✅ Con helper (soporta ambos)
+import { extractList } from '../api/axios';
+const lista = extractList(res);
+```
+
 ## 🧠 Notas técnicas
 
 ### Custom User Model

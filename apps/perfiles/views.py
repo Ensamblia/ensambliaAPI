@@ -2,7 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.usuarios.pagination import StandardLimitOffsetPagination
 from apps.usuarios.mixins import MiPerfilMixin
 from .models import (
     Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento,
@@ -12,7 +14,7 @@ from .serializers import (
     PerfilChatSerializer, PerfilGeneroMusicalSerializer,
     PerfilGrupoSerializer, PerfilInstrumentoSerializer,
 )
-
+from apps.usuarios.pagination import StandardLimitOffsetPagination
 
 class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     """
@@ -27,8 +29,23 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     """
     queryset = Perfil.objects.all()
     serializer_class = PerfilSerializer
-    lookup_field = 'perfil_id'
+    lookup_field = 'pk'
     permission_classes = [AllowAny]
+
+    pagination_class = StandardLimitOffsetPagination
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'comarca': ['exact'],
+        'usuario': ['exact'],
+        'disponibilidad': ['exact'],
+        'sexo': ['exact'],
+        'edad': ['gte', 'lte'],
+        'fecha_creacion': ['gte', 'lte'],
+    }
+    search_fields = ['nombre', 'apellido', 'correo', 'descripcion']
+    ordering_fields = ['perfil_id', 'nombre', 'apellido', 'edad', 'fecha_creacion']
+    ordering = ['perfil_id']
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve', 'get_by_usuario', 'get_by_comarca'):
@@ -36,10 +53,13 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         return [IsAuthenticated()]
 
     def list(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(PerfilSerializer(qs, many=True).data)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         try:

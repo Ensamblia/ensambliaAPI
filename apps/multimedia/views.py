@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from apps.usuarios.mixins_pagination import PaginationMixin
 from apps.usuarios.mixins import MiPerfilMixin
 from apps.anuncios.models import Anuncio
 from .models import Multimedia
@@ -9,20 +9,38 @@ from .serializers import (
     MultimediaSerializer, MultimediaCreateSerializer, MultimediaUpdateSerializer,
 )
 
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.usuarios.pagination import StandardLimitOffsetPagination
 
-class MultimediaViewSet(viewsets.ViewSet, MiPerfilMixin):
+
+class MultimediaViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
     permission_classes = [AllowAny]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre', 'ruta_archivo']
+    ordering_fields = ['fecha_subida', 'nombre', 'multimedia_id']
+    ordering = ['-fecha_subida']
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve', 'by_perfil', 'by_anuncio'):
             return [AllowAny()]
         return [IsAuthenticated()]
 
+    def _aplicar_filtros(self, queryset):
+        for backend in self.filter_backends:
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+
     def list(self, request):
-        qs = Multimedia.objects.all().order_by('-fecha_subida')
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(MultimediaSerializer(qs, many=True).data)
+        queryset = self._aplicar_filtros(Multimedia.objects.all())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = MultimediaSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = MultimediaSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def retrieve(self, request, pk=None):
         try:

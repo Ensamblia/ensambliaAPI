@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api/axios';
 import { AnuncioCard } from '../components/cards/AnuncioCard';
 import { FiltrosAnuncios } from '../components/filters/FiltrosAnuncios';
+import api, { extractList } from '../api/axios';
 
 /* ── Layout ── */
 const page = {
@@ -62,8 +62,9 @@ export function AnunciosPage() {
   useEffect(() => {
     api.get('/anuncios')
       .then((res) => {
-        setAnuncios(res.data);
-        setFiltrados(res.data);
+        const lista = extractList(res);
+        setAnuncios(lista);
+        setFiltrados(lista);
         setLoading(false);
       })
       .catch((err) => {

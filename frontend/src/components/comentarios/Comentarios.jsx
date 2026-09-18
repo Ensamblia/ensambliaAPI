@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
 import { AuthContext } from '../../context/AuthContext';
+import api, { extractList } from '../../api/axios';
 
 const section = {
   marginTop: '24px',
@@ -183,21 +183,21 @@ export function Comentarios({ anuncioId }) {
   const cargarComentarios = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/comentarios/anuncio', { params: { anuncio_id: anuncioId } });
-      const lista = res.data;
-      setComentarios(lista);
+        const res = await api.get('/comentarios/anuncio', { params: { anuncio_id: anuncioId } });
+        const lista = extractList(res);
+        setComentarios(lista);
 
-      let cache = perfiles;
-      for (const c of lista) {
-        cache = await cargarPerfil(c.perfil_id, cache);
-      }
-      setPerfiles(cache);
+        let cache = perfiles;
+        for (const c of lista) {
+            cache = await cargarPerfil(c.perfil_id, cache);
+        }
+        setPerfiles(cache);
     } catch (err) {
-      if (err.response?.status === 404) {
-        setComentarios([]);
-      }
+        if (err.response?.status === 404) {
+            setComentarios([]);
+        }
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 

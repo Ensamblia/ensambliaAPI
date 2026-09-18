@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
+from apps.usuarios.mixins_pagination import PaginationMixin
 from apps.usuarios.mixins import MiPerfilMixin
 from apps.perfiles.models import PerfilChat, Perfil
 from .models import Chat, Mensaje, MensajeLeido
@@ -10,6 +10,9 @@ from .serializers import (
     MensajeUpdateSerializer, MensajeLeidoSerializer,
 )
 
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.usuarios.pagination import StandardLimitOffsetPagination
 
 def _es_participante(chat_id, perfil_id):
     return PerfilChat.objects.filter(chat_id=chat_id, perfil_id=perfil_id).exists()
@@ -106,21 +109,38 @@ class ChatViewSet(viewsets.ViewSet, MiPerfilMixin):
 # ==================================================================
 # MENSAJE
 # ==================================================================
-class MensajeViewSet(viewsets.ViewSet, MiPerfilMixin):
+class MensajeViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
     permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['contenido']
+    ordering_fields = ['fecha_envio', 'mensaje_id']
+    ordering = ['fecha_envio']
 
     def _mis_mensajes(self, mi_perfil_id):
         mis_chat_ids = PerfilChat.objects.filter(perfil_id=mi_perfil_id).values_list('chat_id', flat=True)
         return Mensaje.objects.filter(chat_id__in=list(mis_chat_ids))
 
+    def _aplicar_filtros(self, queryset):
+        """Aplica filtros de búsqueda y ordenación a un queryset."""
+        for backend in self.filter_backends:
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
+
     def list(self, request):
         mi_perfil_id = self.get_mi_perfil_id(request)
         if not mi_perfil_id:
             return Response([], status=status.HTTP_200_OK)
-        qs = self._mis_mensajes(mi_perfil_id)
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(MensajeSerializer(qs, many=True).data)
+
+        queryset = self._mis_mensajes(mi_perfil_id)
+        queryset = self._aplicar_filtros(queryset)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = MensajeSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = MensajeSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def by_chat(self, request):
         chat_id = request.query_params.get('chat_id')

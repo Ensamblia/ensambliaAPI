@@ -1,6 +1,9 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.usuarios.pagination import StandardLimitOffsetPagination
 
 from apps.usuarios.mixins import MiPerfilMixin
 from .models import TipoAnuncio, Anuncio, Comentario
@@ -17,8 +20,13 @@ from .serializers import (
 class TipoAnuncioViewSet(viewsets.ModelViewSet):
     queryset = TipoAnuncio.objects.all()
     serializer_class = TipoAnuncioSerializer
-    lookup_field = 'tipo_anuncio_id'
+    lookup_field = 'pk'
     permission_classes = [AllowAny]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre']
+    ordering_fields = ['nombre', 'tipo_anuncio_id']
+    ordering = ['nombre']
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
@@ -80,8 +88,22 @@ class TipoAnuncioViewSet(viewsets.ModelViewSet):
 class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     queryset = Anuncio.objects.all()
     serializer_class = AnuncioSerializer
-    lookup_field = 'anuncio_id'
+    lookup_field = 'pk'
     permission_classes = [AllowAny]
+
+    # ── Paginación ──────────────────────────────────────
+    pagination_class = StandardLimitOffsetPagination
+
+    # ── Filtros / Búsqueda / Ordenación ─────────────────
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = {
+        'perfil': ['exact'],
+        'tipo_anuncio': ['exact'],
+        'fecha_publicacion': ['gte', 'lte'],
+    }
+    search_fields = ['titulo', 'contenido']
+    ordering_fields = ['fecha_publicacion', 'titulo', 'anuncio_id']
+    ordering = ['-fecha_publicacion']  # por defecto
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
@@ -89,85 +111,18 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         return [IsAuthenticated()]
 
     def list(self, request, *args, **kwargs):
-        qs = self.get_queryset()
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(AnuncioSerializer(qs, many=True).data)
+        # Aplicamos filtros, búsqueda y ordenación
+        queryset = self.filter_queryset(self.get_queryset())
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        try:
-            obj = Anuncio.objects.get(pk=pk)
-        except Anuncio.DoesNotExist:
-            return Response(
-                {'error': f'Nothing found for id: {pk}'},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        return Response(AnuncioSerializer(obj).data)
+        # Paginamos
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-
-        # Validación básica
-        titulo = data.get('titulo')
-        if not titulo or not str(titulo).strip():
-            return Response(
-                {'error': 'Titulo is a mandatory field. Cannot be undefined or null'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        tipo_anuncio_id = data.get('tipo_anuncio_id')
-        if tipo_anuncio_id is not None and not isinstance(tipo_anuncio_id, int):
-            return Response(
-                {'error': 'tipo_anuncio_id must be integer'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        perfil_id = self.get_mi_perfil_id(request)
-        if not perfil_id:
-            return Response(
-                {'error': 'Necesitas crear tu perfil antes de publicar un anuncio'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = AnuncioCreateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        anuncio = serializer.save(perfil_id=perfil_id)
-        return Response(AnuncioSerializer(anuncio).data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, pk=None, *args, **kwargs):
-        try:
-            obj = Anuncio.objects.get(pk=pk)
-        except Anuncio.DoesNotExist:
-            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        mi_perfil_id = self.get_mi_perfil_id(request)
-        if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
-            return Response(
-                {'error': 'No puedes editar el anuncio de otro usuario'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        serializer = AnuncioUpdateSerializer(obj, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(AnuncioSerializer(obj).data, status=status.HTTP_201_CREATED)
-
-    def destroy(self, request, pk=None, *args, **kwargs):
-        try:
-            obj = Anuncio.objects.get(pk=pk)
-        except Anuncio.DoesNotExist:
-            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        mi_perfil_id = self.get_mi_perfil_id(request)
-        if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
-            return Response(
-                {'error': 'No puedes borrar el anuncio de otro usuario'},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        data = AnuncioSerializer(obj).data
-        obj.delete()
-        return Response(data, status=status.HTTP_200_OK)
+        # Si no hay paginación (no debería pasar), devolvemos todo
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # ==================================================================
@@ -176,7 +131,7 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
 class ComentarioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     queryset = Comentario.objects.all()
     serializer_class = ComentarioSerializer
-    lookup_field = 'comentario_id'
+    lookup_field = 'pk'
     permission_classes = [AllowAny]
 
     def get_permissions(self):

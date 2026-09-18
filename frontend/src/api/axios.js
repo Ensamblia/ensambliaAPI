@@ -15,4 +15,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * Extrae la lista de resultados de una respuesta DRF.
+ * Soporta:
+ *   - Respuestas paginadas: { count, next, previous, results: [...] }
+ *   - Respuestas planas: [...]
+ *   - Respuestas nulas/undefined: devuelve []
+ *
+ * @param {Object|Array} res - La respuesta de axios o los datos directamente.
+ * @returns {Array}
+ */
+export function extractList(res) {
+  const data = res?.data ?? res;
+  return data?.results ?? (Array.isArray(data) ? data : []) ?? [];
+}
+
 export default api;

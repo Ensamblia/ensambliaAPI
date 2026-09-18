@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import api from '../../api/axios';
+import api, { extractList } from '../../api/axios';
 
 /* ── Layout ── */
 const layout = {
@@ -257,16 +257,22 @@ export function ChatBox() {
         if (cancelado) return;
         setMiPerfilId(perfil.perfil_id);
 
-        const misChats = (await api.get('/perfil-chats/perfil', { params: { perfil_id: perfil.perfil_id } })
-          .catch((err) => (err.response?.status === 404 ? { data: [] } : Promise.reject(err)))).data;
+        const misChatsRes = await api.get('/perfil-chats/perfil', {
+          params: { perfil_id: perfil.perfil_id }
+        }).catch((err) => (err.response?.status === 404 ? { data: [] } : Promise.reject(err)));
+
+        const misChats = extractList(misChatsRes);
 
         const conversaciones = await Promise.all(misChats.map(async ({ chat_id }) => {
-          const participantes = (await api.get('/perfil-chats/chat', { params: { chat_id } })).data;
+          const participantesRes = await api.get('/perfil-chats/chat', { params: { chat_id } });
+          const participantes = extractList(participantesRes);
           const otro = participantes.find((p) => p.perfil_id !== perfil.perfil_id);
 
           const [otroPerfil, mensajes] = await Promise.all([
             otro ? api.get(`/perfiles/${otro.perfil_id}`).then((r) => r.data).catch(() => null) : null,
-            api.get('/mensajes/chat', { params: { chat_id } }).then((r) => r.data).catch(() => []),
+            api.get('/mensajes/chat', { params: { chat_id } })
+              .then(extractList)
+              .catch(() => []),
           ]);
 
           return {

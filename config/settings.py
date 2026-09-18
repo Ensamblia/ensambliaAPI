@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_spectacular',
+    'django_filters', 
 
     # Local apps
     'apps.usuarios',
@@ -113,6 +114,17 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'apps.usuarios.exceptions.drf_exception_handler',
+
+    # Paginación por defecto (se aplica solo a las vistas que la activen)
+    'DEFAULT_PAGINATION_CLASS': 'apps.usuarios.pagination.StandardLimitOffsetPagination',
+    'PAGE_SIZE': 20,
+
+    # Filtros, búsqueda y ordenación (globales, no rompen nada)
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
 }
 
 SIMPLE_JWT = {

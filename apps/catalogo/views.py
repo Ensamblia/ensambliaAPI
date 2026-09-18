@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .models import (
     Comarca, Ciudad, Instrumento, GeneroMusical, Grupo, GrupoGenero, TipoArchivo,
@@ -87,13 +89,35 @@ class BaseCRUDViewSet(viewsets.ModelViewSet):
 class ComarcaViewSet(BaseCRUDViewSet):
     queryset = Comarca.objects.all()
     serializer_class = ComarcaSerializer
-    lookup_field = 'comarca_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre']
+    ordering_fields = ['nombre', 'comarca_id']
+    ordering = ['nombre']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
 
 class CiudadViewSet(BaseCRUDViewSet):
     queryset = Ciudad.objects.all()
     serializer_class = CiudadSerializer
-    lookup_field = 'ciudad_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre']
+    ordering_fields = ['nombre']
+    ordering = ['nombre']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
     def create(self, request, *args, **kwargs):
         serializer = CiudadCreateSerializer(data=request.data)
@@ -117,19 +141,52 @@ class CiudadViewSet(BaseCRUDViewSet):
 class InstrumentoViewSet(BaseCRUDViewSet):
     queryset = Instrumento.objects.all()
     serializer_class = InstrumentoSerializer
-    lookup_field = 'instrumento_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre']
+    ordering_fields = ['nombre']
+    ordering = ['nombre']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
 
 class GeneroMusicalViewSet(BaseCRUDViewSet):
     queryset = GeneroMusical.objects.all()
     serializer_class = GeneroMusicalSerializer
-    lookup_field = 'genero_musical_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre']
+    ordering_fields = ['nombre']
+    ordering = ['nombre']
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
 
 class GrupoViewSet(BaseCRUDViewSet):
     queryset = Grupo.objects.all()
     serializer_class = GrupoSerializer
-    lookup_field = 'grupo_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['nombre']
+    ordering = ['nombre']
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
     def create(self, request, *args, **kwargs):
         serializer = GrupoCreateSerializer(data=request.data)
@@ -167,7 +224,18 @@ class GrupoViewSet(BaseCRUDViewSet):
 class TipoArchivoViewSet(BaseCRUDViewSet):
     queryset = TipoArchivo.objects.all()
     serializer_class = TipoArchivoSerializer
-    lookup_field = 'tipo_archivo_id'
+    lookup_field = 'pk'
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['nombre', 'extension', 'mime_type']
+    ordering_fields = ['nombre']
+    ordering = ['nombre']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
 
 
 # ================================================================
@@ -177,16 +245,20 @@ class TipoArchivoViewSet(BaseCRUDViewSet):
 class GrupoGeneroViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    ordering_fields = ['grupo_id', 'genero_id']
+    ordering = ['nombre']
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        if not queryset.exists():
+            return Response([], status=status.HTTP_200_OK)
+        return Response(self.get_serializer(queryset, many=True).data)
+
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [AllowAny()]
         return [IsAuthenticated()]
-
-    def list(self, request):
-        qs = GrupoGenero.objects.all().order_by('grupo_id', 'genero_id')
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(GrupoGeneroSerializer(qs, many=True).data)
 
     def retrieve(self, request, grupo_id=None, genero_id=None):
         try:
