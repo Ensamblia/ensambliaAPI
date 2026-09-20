@@ -8,7 +8,6 @@ import {
     Guitar,
     Heart,
     MapPin,
-    Menu,
     MessageCircle,
     Music2,
     Play,
@@ -16,7 +15,6 @@ import {
     Sparkles,
     Store,
     Users,
-    X,
 } from "lucide-react";
 
 const featureCards = [
@@ -177,7 +175,7 @@ function AppMockup() {
                 <div className="phone-topline"><span>09:41</span><span>● ● ▰</span></div>
                 <div className="phone-header"><span>ensamblia</span><Heart size={15} /></div>
                 <div className="phone-greeting">Hola, <b>María</b><small>Tu próxima conexión está aquí.</small></div>
-                <div className="phone-match-card"><div className="match-cover"><div className="cover-person" /><div className="cover-person cover-person--back" /></div><div className="match-meta"><span>92% COMPATIBILIDAD</span><b>Leo busca batería</b><small>Pop alternativo · 2 km</small></div><div className="match-actions"><button><X size={14} /></button><button className="is-liked"><Heart size={14} fill="currentColor" /></button></div></div>
+                <div className="phone-match-card"><div className="match-cover"><div className="cover-person" /><div className="cover-person cover-person--back" /></div><div className="match-meta"><span>92% COMPATIBILIDAD</span><b>Leo busca batería</b><small>Pop alternativo · 2 km</small></div><div className="match-actions"><button>✕</button><button className="is-liked"><Heart size={14} fill="currentColor" /></button></div></div>
                 <div className="phone-section-title"><b>Eventos cerca de ti</b><span>Ver todos</span></div>
                 <div className="phone-event"><div className="phone-event-date">24<br /><small>JUN</small></div><div><b>Sesión abierta</b><small>La Sala · 20:00</small></div><ChevronRight size={16} /></div>
                 <div className="phone-nav"><span className="active"><Sparkles size={16} />Descubrir</span><span><MessageCircle size={16} />Mensajes</span><span><Users size={16} />Perfil</span></div>
@@ -187,35 +185,8 @@ function AppMockup() {
 }
 
 export default function Index() {
-    const [menuOpen, setMenuOpen] = useState(false);
-
-    const navigate = (id) => {
-        setMenuOpen(false);
-        scrollToSection(id);
-    };
-
     return (
         <main className="ensamblia-site" id="top">
-            <header className="site-header">
-                <div className="container header-inner">
-                    <Logo />
-                    <nav className="desktop-nav" aria-label="Navegación principal">
-                        <button onClick={() => navigate("features")}>Funciones</button>
-                        <button onClick={() => navigate("how-it-works")}>Cómo funciona</button>
-                        <button onClick={() => navigate("community")}>Comunidad</button>
-                        <button onClick={() => navigate("download")}>Descargar</button>
-                    </nav>
-                    <div className="header-actions">
-                        <button className="button button--yellow button--small" onClick={() => navigate("join")}>ÚNETE GRATIS <ArrowUpRight size={14} /></button>
-                        <button className="button button--outline button--small header-login" onClick={() => navigate("join")}>Acceso</button>
-                    </div>
-                    <button className="menu-toggle" onClick={() => setMenuOpen((open) => !open)} aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} aria-expanded={menuOpen}>
-                        {menuOpen ? <X size={23} /> : <Menu size={23} />}
-                    </button>
-                </div>
-                {menuOpen && <nav className="mobile-nav" aria-label="Navegación móvil"><button onClick={() => navigate("features")}>Funciones <ChevronRight size={16} /></button><button onClick={() => navigate("how-it-works")}>Cómo funciona <ChevronRight size={16} /></button><button onClick={() => navigate("community")}>Comunidad <ChevronRight size={16} /></button><button onClick={() => navigate("download")}>Descargar <ChevronRight size={16} /></button><button className="button button--yellow" onClick={() => navigate("join")}>ÚNETE GRATIS <ArrowUpRight size={15} /></button></nav>}
-            </header>
-
             <section className="hero-section">
                 <div className="container hero-grid">
                     <div className="hero-copy">
@@ -265,7 +236,7 @@ export default function Index() {
 
             <section className="join-section" id="join"><div className="join-orbit join-orbit--one" /><div className="join-orbit join-orbit--two" /><div className="container join-inner"><div className="join-spark join-spark--left">✦</div><div className="join-spark join-spark--right">✦</div><SectionLabel tone="dark">TU PRÓXIMO PROYECTO EMPIEZA HOY</SectionLabel><h2>¿Listo para encontrar<br /><em>tu grupo?</em></h2><p>Únete a Ensamblia gratis y empieza a conectar con músicos que comparten tu pasión.</p><button className="button button--dark button--large" onClick={() => scrollToSection("top")}>Crear mi cuenta <ArrowUpRight size={18} /></button><small>Sin tarjeta. Sin ruido. Solo música.</small></div></section>
 
-            <footer className="site-footer"><div className="container footer-top"><div className="footer-brand"><Logo /><p>La plataforma donde los músicos se encuentran, colaboran y crean juntos.</p><div className="footer-socials"><button aria-label="Instagram">ig</button><button aria-label="TikTok">tk</button><button aria-label="YouTube">yt</button></div></div><div className="footer-links"><div><b>Explorar</b><button onClick={() => navigate("features")}>Funciones</button><button onClick={() => navigate("how-it-works")}>Cómo funciona</button><button onClick={() => navigate("community")}>Comunidad</button><button onClick={() => navigate("download")}>Descargar</button></div><div><b>Ensamblia</b><button onClick={() => navigate("join")}>Únete gratis</button><button onClick={() => navigate("join")}>Acceso</button><button onClick={() => navigate("join")}>Contacto</button><button onClick={() => navigate("join")}>Ayuda</button></div></div></div><div className="container footer-bottom"><span>© 2025 Ensamblia. Todos los derechos reservados.</span><span>Hecho para quienes no pueden dejar de escuchar.</span></div></footer>
+            <footer className="site-footer"><div className="container footer-top"><div className="footer-brand"><Logo /><p>La plataforma donde los músicos se encuentran, colaboran y crean juntos.</p><div className="footer-socials"><button aria-label="Instagram">ig</button><button aria-label="TikTok">tk</button><button aria-label="YouTube">yt</button></div></div><div className="footer-links"><div><b>Explorar</b><button onClick={() => scrollToSection("features")}>Funciones</button><button onClick={() => scrollToSection("how-it-works")}>Cómo funciona</button><button onClick={() => scrollToSection("community")}>Comunidad</button><button onClick={() => scrollToSection("download")}>Descargar</button></div><div><b>Ensamblia</b><button onClick={() => scrollToSection("join")}>Únete gratis</button><button onClick={() => scrollToSection("join")}>Acceso</button><button onClick={() => scrollToSection("join")}>Contacto</button><button onClick={() => scrollToSection("join")}>Ayuda</button></div></div></div><div className="container footer-bottom"><span>© 2025 Ensamblia. Todos los derechos reservados.</span><span>Hecho para quienes no pueden dejar de escuchar.</span></div></footer>
         </main>
     );
 }
