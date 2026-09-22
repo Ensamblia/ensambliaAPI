@@ -283,6 +283,70 @@ import { extractList } from '../api/axios';
 const lista = extractList(res);
 ```
 
+## 💬 Chat en tiempo real (WebSockets)
+
+El chat usa **Django Channels + Redis** para mensajes en vivo.
+
+### Arquitectura
+
+- **WebSocket por chat**: `ws://localhost:8000/ws/chat/<chat_id>/?token=<JWT>`
+- **WebSocket global de notificaciones**: `ws://localhost:8000/ws/notifications/?token=<JWT>`
+- **Channel layer**: Redis (DB 0)
+- **Cache para presencia**: Redis (DB 1)
+
+### Features en tiempo real
+
+| Feature | Descripción |
+|---------|-------------|
+| Mensajes en vivo | Envío y recepción sin recargar |
+| Presencia online/offline | Punto verde + "En línea" / "Ausente" |
+| Typing indicator | "escribiendo…" durante 3s |
+| Marcar como leído | ✓ (enviado) → ✓✓ verde (leído) |
+| Badge de no leídos | En navbar y sidebar, persistente |
+| Editar mensajes | Actualización en vivo en todos los clientes |
+| Borrar mensajes | Soft delete con modal de confirmación |
+| Scroll infinito | Carga 30 mensajes antiguos al scrollear arriba |
+
+### Eventos del WebSocket de chat
+
+**Cliente → Servidor:**
+
+```json
+{ "tipo": "mensaje", "contenido": "Hola" }
+{ "tipo": "typing" }
+{ "tipo": "leido", "mensaje_id": 123 }
+{ "tipo": "editar_mensaje", "mensaje_id": 123, "contenido": "nuevo" }
+{ "tipo": "borrar_mensaje", "mensaje_id": 123 }
+```
+
+**Servidor → Cliente:**
+
+```json
+{ "tipo": "mensaje", "mensaje_id": ..., "contenido": ..., "leido_por": [...] }
+{ "tipo": "typing", "perfil_id": ... }
+{ "tipo": "leido", "mensaje_id": ..., "perfil_id": ... }
+{ "tipo": "status", "perfil_id": ..., "status": "online"|"offline" }
+{ "tipo": "presence_snapshot", "perfiles_online": [...] }
+{ "tipo": "mensaje_editado", "mensaje_id": ..., "contenido": ... }
+{ "tipo": "mensaje_borrado", "mensaje_id": ... }
+```
+
+### Paginación del historial
+
+```
+GET /api/mensajes/chat?chat_id=1&limit=30&before_id=500
+```
+
+- Sin `before_id` → últimos 30 mensajes
+- Con `before_id` → 30 mensajes anteriores a ese ID
+- Respuesta: `{ results: [...], has_more: bool }`
+
+### Requisitos
+
+- Redis corriendo (docker-compose lo levanta)
+- Daphne como servidor ASGI (ya configurado)
+- `channels`, `channels-redis`, `daphne` en `requirements.txt`
+
 ## 🧠 Notas técnicas
 
 ### Custom User Model

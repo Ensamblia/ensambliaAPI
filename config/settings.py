@@ -25,6 +25,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 # APPS
 # ============================================================
 INSTALLED_APPS = [
+    'daphne',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'django_filters', 
+    'channels',
 
     # Local apps
     'apps.usuarios',
@@ -77,6 +79,41 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+# ============================================================
+# CHANNELS (WebSockets)
+# ============================================================
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [
+                {
+                    'address': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}",
+                    'socket_timeout': 30,
+                    'socket_connect_timeout': 30,
+                    'socket_keepalive': True,
+                },
+            ],
+            'symmetric_encryption_keys': [SECRET_KEY],
+        },
+    },
+}
+
+# ============================================================
+# CACHES (Redis) — para presence del chat
+# ============================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}/1",
+        'OPTIONS': {
+            'socket_timeout': 30,
+            'socket_connect_timeout': 30,
+        },
+    },
+}
 
 # ============================================================
 # BASE DE DATOS — PostgreSQL con search_path=ensamblia

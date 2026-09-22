@@ -31,5 +31,13 @@ services:
     networks:
       - ensamblia_net
 
+  redis:
+    # ← NUEVO
+    image: redis:7-alpine
+    container_name: ensamblia_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 networks:
   ensamblia_net:

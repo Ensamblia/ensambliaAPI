@@ -9,13 +9,15 @@ from .serializers import (
     ChatSerializer, MensajeSerializer, MensajeCreateSerializer,
     MensajeUpdateSerializer, MensajeLeidoSerializer,
 )
-
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.usuarios.pagination import StandardLimitOffsetPagination
+from rest_framework.decorators import action
+from django.db.models import Count, Q
 
 def _es_participante(chat_id, perfil_id):
-    return PerfilChat.objects.filter(chat_id=chat_id, perfil_id=perfil_id).exists()
+        return PerfilChat.objects.filter(chat_id=chat_id, perfil_id=perfil_id).exists()
+
 
 
 # ==================================================================
@@ -30,16 +32,55 @@ class ChatViewSet(viewsets.ViewSet, MiPerfilMixin):
     """
     permission_classes = [IsAuthenticated]
 
+
     def list(self, request):
+            mi_perfil_id = self.get_mi_perfil_id(request)
+            if not mi_perfil_id:
+                return Response([], status=status.HTTP_200_OK)
+    
+            mis_chat_ids = PerfilChat.objects.filter(perfil_id=mi_perfil_id).values_list('chat_id', flat=True)
+            qs = Chat.objects.filter(chat_id__in=list(mis_chat_ids))
+            if not qs.exists():
+                return Response([], status=status.HTTP_200_OK)
+            return Response(ChatSerializer(qs, many=True).data)
+
+    def no_leidos(self, request):
+        """
+        GET /api/chats/no-leidos
+        Devuelve el conteo de mensajes no leídos por chat + total.
+        """
         mi_perfil_id = self.get_mi_perfil_id(request)
         if not mi_perfil_id:
-            return Response([], status=status.HTTP_200_OK)
+            return Response({'total': 0, 'por_chat': {}}, status=status.HTTP_200_OK)
 
-        mis_chat_ids = PerfilChat.objects.filter(perfil_id=mi_perfil_id).values_list('chat_id', flat=True)
-        qs = Chat.objects.filter(chat_id__in=list(mis_chat_ids))
-        if not qs.exists():
-            return Response([], status=status.HTTP_200_OK)
-        return Response(ChatSerializer(qs, many=True).data)
+        from apps.perfiles.models import PerfilChat
+        from .models import Mensaje, MensajeLeido
+
+        mis_chat_ids = list(
+            PerfilChat.objects.filter(perfil_id=mi_perfil_id).values_list('chat_id', flat=True)
+        )
+
+        # Subquery: IDs de mensajes que YO he leído
+        leidos_ids = MensajeLeido.objects.filter(
+            perfil_id=mi_perfil_id
+        ).values_list('mensaje_id', flat=True)
+
+        # Mensajes no leídos: de mis chats, que NO son míos, y que NO están en `leidos_ids`
+        no_leidos_qs = Mensaje.objects.filter(
+            chat_id__in=mis_chat_ids,
+        ).exclude(
+            perfil_id=mi_perfil_id,
+        ).exclude(
+            mensaje_id__in=leidos_ids,
+        ).values('chat_id').annotate(total=Count('mensaje_id'))
+
+        por_chat = {str(row['chat_id']): row['total'] for row in no_leidos_qs}
+        total = sum(por_chat.values())
+
+        return Response({'total': total, 'por_chat': por_chat})
+
+
+    
 
     def retrieve(self, request, pk=None):
         mi_perfil_id = self.get_mi_perfil_id(request)
@@ -143,14 +184,57 @@ class MensajeViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def by_chat(self, request):
+        """
+        GET /api/mensajes/chat?chat_id=X&limit=30&before_id=Y
+
+        - Si no hay `before_id`: devuelve los últimos `limit` mensajes.
+        - Si hay `before_id`: devuelve los `limit` mensajes anteriores a ese ID.
+
+        Los mensajes se devuelven ordenados ASCENDENTEMENTE (por fecha_envio)
+        para que el front los pinte en orden natural.
+        """
         chat_id = request.query_params.get('chat_id')
         mi_perfil_id = self.get_mi_perfil_id(request)
         if not mi_perfil_id or not _es_participante(chat_id, mi_perfil_id):
             return Response({'error': 'No participas en este chat'}, status=status.HTTP_403_FORBIDDEN)
-        qs = Mensaje.objects.filter(chat_id=chat_id).order_by('fecha_envio')
-        if not qs.exists():
+
+        try:
+            limit = int(request.query_params.get('limit', 30))
+            limit = max(1, min(limit, 100))
+        except (ValueError, TypeError):
+            limit = 30
+
+        before_id = request.query_params.get('before_id')
+
+        qs = Mensaje.objects.filter(chat_id=chat_id)
+
+        if before_id:
+            try:
+                before_id_int = int(before_id)
+                qs = qs.filter(mensaje_id__lt=before_id_int)
+            except (ValueError, TypeError):
+                pass
+
+        # Cogemos los `limit` más recientes (que serán los últimos del historial
+        # si no hay before_id, o los anteriores al mensaje dado si lo hay)
+        qs = qs.order_by('-mensaje_id')[:limit]
+
+        # Le damos la vuelta para que salgan en orden cronológico
+        mensajes = list(reversed(list(qs)))
+
+        if not mensajes:
             return Response([], status=status.HTTP_200_OK)
-        return Response(MensajeSerializer(qs, many=True).data)
+
+        # ¿Hay más mensajes anteriores?
+        mas_antiguos = Mensaje.objects.filter(
+            chat_id=chat_id,
+            mensaje_id__lt=mensajes[0].mensaje_id,
+        ).exists()
+
+        return Response({
+            'results': MensajeSerializer(mensajes, many=True).data,
+            'has_more': mas_antiguos,
+        })
 
     def by_perfil(self, request):
         perfil_id = request.query_params.get('perfil_id')

@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { NotificationsContext } from '../../context/NotificationsContext';
 
 /* ── Styles ── */
 const nav = {
@@ -101,6 +102,24 @@ const btnLogoutStyle = {
   transition: 'border-color 140ms ease, color 140ms ease',
 };
 
+const badge = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '18px',
+    height: '18px',
+    padding: '0 5px',
+    marginLeft: '6px',
+    backgroundColor: '#FF5C35',
+    color: '#FFFFFF',
+    borderRadius: '999px',
+    fontSize: '10px',
+    fontWeight: 700,
+    lineHeight: 1,
+    letterSpacing: '0',
+    verticalAlign: 'middle',
+};
+
 const LINKS = [
   { to: '/anuncios', label: 'Anuncios' },
   { to: '/perfil',   label: 'Mi perfil', authOnly: true },
@@ -110,6 +129,7 @@ const LINKS = [
 export function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { totalUnread } = useContext(NotificationsContext);
 
   const handleLogout = () => {
     logout();
@@ -126,13 +146,22 @@ export function Navbar() {
 
       {/* Links */}
       <ul style={navLinks}>
-        {LINKS.filter((link) => !link.authOnly || user).map(({ to, label }) => (
-          <li key={to}>
-            <NavLink to={to} style={({ isActive }) => getLinkStyle(isActive)}>
-              {label}
-            </NavLink>
-          </li>
-        ))}
+        {LINKS.filter((link) => !link.authOnly || user).map(({ to, label }) => {
+          const isMensajes = to === '/chat';
+          const showBadge = isMensajes && totalUnread > 0;
+          return (
+            <li key={to}>
+                <NavLink to={to} style={({ isActive }) => getLinkStyle(isActive)}>
+                    {label}
+                    {showBadge && (
+                        <span style={badge}>
+                            {totalUnread > 99 ? '99+' : totalUnread}
+                        </span>
+                    )}
+                </NavLink>
+            </li>
+        );
+    })}
       </ul>
 
       {/* CTA */}

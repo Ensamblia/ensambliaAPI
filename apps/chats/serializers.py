@@ -13,13 +13,18 @@ class ChatSerializer(serializers.ModelSerializer):
 class MensajeSerializer(serializers.ModelSerializer):
     chat_id = serializers.IntegerField(read_only=True, allow_null=True)
     perfil_id = serializers.IntegerField(read_only=True, allow_null=True)
+    leido_por = serializers.SerializerMethodField()
 
     class Meta:
         model = Mensaje
         fields = [
             'mensaje_id', 'contenido', 'fecha_envio', 'esta_eliminado',
-            'chat_id', 'perfil_id',
+            'chat_id', 'perfil_id', 'leido_por',
         ]
+
+    def get_leido_por(self, obj):
+        """Lista de perfil_id que han leído este mensaje."""
+        return list(obj.mensajeleido_set.values_list('perfil_id', flat=True))
 
 
 class MensajeCreateSerializer(serializers.ModelSerializer):
@@ -53,6 +58,7 @@ class MensajeUpdateSerializer(serializers.ModelSerializer):
         return value.strip()
 
 
+# ================ MENSAJE LEIDO ================
 class MensajeLeidoSerializer(serializers.ModelSerializer):
     mensaje_id = serializers.IntegerField(read_only=True, allow_null=True)
     perfil_id = serializers.IntegerField(read_only=True, allow_null=True)
