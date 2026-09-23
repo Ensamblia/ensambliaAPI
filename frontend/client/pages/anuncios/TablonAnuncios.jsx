@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-    ArrowDownRight,
     ArrowUpRight,
-    Check,
-    ChevronRight,
-    Filter,
     Guitar,
     Heart,
     MapPin,
@@ -12,7 +8,6 @@ import {
     Music2,
     Plus,
     Search,
-    Sparkles,
     Users,
     X,
 } from "lucide-react";
@@ -22,11 +17,21 @@ import { AsyncStateWrapper } from "@/components/ui/AsyncStateWrapper";
 import { fetchAnuncios } from "@/services/anunciosService";
 
 function SectionLabel({ children, tone = "yellow" }) {
-    return <div className={`section-label section-label--${tone}`}>{children}</div>;
+    return (
+        <div className={`section-label section-label--${tone}`}>
+            {children}
+        </div>
+    );
 }
 
 export const TablonAnuncios = () => {
-    const { execute, data: anuncios, status, error } = useAsync(fetchAnuncios);
+    const {
+        execute,
+        data: anuncios,
+        status,
+        error,
+    } = useAsync(fetchAnuncios);
+
     const [busqueda, setBusqueda] = useState("");
     const [instrumentoSel, setInstrumentoSel] = useState("Todos");
     const [categoriaSel, setCategoriaSel] = useState("Todos");
@@ -35,122 +40,232 @@ export const TablonAnuncios = () => {
         execute();
     }, [execute]);
 
-    // Filtrado de anuncios
-    const anunciosFiltrados = anuncios?.filter((anuncio) => {
+    const anunciosFiltrados = (anuncios ?? []).filter((anuncio) => {
+        const texto = busqueda.toLowerCase().trim();
+
         const coincideTexto =
-            anuncio.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
-            anuncio.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
-            anuncio.ciudad?.toLowerCase().includes(busqueda.toLowerCase());
+            !texto ||
+            anuncio.titulo?.toLowerCase().includes(texto) ||
+            anuncio.descripcion?.toLowerCase().includes(texto) ||
+            anuncio.ciudad?.toLowerCase().includes(texto) ||
+            anuncio.instrumento?.toLowerCase().includes(texto) ||
+            anuncio.categoria?.toLowerCase().includes(texto);
 
         const coincideInstrumento =
-            instrumentoSel === "Todos" || anuncio.instrumento === instrumentoSel;
+            instrumentoSel === "Todos" ||
+            anuncio.instrumento === instrumentoSel;
 
         const coincideCategoria =
-            categoriaSel === "Todos" || anuncio.categoria === categoriaSel;
+            categoriaSel === "Todos" ||
+            anuncio.categoria === categoriaSel;
 
-        return coincideTexto && coincideInstrumento && coincideCategoria;
+        return (
+            coincideTexto &&
+            coincideInstrumento &&
+            coincideCategoria
+        );
     });
+
+    const filtrosActivos =
+        busqueda.trim() !== "" ||
+        instrumentoSel !== "Todos" ||
+        categoriaSel !== "Todos";
+
+    const limpiarFiltros = () => {
+        setBusqueda("");
+        setInstrumentoSel("Todos");
+        setCategoriaSel("Todos");
+    };
 
     return (
         <div className="ensamblia-site min-h-screen pb-16">
-            {/* HEADER DE SECCIÓN / HERO */}
-            
-
-
-
-            <section className="hero-section py-12 border-b border-zinc-800/80">
+            {/* HEADER */}
+            <section className="hero-section gap-5 border-b border-zinc-800/80 py-12">
                 <div className="container">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                        <div className="space-y-3 max-w-2xl">
-                            <SectionLabel tone="yellow">MATCH & BÚSQUEDA</SectionLabel>
-                            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                                Tablón de <br />
-                                <em>Anuncios.</em>
+                    <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+                        <div className="max-w-2xl space-y-3">
+                            <SectionLabel tone="yellow">
+                                MATCH & BÚSQUEDA
+                            </SectionLabel>
+
+                            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl">
+                                Tablón de Anuncios
                             </h1>
-                            <p className="text-zinc-400 text-base sm:text-lg">
-                                Encuentra integrantes para tu proyecto, únete a bandas activas o conecta con músicos cerca de ti.
+
+                            <p className="text-base text-zinc-400 sm:text-lg">
+                                Encuentra integrantes para tu proyecto, únete
+                                a bandas activas o conecta con músicos cerca
+                                de ti.
                             </p>
                         </div>
 
-                        <button className="button button--yellow button--large self-start md:self-auto flex items-center gap-2">
-                            <Plus size={18} /> PUBLICAR ANUNCIO <ArrowUpRight size={16} />
+                        <button
+                            type="button"
+                            className="button button--yellow button--large flex items-center gap-2 self-start md:self-auto"
+                        >
+                            <Plus size={18} />
+                            PUBLICAR ANUNCIO
+                            <ArrowUpRight size={16} />
                         </button>
                     </div>
                 </div>
             </section>
 
-            {/* BARRA DE BÚSQUEDA Y FILTROS */}
-            <section className="py-8 bg-zinc-900/40 border-b border-zinc-800/50">
-                <div className="container space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        {/* Input Buscador principal */}
-                        <div className="md:col-span-6 relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-500">
-                                <Search size={18} />
-                            </div>
-                            <input
-                                type="text"
-                                value={busqueda}
-                                onChange={(e) => setBusqueda(e.target.value)}
-                                placeholder="Buscar por instrumento, ciudad (ej. Madrid, Barna), estilo..."
-                                className="w-full pl-10 pr-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-yellow-400 transition-colors text-sm"
-                            />
-                            {busqueda && (
+            {/* BÚSQUEDA Y FILTROS */}
+            <section className="border-b border-zinc-800/70 bg-zinc-950/70 py-8">
+                <div className="container">
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="mb-1 text-xs font-bold uppercase tracking-[0.16em] text-yellow-400">
+                                Explora oportunidades
+                            </p>
+
+                            <h2 className="text-xl font-bold text-white">
+                                Encuentra tu próximo proyecto
+                            </h2>
+                        </div>
+
+                        <span className="text-sm text-zinc-500">
+                            {anunciosFiltrados.length}{" "}
+                            {anunciosFiltrados.length === 1
+                                ? "anuncio"
+                                : "anuncios"}
+                        </span>
+                    </div>
+
+                    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 shadow-2xl shadow-black/10">
+                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_220px_220px_auto]">
+                            {/* BUSCADOR */}
+                            <label className="relative block">
+                                <span className="sr-only">
+                                    Buscar anuncios
+                                </span>
+
+                                <Search
+                                    size={18}
+                                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"
+                                />
+
+                                <input
+                                    type="search"
+                                    value={busqueda}
+                                    onChange={(event) =>
+                                        setBusqueda(event.target.value)
+                                    }
+                                    placeholder="Instrumento, ciudad, estilo..."
+                                    className="h-12 w-full rounded-xl border border-zinc-800 bg-zinc-950 pl-11 pr-10 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                                />
+
+                                {busqueda && (
+                                    <button
+                                        type="button"
+                                        aria-label="Limpiar búsqueda"
+                                        onClick={() => setBusqueda("")}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition hover:text-white"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                )}
+                            </label>
+
+                            {/* FILTRO INSTRUMENTO */}
+                            <label>
+                                <span className="sr-only">
+                                    Filtrar por instrumento
+                                </span>
+
+                                <select
+                                    value={instrumentoSel}
+                                    onChange={(event) =>
+                                        setInstrumentoSel(event.target.value)
+                                    }
+                                    className="h-12 w-full cursor-pointer rounded-xl border border-zinc-800 bg-zinc-950 px-4 text-sm text-zinc-300 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                                >
+                                    <option value="Todos">
+                                        Todos los instrumentos
+                                    </option>
+                                    <option value="Guitarra Eléctrica">
+                                        Guitarra eléctrica
+                                    </option>
+                                    <option value="Batería">Batería</option>
+                                    <option value="Bajo">Bajo</option>
+                                    <option value="Voz">Voz</option>
+                                    <option value="Teclado / Piano">
+                                        Teclado / piano
+                                    </option>
+                                    <option value="Saxofón">Saxofón</option>
+                                </select>
+                            </label>
+
+                            {/* FILTRO CATEGORÍA */}
+                            <label>
+                                <span className="sr-only">
+                                    Filtrar por categoría
+                                </span>
+
+                                <select
+                                    value={categoriaSel}
+                                    onChange={(event) =>
+                                        setCategoriaSel(event.target.value)
+                                    }
+                                    className="h-12 w-full cursor-pointer rounded-xl border border-zinc-800 bg-zinc-950 px-4 text-sm text-zinc-300 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20"
+                                >
+                                    <option value="Todos">
+                                        Todas las categorías
+                                    </option>
+                                    <option value="Busca Banda">
+                                        Músico busca banda
+                                    </option>
+                                    <option value="Busca Músico">
+                                        Banda busca músico
+                                    </option>
+                                    <option value="Proyecto Nuevo">
+                                        Crear nuevo proyecto
+                                    </option>
+                                </select>
+                            </label>
+
+                            {/* LIMPIAR FILTROS */}
+                            {filtrosActivos && (
                                 <button
-                                    onClick={() => setBusqueda("")}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-white"
+                                    type="button"
+                                    onClick={limpiarFiltros}
+                                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 text-sm font-semibold text-zinc-300 transition hover:border-yellow-400 hover:text-yellow-400"
                                 >
                                     <X size={16} />
+                                    Limpiar
                                 </button>
                             )}
                         </div>
 
-                        {/* Filtro Instrumento */}
-                        <div className="md:col-span-3">
-                            <select
-                                value={instrumentoSel}
-                                onChange={(e) => setInstrumentoSel(e.target.value)}
-                                className="w-full py-3 px-4 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 text-sm focus:outline-none focus:border-yellow-400 transition-colors cursor-pointer"
-                            >
-                                <option value="Todos">Todos los Instrumentos</option>
-                                <option value="Guitarra Eléctrica">Guitarra Eléctrica</option>
-                                <option value="Batería">Batería</option>
-                                <option value="Bajo">Bajo</option>
-                                <option value="Voz">Voz</option>
-                                <option value="Teclado / Piano">Teclado / Piano</option>
-                                <option value="Saxofón">Saxofón</option>
-                            </select>
-                        </div>
+                        {/* TENDENCIAS */}
+                        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-800/80 pt-3">
+                            <span className="mr-1 text-xs font-semibold text-zinc-500">
+                                Tendencias
+                            </span>
 
-                        {/* Filtro Tipo de Búsqueda */}
-                        <div className="md:col-span-3">
-                            <select
-                                value={categoriaSel}
-                                onChange={(e) => setCategoriaSel(e.target.value)}
-                                className="w-full py-3 px-4 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 text-sm focus:outline-none focus:border-yellow-400 transition-colors cursor-pointer"
-                            >
-                                <option value="Todos">Todas las Categorías</option>
-                                <option value="Busca Banda">Músico busca Banda</option>
-                                <option value="Busca Músico">Banda busca Músico</option>
-                                <option value="Proyecto Nuevo">Crear Nuevo Proyecto</option>
-                            </select>
+                            {[
+                                "Rock",
+                                "Indie",
+                                "Jazz",
+                                "Madrid",
+                                "Barcelona",
+                                "Valencia",
+                            ].map((tag) => (
+                                <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => setBusqueda(tag)}
+                                    className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                                        busqueda === tag
+                                            ? "border-yellow-400 bg-yellow-400 text-zinc-950"
+                                            : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-yellow-400/60 hover:text-white"
+                                    }`}
+                                >
+                                    #{tag}
+                                </button>
+                            ))}
                         </div>
-                    </div>
-
-                    {/* Tags rápidos de filtro */}
-                    <div className="flex flex-wrap items-center gap-2 pt-2">
-                        <span className="text-xs text-zinc-500 font-medium mr-1 flex items-center gap-1">
-                            <Filter size={12} /> Tendencias:
-                        </span>
-                        {["Rock", "Indie", "Jazz", "Madrid", "Barcelona", "Valencia"].map((tag) => (
-                            <button
-                                key={tag}
-                                onClick={() => setBusqueda(tag)}
-                                className="text-xs px-2.5 py-1 rounded-lg bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 transition-colors"
-                            >
-                                #{tag}
-                            </button>
-                        ))}
                     </div>
                 </div>
             </section>
@@ -159,88 +274,141 @@ export const TablonAnuncios = () => {
             <section className="section-pad">
                 <div className="container">
                     <AsyncStateWrapper status={status} error={error}>
-                        {anunciosFiltrados?.length === 0 ? (
-                            <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800/80 p-8">
-                                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4 text-yellow-400">
+                        {anunciosFiltrados.length === 0 ? (
+                            <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/30 p-8 py-20 text-center">
+                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800 text-yellow-400">
                                     <Music2 size={24} />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">No encontramos anuncios con esos filtros</h3>
-                                <p className="text-zinc-400 text-sm max-w-md mx-auto mb-6">
-                                    Prueba a limpiar la búsqueda o cambiar de ciudad para ver más músicos.
+
+                                <h3 className="mb-2 text-xl font-bold text-white">
+                                    No encontramos anuncios con esos filtros
+                                </h3>
+
+                                <p className="mx-auto mb-6 max-w-md text-sm text-zinc-400">
+                                    Prueba a limpiar la búsqueda o cambiar de
+                                    ciudad para ver más músicos.
                                 </p>
+
                                 <button
-                                    onClick={() => {
-                                        setBusqueda("");
-                                        setInstrumentoSel("Todos");
-                                        setCategoriaSel("Todos");
-                                    }}
+                                    type="button"
+                                    onClick={limpiarFiltros}
                                     className="button button--ghost text-sm"
                                 >
                                     Restablecer filtros
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {anunciosFiltrados?.map((anuncio) => {
-                                    // Mapeo dinámico de estilos de tarjetas según la categoría
-                                    const isBanda = anuncio.categoria === "Banda busca Músico";
-                                    const cardColorClass = isBanda ? "feature-card--yellow" : "feature-card--purple";
-                                    const badgeTone = isBanda ? "yellow" : "purple";
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {anunciosFiltrados.map((anuncio) => {
+                                    const isBanda =
+                                        anuncio.categoria ===
+                                        "Banda busca Músico";
+
+                                    const cardColorClass = isBanda
+                                        ? "feature-card--yellow"
+                                        : "feature-card--purple";
+
+                                    const badgeTone = isBanda
+                                        ? "yellow"
+                                        : "purple";
 
                                     return (
                                         <article
                                             key={anuncio.id}
-                                            className={`feature-card ${cardColorClass} flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1`}
+                                            className={`feature-card ${cardColorClass} group flex flex-col justify-between transition-all duration-300 hover:-translate-y-1`}
                                         >
                                             <div>
-                                                {/* Top Bar de la Card */}
+                                                {/* PARTE SUPERIOR */}
                                                 <div className="feature-card-top mb-4">
                                                     <span className="feature-icon">
-                                                        {isBanda ? <Users size={16} /> : <Guitar size={16} />}
+                                                        {isBanda ? (
+                                                            <Users size={16} />
+                                                        ) : (
+                                                            <Guitar size={16} />
+                                                        )}
                                                     </span>
-                                                    <span className="feature-eyebrow">{anuncio.categoria || "ANUNCIO"}</span>
-                                                    <button className="text-zinc-400 hover:text-red-400 transition-colors ml-auto">
+
+                                                    <span className="feature-eyebrow">
+                                                        {anuncio.categoria ||
+                                                            "ANUNCIO"}
+                                                    </span>
+
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Añadir a favoritos"
+                                                        className="ml-auto text-zinc-400 transition-colors hover:text-red-400"
+                                                    >
                                                         <Heart size={16} />
                                                     </button>
                                                 </div>
 
-                                                {/* Badges de Instrumento y Ciudad */}
-                                                <div className="flex flex-wrap gap-2 mb-3">
-                                                    <SectionLabel tone={badgeTone}>{anuncio.instrumento}</SectionLabel>
+                                                {/* BADGES */}
+                                                <div className="mb-3 flex flex-wrap gap-2">
+                                                    {anuncio.instrumento && (
+                                                        <SectionLabel
+                                                            tone={badgeTone}
+                                                        >
+                                                            {
+                                                                anuncio.instrumento
+                                                            }
+                                                        </SectionLabel>
+                                                    )}
+
                                                     {anuncio.ciudad && (
-                                                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 font-medium">
-                                                            <MapPin size={11} className="text-yellow-400" /> {anuncio.ciudad}
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
+                                                            <MapPin
+                                                                size={11}
+                                                                className="text-yellow-400"
+                                                            />
+                                                            {anuncio.ciudad}
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                {/* Título y Descripción */}
-                                                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-400 transition-colors">
+                                                {/* TÍTULO */}
+                                                <h3 className="mb-2 text-xl font-bold text-white transition-colors group-hover:text-yellow-400">
                                                     {anuncio.titulo}
                                                 </h3>
-                                                <p className="text-zinc-300 text-sm leading-relaxed line-clamp-3 mb-6">
+
+                                                {/* DESCRIPCIÓN */}
+                                                <p className="mb-6 line-clamp-3 text-sm leading-relaxed text-zinc-300">
                                                     {anuncio.descripcion}
                                                 </p>
                                             </div>
 
-                                            {/* Footer de la Card con Creador y CTA */}
-                                            <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-between mt-auto">
+                                            {/* FOOTER */}
+                                            <div className="mt-auto flex items-center justify-between border-t border-zinc-800/80 pt-4">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${anuncio.avatarBg || 'bg-yellow-400 text-zinc-950'}`}>
-                                                        {anuncio.autorInitials || "EN"}
+                                                    <div
+                                                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                                                            anuncio.avatarBg ||
+                                                            "bg-yellow-400 text-zinc-950"
+                                                        }`}
+                                                    >
+                                                        {anuncio.autorInitials ||
+                                                            "EN"}
                                                     </div>
+
                                                     <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-white leading-none">
-                                                            {anuncio.autor || "Usuario Ensamblia"}
+                                                        <span className="text-xs font-bold leading-none text-white">
+                                                            {anuncio.autor ||
+                                                                "Usuario Ensamblia"}
                                                         </span>
-                                                        <small className="text-[11px] text-zinc-500 mt-0.5">
-                                                            {anuncio.fecha || "Reciente"}
+
+                                                        <small className="mt-0.5 text-[11px] text-zinc-500">
+                                                            {anuncio.fecha ||
+                                                                "Reciente"}
                                                         </small>
                                                     </div>
                                                 </div>
 
-                                                <button className="button button--small button--yellow flex items-center gap-1 text-xs">
-                                                    <MessageCircle size={13} /> Hablar <ArrowUpRight size={12} />
+                                                <button
+                                                    type="button"
+                                                    className="button button--small button--yellow flex items-center gap-1 text-xs"
+                                                >
+                                                    <MessageCircle size={13} />
+                                                    Hablar
+                                                    <ArrowUpRight size={12} />
                                                 </button>
                                             </div>
                                         </article>
@@ -252,19 +420,38 @@ export const TablonAnuncios = () => {
                 </div>
             </section>
 
-            {/* BANNER INFERIOR TIPO JOIN */}
+            {/* BANNER INFERIOR */}
             <section className="container mt-8">
-                <div className="join-section rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
-                    <div className="join-spark join-spark--left">✦</div>
-                    <div className="join-spark join-spark--right">✦</div>
-                    <SectionLabel tone="dark">¿NO ENCUENTRAS LO QUE BUSCAS?</SectionLabel>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold text-zinc-950 mt-2 mb-4">
-                        Publica tu propio anuncio <br />
-                        <em className="font-normal italic">y deja que el grupo te encuentre a ti.</em>
-                    </h2>
-                    <button className="button button--dark button--large inline-flex items-center gap-2 mx-auto">
-                        Crear mi Anuncio Gratis <ArrowUpRight size={16} />
-                    </button>
+                <div className="join-section relative overflow-hidden rounded-3xl p-8 text-center md:p-12">
+                    <div className="join-spark join-spark--left">
+                        ✦
+                    </div>
+
+                    <div className="join-spark join-spark--right">
+                        ✦
+                    </div>
+
+                    <div className="flex flex-col items-center gap-5">
+                        <SectionLabel tone="dark">
+                            ¿NO ENCUENTRAS LO QUE BUSCAS?
+                        </SectionLabel>
+
+                        <h2 className="text-2xl font-extrabold text-zinc-950 sm:text-3xl">
+                            Publica tu propio anuncio
+                            <br />
+                            <em className="font-normal italic">
+                                y deja que el grupo te encuentre a ti.
+                            </em>
+                        </h2>
+
+                        <button
+                            type="button"
+                            className="button button--dark button--large inline-flex items-center gap-2"
+                        >
+                            Crear mi Anuncio Gratis
+                            <ArrowUpRight size={16} />
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
