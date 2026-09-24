@@ -256,11 +256,10 @@ export const TablonAnuncios = () => {
                                     key={tag}
                                     type="button"
                                     onClick={() => setBusqueda(tag)}
-                                    className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                                        busqueda === tag
+                                    className={`rounded-full border px-3 py-1.5 text-xs transition ${busqueda === tag
                                             ? "border-yellow-400 bg-yellow-400 text-zinc-950"
                                             : "border-zinc-700 bg-zinc-950 text-zinc-400 hover:border-yellow-400/60 hover:text-white"
-                                    }`}
+                                        }`}
                                 >
                                     #{tag}
                                 </button>
@@ -380,10 +379,9 @@ export const TablonAnuncios = () => {
                                             <div className="mt-auto flex items-center justify-between border-t border-zinc-800/80 pt-4">
                                                 <div className="flex items-center gap-2.5">
                                                     <div
-                                                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
-                                                            anuncio.avatarBg ||
+                                                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${anuncio.avatarBg ||
                                                             "bg-yellow-400 text-zinc-950"
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {anuncio.autorInitials ||
                                                             "EN"}
