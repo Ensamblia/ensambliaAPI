@@ -422,6 +422,34 @@ En `conftest.py` (raíz) hay fixtures compartidos:
 - **Chats**: `chat_ana_luis`, `chat_luis_marta`.
   
   
+## ⚙️ Configuración de entornos
+
+Los settings están separados en 3 archivos:
+
+- **`base.py`** — común a todos los entornos.
+- **`development.py`** — desarrollo (DEBUG=True, CORS abierto).
+- **`production.py`** — producción (DEBUG=False, CORS restringido, HTTPS obligatorio).
+
+### Ejecutar en desarrollo
+
+```bash
+python manage.py runserver
+```
+
+(usa `config.settings.development` por defecto)
+
+### Ejecutar en producción
+
+```bash
+export DJANGO_SETTINGS_MODULE=config.settings.production
+export SECRET_KEY=tu_clave_real
+export ALLOWED_HOSTS=ensamblia.com,www.ensamblia.com
+export CORS_ALLOWED_ORIGINS=https://ensamblia.com,https://www.ensamblia.com
+daphne config.asgi:application
+```
+
+**Nota**: en producción, `SECRET_KEY` y `ALLOWED_HOSTS` son **obligatorias**. El server **falla al arrancar** si no están definidas.
+
 ## 🧠 Notas técnicas
 
 ### Custom User Model
