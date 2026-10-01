@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.usuarios.pagination import StandardLimitOffsetPagination
@@ -31,7 +31,7 @@ class TipoAnuncioViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [AllowAny()]
-        return [IsAuthenticated()]
+        return [IsAdminUser()]
 
     def list(self, request, *args, **kwargs):
         qs = self.get_queryset()
@@ -103,7 +103,7 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     }
     search_fields = ['titulo', 'contenido']
     ordering_fields = ['fecha_publicacion', 'titulo', 'anuncio_id']
-    ordering = ['-fecha_publicacion']  # por defecto
+    ordering = ['-fecha_publicacion']
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
@@ -111,20 +111,83 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         return [IsAuthenticated()]
 
     def list(self, request, *args, **kwargs):
-        # Aplicamos filtros, búsqueda y ordenación
         queryset = self.filter_queryset(self.get_queryset())
-
-        # Paginamos
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-
-        # Si no hay paginación (no debería pasar), devolvemos todo
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        try:
+            obj = Anuncio.objects.get(pk=pk)
+        except Anuncio.DoesNotExist:
+            return Response(
+                {'error': f'Nothing found for id: {pk}'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(AnuncioSerializer(obj).data)
 
+    def create(self, request, *args, **kwargs):
+        # Validación básica
+        titulo = request.data.get('titulo')
+        if not titulo or not str(titulo).strip():
+            return Response(
+                {'error': 'Titulo is a mandatory field. Cannot be undefined or null'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # El usuario DEBE tener perfil
+        perfil_id = self.get_mi_perfil_id(request)
+        if not perfil_id:
+            return Response(
+                {'error': 'Necesitas crear tu perfil antes de publicar un anuncio'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AnuncioCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # ✅ El perfil_id se asigna AQUÍ, no desde el front
+        anuncio = serializer.save(perfil_id=perfil_id)
+        return Response(AnuncioSerializer(anuncio).data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        try:
+            obj = Anuncio.objects.get(pk=pk)
+        except Anuncio.DoesNotExist:
+            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # ✅ Comprobación de propiedad
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
+            return Response(
+                {'error': 'No puedes editar el anuncio de otro usuario'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AnuncioUpdateSerializer(obj, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(AnuncioSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None, *args, **kwargs):
+        try:
+            obj = Anuncio.objects.get(pk=pk)
+        except Anuncio.DoesNotExist:
+            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # ✅ Comprobación de propiedad
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
+            return Response(
+                {'error': 'No puedes borrar el anuncio de otro usuario'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        data = AnuncioSerializer(obj).data
+        obj.delete()
+        return Response(data, status=status.HTTP_200_OK)
 # ==================================================================
 # COMENTARIO
 # ==================================================================

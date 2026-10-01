@@ -47,13 +47,18 @@ class Mensaje(models.Model):
 
 
 class MensajeLeido(models.Model):
+    id = models.BigAutoField(primary_key=True)
     mensaje = models.ForeignKey(
-        Mensaje, on_delete=models.CASCADE,
-        db_column='mensaje_id', primary_key=True,
+        Mensaje,
+        on_delete=models.CASCADE,
+        db_column='mensaje_id',
+        related_name='lecturas',
     )
     perfil = models.ForeignKey(
-        'perfiles.Perfil', on_delete=models.CASCADE,
+        'perfiles.Perfil',
+        on_delete=models.CASCADE,
         db_column='perfil_id',
+        related_name='mensajes_leidos',
     )
     leido_en = models.DateTimeField(auto_now_add=True, db_column='leido_en')
 

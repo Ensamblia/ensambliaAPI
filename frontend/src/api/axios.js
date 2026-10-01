@@ -15,6 +15,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Añadir barra final a todas las URLs (excepto si ya la tienen o si tienen query params)
+api.interceptors.request.use((config) => {
+  if (config.url && !config.url.includes('?') && !config.url.endsWith('/')) {
+    config.url = `${config.url}/`;
+  }
+  return config;
+});
+
 /**
  * Extrae la lista de resultados de una respuesta DRF.
  * Soporta:

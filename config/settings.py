@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / '.env')
 
-SILENCED_SYSTEM_CHECKS = ['urls.W002', 'fields.W342']
+# SILENCED_SYSTEM_CHECKS = ['urls.W002', 'fields.W342']
 
 # ============================================================
 # SEGURIDAD
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',          # antes de CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',        
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,7 +121,7 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'EMNSAMBLIA_DB'),
+        'NAME': os.getenv('DB_NAME', 'ENSAMBLIA_DB'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', '127.0.0.1'),   # ← forzamos IPv4

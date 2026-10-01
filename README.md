@@ -138,12 +138,12 @@ Swagger completo: http://127.0.0.1:8000/api/docs/
 - Motor: PostgreSQL 17 (Docker)
 - Contenedor: `ensamblia_db`
 - Puerto host: `5434`
-- Base de datos: `EMNSAMBLIA_DB`
+- Base de datos: `ENSAMBLIA_DB`
 - Usuario: `root`
 
 Para conectarte manualmente:
 
-    docker exec -it ensamblia_db psql -U root -d EMNSAMBLIA_DB
+    docker exec -it ensamblia_db psql -U root -d ENSAMBLIA_DB
 
 Consultas útiles:
 

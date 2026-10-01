@@ -91,13 +91,18 @@ class Grupo(models.Model):
 
 
 class GrupoGenero(models.Model):
+    id = models.BigAutoField(primary_key=True)
     grupo = models.ForeignKey(
-        Grupo, on_delete=models.CASCADE,
-        db_column='grupo_id', primary_key=True,
+        Grupo,
+        on_delete=models.CASCADE,
+        db_column='grupo_id',
+        related_name='grupo_generos',
     )
     genero = models.ForeignKey(
-        GeneroMusical, on_delete=models.CASCADE,
+        GeneroMusical,
+        on_delete=models.CASCADE,
         db_column='genero_id',
+        related_name='grupo_generos',
     )
 
     class Meta:

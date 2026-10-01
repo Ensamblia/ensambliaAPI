@@ -2,10 +2,14 @@ from django.db import models
 from django.conf import settings
 
 
-SEXOS = ('Hombre', 'Mujer', 'No binario', 'Otro', 'Prefiero no decir')
+SEXOS = ('Hombre', 'Mujer', 'Otro', 'Prefiero no decir')
 
 
 class Perfil(models.Model):
+    class TipoPerfil(models.TextChoices):
+        USUARIO = 'usuario', 'Usuario'
+        GRUPO = 'grupo', 'Grupo'
+        LOCAL = 'local', 'Local'
     perfil_id = models.BigAutoField(primary_key=True, db_column='perfil_id')
     nombre = models.CharField(max_length=50, db_column='nombre')
     apellido = models.CharField(max_length=50, db_column='apellido')
@@ -15,6 +19,12 @@ class Perfil(models.Model):
     sexo = models.CharField(max_length=18, null=True, blank=True, db_column='sexo')
     disponibilidad = models.BooleanField(default=True, db_column='disponibilidad')
     descripcion = models.CharField(max_length=300, db_column='descripcion')
+    tipo = models.CharField(
+        max_length=20,
+        choices=TipoPerfil.choices,
+        default=TipoPerfil.USUARIO,
+        db_column='tipo',
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True, db_column='fecha_creacion')
     fecha_baja = models.DateTimeField(null=True, blank=True, db_column='fecha_baja')
 
@@ -39,19 +49,35 @@ class Perfil(models.Model):
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfiles'
         ordering = ['perfil_id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario'],
+                condition=models.Q(tipo='usuario'),
+                name='unique_perfil_personal_por_usuario',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.nombre} {self.apellido}'
 
 
 class PerfilChat(models.Model):
+    """
+    Tabla pivote entre Perfil y Chat.
+    PK propia + unique_together sobre la pareja.
+    """
+    id = models.BigAutoField(primary_key=True)
     perfil = models.ForeignKey(
-        Perfil, on_delete=models.CASCADE,
-        db_column='perfil_id', primary_key=True,
+        Perfil,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='perfil_chats',
     )
     chat = models.ForeignKey(
-        'chats.Chat', on_delete=models.CASCADE,
+        'chats.Chat',
+        on_delete=models.CASCADE,
         db_column='chat_id',
+        related_name='perfil_chats',
     )
     fecha_union = models.DateTimeField(auto_now_add=True, db_column='fecha_union')
 
@@ -65,14 +91,21 @@ class PerfilChat(models.Model):
     def __str__(self):
         return f'{self.perfil_id} - {self.chat_id}'
 
+
 class PerfilGeneroMusical(models.Model):
+    """Tabla pivote entre Perfil y GeneroMusical."""
+    id = models.BigAutoField(primary_key=True)
     perfil = models.ForeignKey(
-        Perfil, on_delete=models.CASCADE,
-        db_column='perfil_id', primary_key=True,
+        Perfil,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='perfil_generos',
     )
     genero = models.ForeignKey(
-        'catalogo.GeneroMusical', on_delete=models.CASCADE,
+        'catalogo.GeneroMusical',
+        on_delete=models.CASCADE,
         db_column='genero_id',
+        related_name='perfil_generos',
     )
 
     class Meta:
@@ -87,13 +120,19 @@ class PerfilGeneroMusical(models.Model):
 
 
 class PerfilGrupo(models.Model):
+    """Tabla pivote entre Perfil y Grupo."""
+    id = models.BigAutoField(primary_key=True)
     perfil = models.ForeignKey(
-        Perfil, on_delete=models.CASCADE,
-        db_column='perfil_id', primary_key=True,
+        Perfil,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='perfil_grupos',
     )
     grupo = models.ForeignKey(
-        'catalogo.Grupo', on_delete=models.CASCADE,
+        'catalogo.Grupo',
+        on_delete=models.CASCADE,
         db_column='grupo_id',
+        related_name='perfil_grupos',
     )
 
     class Meta:
@@ -108,13 +147,19 @@ class PerfilGrupo(models.Model):
 
 
 class PerfilInstrumento(models.Model):
+    """Tabla pivote entre Perfil e Instrumento."""
+    id = models.BigAutoField(primary_key=True)
     perfil = models.ForeignKey(
-        Perfil, on_delete=models.CASCADE,
-        db_column='perfil_id', primary_key=True,
+        Perfil,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='perfil_instrumentos',
     )
     instrumento = models.ForeignKey(
-        'catalogo.Instrumento', on_delete=models.CASCADE,
+        'catalogo.Instrumento',
+        on_delete=models.CASCADE,
         db_column='instrumento_id',
+        related_name='perfil_instrumentos',
     )
 
     class Meta:

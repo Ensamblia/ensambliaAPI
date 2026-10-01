@@ -322,16 +322,58 @@ class MensajeViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
 # ==================================================================
 # MENSAJE LEIDO
 # ==================================================================
+# ==================================================================
+# MENSAJE LEIDO
+# ==================================================================
 class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
     permission_classes = [IsAuthenticated]
 
+    def _mis_chat_ids(self, mi_perfil_id):
+        """IDs de los chats en los que participa el perfil."""
+        return list(
+            PerfilChat.objects.filter(perfil_id=mi_perfil_id)
+            .values_list('chat_id', flat=True)
+        )
+
     def list(self, request):
-        qs = MensajeLeido.objects.all().order_by('mensaje_id', 'perfil_id')
+        """Solo devuelve mensajes leídos de chats donde participo."""
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if not mi_perfil_id:
+            return Response([], status=status.HTTP_200_OK)
+
+        mis_chat_ids = self._mis_chat_ids(mi_perfil_id)
+
+        qs = MensajeLeido.objects.filter(
+            mensaje__chat_id__in=mis_chat_ids
+        ).order_by('mensaje_id', 'perfil_id')
+
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
         return Response(MensajeLeidoSerializer(qs, many=True).data)
 
     def retrieve(self, request, mensaje_id=None, perfil_id=None):
+        """Solo si participo en el chat del mensaje."""
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if not mi_perfil_id:
+            return Response(
+                {'error': 'No participas en este chat'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Comprobación: el mensaje pertenece a un chat donde participo
+        mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
+        if not mensaje:
+            return Response(
+                {'error': f'Mensaje no encontrado: {mensaje_id}'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not _es_participante(mensaje.chat_id, mi_perfil_id):
+            return Response(
+                {'error': 'No participas en este chat'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             obj = MensajeLeido.objects.get(mensaje_id=mensaje_id, perfil_id=perfil_id)
         except MensajeLeido.DoesNotExist:
@@ -358,10 +400,16 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
 
         mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
         if not mensaje:
-            return Response({'error': f'Mensaje no encontrado: {mensaje_id}'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'error': f'Mensaje no encontrado: {mensaje_id}'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         if not _es_participante(mensaje.chat_id, perfil_id):
-            return Response({'error': 'No participas en el chat de este mensaje'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {'error': 'No participas en el chat de este mensaje'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         obj, _ = MensajeLeido.objects.get_or_create(mensaje_id=mensaje_id, perfil_id=perfil_id)
         return Response(MensajeLeidoSerializer(obj).data, status=status.HTTP_201_CREATED)
@@ -374,10 +422,21 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # Comprobación: participo en el chat del mensaje
+        mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
+        if not mensaje or not _es_participante(mensaje.chat_id, mi_perfil_id):
+            return Response(
+                {'error': 'No participas en este chat'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         try:
             obj = MensajeLeido.objects.get(mensaje_id=mensaje_id, perfil_id=perfil_id)
         except MensajeLeido.DoesNotExist:
-            return Response({'error': 'Mensaje_leido no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {'error': 'Mensaje_leido no encontrado'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         data = MensajeLeidoSerializer(obj).data
         obj.delete()
