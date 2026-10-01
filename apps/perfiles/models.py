@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
-
-
-SEXOS = ('Hombre', 'Mujer', 'Otro', 'Prefiero no decir')
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 
 
 class Perfil(models.Model):
@@ -10,13 +8,42 @@ class Perfil(models.Model):
         USUARIO = 'usuario', 'Usuario'
         GRUPO = 'grupo', 'Grupo'
         LOCAL = 'local', 'Local'
+
+    class Sexo(models.TextChoices):
+        HOMBRE = 'Hombre', 'Hombre'
+        MUJER = 'Mujer', 'Mujer'
+        OTRO = 'Otro', 'Otro'
+        PREFIERO_NO_DECIR = 'Prefiero no decir', 'Prefiero no decir'
+
     perfil_id = models.BigAutoField(primary_key=True, db_column='perfil_id')
     nombre = models.CharField(max_length=50, db_column='nombre')
     apellido = models.CharField(max_length=50, db_column='apellido')
-    correo = models.CharField(max_length=100, unique=True, db_column='correo')
-    numero_telefono = models.BigIntegerField(null=True, blank=True, unique=True, db_column='numero_telefono')
-    edad = models.IntegerField(null=True, blank=True, db_column='edad')
-    sexo = models.CharField(max_length=18, null=True, blank=True, db_column='sexo')
+    correo = models.EmailField(max_length=100, unique=True, db_column='correo')
+    numero_telefono = models.CharField(
+        max_length=20,
+        null=True, blank=True, unique=True,
+        db_column='numero_telefono',
+        validators=[
+            RegexValidator(
+                regex=r'^\+?[0-9]{9,15}$',
+                message='El teléfono debe tener entre 9 y 15 dígitos, opcionalmente con prefijo +',
+            ),
+        ],
+    )
+    edad = models.IntegerField(
+        null=True, blank=True,
+        db_column='edad',
+        validators=[
+            MinValueValidator(16, message='La edad mínima es 16 años'),
+            MaxValueValidator(100, message='La edad máxima es 100 años'),
+        ],
+    )
+    sexo = models.CharField(
+        max_length=18,
+        null=True, blank=True,
+        choices=Sexo.choices,
+        db_column='sexo',
+    )
     disponibilidad = models.BooleanField(default=True, db_column='disponibilidad')
     descripcion = models.CharField(max_length=300, db_column='descripcion')
     tipo = models.CharField(

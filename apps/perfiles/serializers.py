@@ -2,7 +2,6 @@ from rest_framework import serializers
 from apps.catalogo.models import Comarca
 from .models import (
     Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento,
-    SEXOS
 )
 
 
@@ -56,12 +55,7 @@ class PerfilCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('La descripción es obligatoria')
         return value.strip()
 
-    def validate_sexo(self, value):
-        if value is not None and value not in SEXOS:
-            raise serializers.ValidationError(
-                f'sexo debe ser uno de: {", ".join(SEXOS)}'
-            )
-        return value
+
 class PerfilUpdateSerializer(serializers.ModelSerializer):
     comarca_id = serializers.PrimaryKeyRelatedField(
         source='comarca',
@@ -77,13 +71,7 @@ class PerfilUpdateSerializer(serializers.ModelSerializer):
             'edad', 'sexo', 'disponibilidad', 'descripcion', 'comarca_id',
         ]
 
-    def validate_sexo(self, value):
-        if value is not None and value not in SEXOS:
-            raise serializers.ValidationError(
-                f'sexo debe ser uno de: {", ".join(SEXOS)}'
-            )
-        return value
-    
+
 class PerfilChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerfilChat
