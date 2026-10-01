@@ -240,13 +240,6 @@ class ComentarioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        anuncio_id = request.data.get('anuncio_id')
-        if anuncio_id is not None and not isinstance(anuncio_id, int):
-            return Response(
-                {'error': 'anuncio_id must be integer'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         perfil_id = self.get_mi_perfil_id(request)
         if not perfil_id:
             return Response(

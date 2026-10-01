@@ -274,17 +274,6 @@ class GrupoGeneroViewSet(viewsets.ViewSet):
         grupo_id = request.data.get('grupo_id')
         genero_id = request.data.get('genero_id')
 
-        if not isinstance(grupo_id, int):
-            return Response(
-                {'error': 'grupo_id es un campo obligatorio y debe ser un entero'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if not isinstance(genero_id, int):
-            return Response(
-                {'error': 'genero_id es un campo obligatorio y debe ser un entero'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         if not Grupo.objects.filter(pk=grupo_id).exists():
             return Response({'error': f'Grupo no encontrado: {grupo_id}'}, status=status.HTTP_404_NOT_FOUND)
         if not GeneroMusical.objects.filter(pk=genero_id).exists():

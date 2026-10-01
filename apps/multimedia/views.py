@@ -83,16 +83,8 @@ class MultimediaViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
             return Response({'error': 'ruta_archivo es un campo obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
 
         tipo_id = data.get('tipo_id')
-        if tipo_id is not None and not isinstance(tipo_id, int):
-            return Response({'error': 'tipo_id debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-
         tamano_bytes = data.get('tamano_bytes')
-        if tamano_bytes is not None and not isinstance(tamano_bytes, int):
-            return Response({'error': 'tamano_bytes debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-
         anuncio_id = data.get('anuncio_id')
-        if anuncio_id is not None and not isinstance(anuncio_id, int):
-            return Response({'error': 'anuncio_id debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
 
         perfil_id = self.get_mi_perfil_id(request)
         if not perfil_id:
@@ -136,10 +128,6 @@ class MultimediaViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
             return Response({'error': 'nombre no puede estar vacío'}, status=status.HTTP_400_BAD_REQUEST)
         if 'ruta_archivo' in data and (not isinstance(data['ruta_archivo'], str) or not data['ruta_archivo'].strip()):
             return Response({'error': 'ruta_archivo no puede estar vacío'}, status=status.HTTP_400_BAD_REQUEST)
-
-        for field in ['tamano_bytes', 'tipo_id', 'anuncio_id']:
-            if field in data and data[field] is not None and not isinstance(data[field], int):
-                return Response({'error': f'{field} debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
 
         anuncio_id = data.get('anuncio_id')
         if anuncio_id is not None:

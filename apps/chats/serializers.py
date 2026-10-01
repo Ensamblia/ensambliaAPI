@@ -23,8 +23,7 @@ class MensajeSerializer(serializers.ModelSerializer):
         ]
 
     def get_leido_por(self, obj):
-        """Lista de perfil_id que han leído este mensaje."""
-        return list(obj.mensajeleido_set.values_list('perfil_id', flat=True))
+        return list(obj.lecturas.values_list('perfil_id', flat=True))
 
 
 class MensajeCreateSerializer(serializers.ModelSerializer):

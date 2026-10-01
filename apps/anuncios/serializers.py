@@ -112,6 +112,9 @@ class ComentarioCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
         fields = ['contenido', 'esta_eliminado', 'anuncio_id']
+        extra_kwargs = {
+            'esta_eliminado': {'required': False, 'default': False},
+        }
 
     def validate_contenido(self, value):
         if not value or not value.strip():

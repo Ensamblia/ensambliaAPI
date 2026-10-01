@@ -270,15 +270,13 @@ class MensajeViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
             )
 
         chat_id = request.data.get('chat_id')
-        if chat_id is not None and not isinstance(chat_id, int):
-            return Response({'error': 'chat_id must be integer'}, status=status.HTTP_400_BAD_REQUEST)
-
         perfil_id = self.get_mi_perfil_id(request)
         if not perfil_id:
             return Response(
                 {'error': 'Necesitas crear tu perfil antes de enviar mensajes'},
                 status=status.HTTP_403_FORBIDDEN,
             )
+
 
         if not _es_participante(chat_id, perfil_id):
             return Response({'error': 'No participas en este chat'}, status=status.HTTP_403_FORBIDDEN)
@@ -361,7 +359,7 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
             )
 
         # Comprobación: el mensaje pertenece a un chat donde participo
-        mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
+        mensaje = Mensaje.objects.filter(pk=int(mensaje_id)).first()
         if not mensaje:
             return Response(
                 {'error': f'Mensaje no encontrado: {mensaje_id}'},
@@ -385,9 +383,9 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
 
     def create(self, request):
         mensaje_id = request.data.get('mensaje_id')
-        if not isinstance(mensaje_id, int):
+        if mensaje_id is None:
             return Response(
-                {'error': 'mensaje_id es un campo obligatorio y debe ser un entero'},
+                {'error': 'mensaje_id es un campo obligatorio'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -398,7 +396,7 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
+        mensaje = Mensaje.objects.filter(pk=int(mensaje_id)).first()
         if not mensaje:
             return Response(
                 {'error': f'Mensaje no encontrado: {mensaje_id}'},
@@ -423,7 +421,7 @@ class MensajeLeidoViewSet(viewsets.ViewSet, MiPerfilMixin):
             )
 
         # Comprobación: participo en el chat del mensaje
-        mensaje = Mensaje.objects.filter(pk=mensaje_id).first()
+        mensaje = Mensaje.objects.filter(pk=int(mensaje_id)).first()
         if not mensaje or not _es_participante(mensaje.chat_id, mi_perfil_id):
             return Response(
                 {'error': 'No participas en este chat'},

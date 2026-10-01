@@ -347,6 +347,81 @@ GET /api/mensajes/chat?chat_id=1&limit=30&before_id=500
 - Daphne como servidor ASGI (ya configurado)
 - `channels`, `channels-redis`, `daphne` en `requirements.txt`
 
+## 🧪 Tests automatizados
+
+El proyecto usa **pytest** + **pytest-django** + **pytest-asyncio** para tests automatizados.
+
+### Instalación
+
+```bash
+pip install -r requirements.txt
+```
+
+### Ejecutar tests
+
+```bash
+# Todos los tests
+pytest
+
+# Con verbose
+pytest -v
+
+# Solo una app
+pytest apps/usuarios/
+
+# Solo un archivo
+pytest apps/usuarios/tests/test_auth.py
+
+# Con cobertura
+pytest --cov=apps --cov-report=term-missing
+
+# Con reporte HTML
+pytest --cov=apps --cov-report=html
+open htmlcov/index.html    # Linux/Mac
+start htmlcov/index.html   # Windows
+```
+
+### Estructura de tests
+
+```
+apps/
+├── usuarios/tests/
+│   ├── test_auth.py              (15 tests — registro, login, tokens)
+├── perfiles/tests/
+│   ├── test_perfil.py            (16 tests — CRUD + validaciones)
+│   └── test_relaciones_nm.py     (11 tests — N:M pivotes)
+├── anuncios/tests/
+│   ├── test_anuncio.py           (16 tests — propiedad)
+│   ├── test_comentario.py        (9 tests — propiedad)
+│   └── test_paginacion_filtros.py (12 tests — paginación/filtros)
+├── chats/tests/
+│   ├── test_chat.py              (15 tests — privacidad)
+│   ├── test_mensaje.py           (12 tests — mensajes)
+│   ├── test_mensaje_leido.py     (6 tests — privacidad)
+│   └── test_websocket.py         (7 tests — WS)
+└── catalogo/tests/
+    └── test_catalogo_permisos.py (24 tests — permisos admin)
+```
+
+### Cobertura actual
+
+- ✅ **143+ tests** automatizados.
+- ✅ **Tests de seguridad**: 401, 403, 404, propiedad, privacidad.
+- ✅ **Tests de relaciones N:M**.
+- ✅ **Tests de WebSockets**.
+- ✅ **Tests de paginación, filtros, búsqueda, ordenación**.
+
+### Fixtures globales
+
+En `conftest.py` (raíz) hay fixtures compartidos:
+- **Clientes autenticados**: `client_ana`, `client_luis`, `client_marta`, `client_admin`, `client_sin_perfil`.
+- **Usuarios**: `ana`, `luis`, `marta`, `admin`, `usuario_sin_perfil`.
+- **Perfiles**: `perfil_ana`, `perfil_luis`, `perfil_marta`.
+- **Catálogos**: `comarca`, `instrumento_guitarra`, `genero_rock`, etc.
+- **Anuncios**: `anuncio_ana`, `anuncio_luis`.
+- **Chats**: `chat_ana_luis`, `chat_luis_marta`.
+  
+  
 ## 🧠 Notas técnicas
 
 ### Custom User Model

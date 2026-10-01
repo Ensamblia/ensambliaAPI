@@ -15,6 +15,7 @@ from .serializers import (
     PerfilGrupoSerializer, PerfilInstrumentoSerializer,
 )
 from apps.usuarios.pagination import StandardLimitOffsetPagination
+from django.db import IntegrityError
 
 class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     """
@@ -99,9 +100,26 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         return Response(PerfilSerializer(qs.first()).data)
 
     def create(self, request, *args, **kwargs):
+    # Comprobación temprana: si ya tengo un perfil personal, error 400
+        usuario_id = request.user.usuario_id
+        tipo = request.data.get('tipo', 'usuario')
+        if tipo == 'usuario' and Perfil.objects.filter(usuario_id=usuario_id, tipo='usuario').exists():
+            return Response(
+            {'error': 'Ya tienes un perfil personal. No puedes crear otro.'},
+            status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = PerfilCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        perfil = serializer.save(usuario_id=request.user.usuario_id)
+
+        try:
+            perfil = serializer.save(usuario_id=usuario_id)
+        except IntegrityError:
+            return Response(
+                {'error': 'Ya tienes un perfil personal. No puedes crear otro.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         return Response(PerfilSerializer(perfil).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -193,13 +211,8 @@ class PerfilChatViewSet(viewsets.ViewSet, MiPerfilMixin):
         perfil_id = request.data.get('perfil_id')
         chat_id = request.data.get('chat_id')
 
-        if not isinstance(perfil_id, int):
-            return Response({'error': 'perfil_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-        if not isinstance(chat_id, int):
-            return Response({'error': 'chat_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-
         mi_perfil_id = self.get_mi_perfil_id(request)
-        if perfil_id != mi_perfil_id:
+        if int(perfil_id) != mi_perfil_id:
             return Response({'error': 'No puedes añadir a otro perfil a un chat'}, status=status.HTTP_403_FORBIDDEN)
 
         obj, _ = PerfilChat.objects.get_or_create(perfil_id=perfil_id, chat_id=chat_id)
@@ -272,11 +285,6 @@ class PerfilGeneroMusicalViewSet(viewsets.ViewSet, MiPerfilMixin):
         perfil_id = request.data.get('perfil_id')
         genero_id = request.data.get('genero_id')
 
-        if not isinstance(perfil_id, int):
-            return Response({'error': 'perfil_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-        if not isinstance(genero_id, int):
-            return Response({'error': 'genero_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-
         perfil = Perfil.objects.filter(pk=perfil_id).first()
         if not perfil:
             return Response({'error': f'Perfil no encontrado: {perfil_id}'}, status=status.HTTP_404_NOT_FOUND)
@@ -344,11 +352,6 @@ class PerfilGrupoViewSet(viewsets.ViewSet, MiPerfilMixin):
     def create(self, request):
         perfil_id = request.data.get('perfil_id')
         grupo_id = request.data.get('grupo_id')
-
-        if not isinstance(perfil_id, int):
-            return Response({'error': 'perfil_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-        if not isinstance(grupo_id, int):
-            return Response({'error': 'grupo_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
 
         perfil = Perfil.objects.filter(pk=perfil_id).first()
         if not perfil:
@@ -421,11 +424,6 @@ class PerfilInstrumentoViewSet(viewsets.ViewSet, MiPerfilMixin):
     def create(self, request):
         perfil_id = request.data.get('perfil_id')
         instrumento_id = request.data.get('instrumento_id')
-
-        if not isinstance(perfil_id, int):
-            return Response({'error': 'perfil_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
-        if not isinstance(instrumento_id, int):
-            return Response({'error': 'instrumento_id es un campo obligatorio y debe ser un entero'}, status=status.HTTP_400_BAD_REQUEST)
 
         perfil = Perfil.objects.filter(pk=perfil_id).first()
         if not perfil:
