@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import api, { extractList } from '../../api/axios';
 
+/* ── Styles ── */
 const wrapper = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -23,13 +25,13 @@ const baseInput = {
 
 const searchInput = {
   ...baseInput,
-  flex: '1 1 240px',
-  minWidth: '200px',
+  flex: '1 1 260px',
+  minWidth: '220px',
 };
 
 const selectInput = {
   ...baseInput,
-  flex: '0 1 150px',
+  flex: '0 1 170px',
   cursor: 'pointer',
   appearance: 'none',
   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238A8A8A' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
@@ -50,58 +52,132 @@ const blurStyles = {
   backgroundColor: '#FAFAFA',
 };
 
-export function FiltrosAnuncios({ onFilter }) {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (onFilter) onFilter({ [name]: value });
+const addFocus = (e) => Object.assign(e.target.style, focusStyles);
+const removeFocus = (e) => Object.assign(e.target.style, blurStyles);
+
+const CLEAR_BTN = {
+  padding: '9px 14px',
+  borderRadius: '8px',
+  border: '1px solid #EBEBEB',
+  backgroundColor: 'transparent',
+  color: '#8A8A8A',
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '12.5px',
+  fontWeight: 600,
+  cursor: 'pointer',
+  transition: 'border-color 140ms ease, color 140ms ease',
+};
+
+export function FiltrosAnuncios({ onFilter, initialValues = {} }) {
+  const [busqueda, setBusqueda] = useState(initialValues.busqueda || '');
+  const [tipoAnuncioId, setTipoAnuncioId] = useState(initialValues.tipo_anuncio || '');
+  const [ordering, setOrdering] = useState(initialValues.ordering || '-fecha_publicacion');
+
+  const [tipos, setTipos] = useState([]);
+  const [loadingTipos, setLoadingTipos] = useState(true);
+
+  // Cargar tipos de anuncio
+  useEffect(() => {
+    let cancelado = false;
+    api
+      .get('/tipo-anuncios/')
+      .then((res) => {
+        if (cancelado) return;
+        setTipos(extractList(res));
+      })
+      .catch(() => {
+        if (cancelado) return;
+        setTipos([]);
+      })
+      .finally(() => {
+        if (!cancelado) setLoadingTipos(false);
+      });
+    return () => { cancelado = true; };
+  }, []);
+
+  // Emitir cambios al padre (con todo el estado junto)
+  useEffect(() => {
+    if (!onFilter) return;
+    onFilter({
+      busqueda,
+      tipo_anuncio: tipoAnuncioId,
+      ordering,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busqueda, tipoAnuncioId, ordering]);
+
+  const limpiar = () => {
+    setBusqueda('');
+    setTipoAnuncioId('');
+    setOrdering('-fecha_publicacion');
   };
 
-  const addFocus = (e) => Object.assign(e.target.style, focusStyles);
-  const removeFocus = (e) => Object.assign(e.target.style, blurStyles);
+  const hayFiltrosActivos =
+    busqueda.trim() !== '' ||
+    tipoAnuncioId !== '' ||
+    ordering !== '-fecha_publicacion';
 
   return (
     <div style={wrapper}>
       <input
         type="text"
-        name="busqueda"
-        placeholder="Buscar por título, instrumento, ciudad…"
+        placeholder="Buscar por título o contenido…"
         style={searchInput}
-        onChange={handleChange}
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
         onFocus={addFocus}
         onBlur={removeFocus}
       />
 
-      <select name="instrumento" style={selectInput} onChange={handleChange} onFocus={addFocus} onBlur={removeFocus}>
-        <option value="">Instrumento</option>
-        <option value="guitarra">Guitarra</option>
-        <option value="bateria">Batería</option>
-        <option value="piano">Piano</option>
-        <option value="bajo">Bajo</option>
-        <option value="voz">Voz</option>
-        <option value="violin">Violín</option>
-        <option value="saxofon">Saxofón</option>
+      <select
+        style={selectInput}
+        value={tipoAnuncioId}
+        onChange={(e) => setTipoAnuncioId(e.target.value)}
+        onFocus={addFocus}
+        onBlur={removeFocus}
+        disabled={loadingTipos}
+      >
+        <option value="">
+          {loadingTipos ? 'Cargando…' : 'Todos los tipos'}
+        </option>
+        {tipos.map((t) => (
+          <option key={t.tipo_anuncio_id} value={t.tipo_anuncio_id}>
+            {t.tipo}
+          </option>
+        ))}
       </select>
 
-      <select name="genero" style={selectInput} onChange={handleChange} onFocus={addFocus} onBlur={removeFocus}>
-        <option value="">Género</option>
-        <option value="rock">Rock</option>
-        <option value="jazz">Jazz</option>
-        <option value="clasica">Clásica</option>
-        <option value="pop">Pop</option>
-        <option value="flamenco">Flamenco</option>
-        <option value="electronica">Electrónica</option>
-        <option value="reggae">Reggae</option>
+      <select
+        style={selectInput}
+        value={ordering}
+        onChange={(e) => setOrdering(e.target.value)}
+        onFocus={addFocus}
+        onBlur={removeFocus}
+      >
+        <option value="-fecha_publicacion">Más recientes</option>
+        <option value="fecha_publicacion">Más antiguos</option>
+        <option value="titulo">Título A→Z</option>
+        <option value="-titulo">Título Z→A</option>
       </select>
 
-      <select name="ciudad" style={selectInput} onChange={handleChange} onFocus={addFocus} onBlur={removeFocus}>
-        <option value="">Ciudad</option>
-        <option value="barcelona">Barcelona</option>
-        <option value="madrid">Madrid</option>
-        <option value="sevilla">Sevilla</option>
-        <option value="valencia">Valencia</option>
-        <option value="bilbao">Bilbao</option>
-        <option value="granada">Granada</option>
-      </select>
+      {hayFiltrosActivos && (
+        <button
+          type="button"
+          style={CLEAR_BTN}
+          onClick={limpiar}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = '#D0D0D0';
+            e.currentTarget.style.color = '#2B2B2B';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = '#EBEBEB';
+            e.currentTarget.style.color = '#8A8A8A';
+          }}
+          title="Limpiar filtros"
+        >
+          Limpiar
+        </button>
+      )}
     </div>
   );
 }

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'channels',
+    'storages', 
 
     # Local apps
     'apps.usuarios',
@@ -200,6 +201,43 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ============================================================
+# MINIO (S3-COMPATIBLE) — Almacenamiento de archivos
+# ============================================================
+MINIO_ENDPOINT = os.getenv('MINIO_ENDPOINT', 'http://127.0.0.1:9000')
+MINIO_ACCESS_KEY = os.getenv('MINIO_ACCESS_KEY', 'ensamblia_minio')
+MINIO_SECRET_KEY = os.getenv('MINIO_SECRET_KEY', 'ensamblia_minio_2026_secure')
+MINIO_BUCKET_NAME = os.getenv('MINIO_BUCKET_NAME', 'ensamblia-media')
+
+# URL pública del bucket (para construir URLs de archivos)
+MINIO_PUBLIC_URL = os.getenv('MINIO_PUBLIC_URL', 'http://127.0.0.1:9000')
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            'endpoint_url': MINIO_ENDPOINT,
+            'access_key': MINIO_ACCESS_KEY,
+            'secret_key': MINIO_SECRET_KEY,
+            'bucket_name': MINIO_BUCKET_NAME,
+            'region_name': 'us-east-1',
+            'signature_version': 's3v4',
+            'addressing_style': 'path',
+            'default_acl': None,
+            'querystring_auth': True,
+            'querystring_expire': 300,
+            'file_overwrite': False,
+            'custom_domain': None,
+        },
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
 
 # ============================================================
 # DRF SPECTACULAR (Swagger)

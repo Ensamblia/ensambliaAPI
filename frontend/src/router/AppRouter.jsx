@@ -11,6 +11,7 @@ import { ChatPage }     from '../pages/ChatPage';
 import { LoginPage }    from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { CrearAnuncioPage } from '../pages/CrearAnuncioPage';
 
 const layoutStyle = {
   display: 'flex',
@@ -31,16 +32,17 @@ export function AppRouter() {
       <div style={layoutStyle}>
         <Navbar />
         <Routes>
-          <Route path="/"          element={<HomePage />} />
-          <Route path="/anuncios"  element={<AnunciosPage />} />
-          <Route path="/anuncios/:id" element={<AnuncioDetailPage />} />
-          <Route path="/perfil"    element={<RequireAuth><PerfilPage /></RequireAuth>} />
-          <Route path="/perfiles/:id" element={<PerfilPublicoPage />} />
-          <Route path="/chat"      element={<RequireAuth><ChatPage /></RequireAuth>} />
-          <Route path="/login"     element={<LoginPage />} />
-          <Route path="/register"  element={<RegisterPage />} />
-          <Route path="*"          element={<NotFoundPage />} />
-        </Routes>
+  <Route path="/"          element={<HomePage />} />
+  <Route path="/anuncios"  element={<AnunciosPage />} />
+  <Route path="/anuncios/crear" element={<RequireAuth><CrearAnuncioPage /></RequireAuth>} />
+  <Route path="/anuncios/:id" element={<AnuncioDetailPage />} />
+  <Route path="/perfil"    element={<RequireAuth><PerfilPage /></RequireAuth>} />
+  <Route path="/perfiles/:id" element={<PerfilPublicoPage />} />
+  <Route path="/chat"      element={<RequireAuth><ChatPage /></RequireAuth>} />
+  <Route path="/login"     element={<LoginPage />} />
+  <Route path="/register"  element={<RegisterPage />} />
+  <Route path="*"          element={<NotFoundPage />} />
+</Routes>
       </div>
     </BrowserRouter>
   );

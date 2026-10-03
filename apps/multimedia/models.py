@@ -2,9 +2,19 @@ from django.db import models
 
 
 class Multimedia(models.Model):
+    """
+    Biblioteca de medios de un perfil.
+    Los archivos NO se referencian directamente a anuncios;
+    para eso se usa la tabla pivote AnuncioMultimedia (ver FASE 6).
+    """
     multimedia_id = models.BigAutoField(primary_key=True, db_column='multimedia_id')
     nombre = models.CharField(max_length=50, db_column='nombre')
-    ruta_archivo = models.CharField(max_length=500, db_column='ruta_archivo')
+    archivo = models.FileField(
+        upload_to='multimedia/%Y/%m/',
+        db_column='ruta_archivo',
+        max_length=500,
+        null=True, blank=True,
+    )
     tamano_bytes = models.BigIntegerField(null=True, blank=True, db_column='tamano_bytes')
     fecha_subida = models.DateTimeField(auto_now_add=True, db_column='fecha_subida')
 
@@ -20,13 +30,6 @@ class Multimedia(models.Model):
         null=True, blank=True,
         on_delete=models.CASCADE,
         db_column='perfil_id',
-        related_name='multimedias',
-    )
-    anuncio = models.ForeignKey(
-        'anuncios.Anuncio',
-        null=True, blank=True,
-        on_delete=models.CASCADE,
-        db_column='anuncio_id',
         related_name='multimedias',
     )
 

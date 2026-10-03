@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../api/axios';
+import api, { extractList } from '../api/axios';
 import { Comentarios } from '../components/comentarios/Comentarios';
 import { AutorNombre } from '../components/perfil/AutorNombre';
+import { AnuncioMultimediaGaleria } from '../components/multimedia/AnuncioMultimediaGaleria';
 
 const page = {
   maxWidth: '720px',
@@ -85,23 +86,59 @@ const stateBox = {
 
 const stateIcon = { fontSize: '2rem', lineHeight: 1 };
 
-const TIPO_LABELS = {
-  1: 'Busco músico',
-  2: 'Ofrezco servicio',
-  3: 'Vendo instrumento',
-  4: 'Busco banda',
-};
+/* Caché global de tipos (compartida con AnuncioCard) */
+let TIPOS_CACHE = null;
+let TIPOS_PROMISE = null;
+
+function cargarTipos() {
+  if (TIPOS_CACHE) return Promise.resolve(TIPOS_CACHE);
+  if (TIPOS_PROMISE) return TIPOS_PROMISE;
+
+  TIPOS_PROMISE = api
+    .get('/tipo-anuncios/')
+    .then((res) => {
+      const lista = extractList(res);
+      const mapa = {};
+      lista.forEach((t) => {
+        mapa[t.tipo_anuncio_id] = t.tipo;
+      });
+      TIPOS_CACHE = mapa;
+      return mapa;
+    })
+    .catch(() => {
+      TIPOS_CACHE = {};
+      return {};
+    });
+
+  return TIPOS_PROMISE;
+}
+
+function useTipos() {
+  const [tipos, setTipos] = useState(TIPOS_CACHE || {});
+
+  useEffect(() => {
+    if (TIPOS_CACHE) return;
+    let cancelado = false;
+    cargarTipos().then((mapa) => {
+      if (!cancelado) setTipos(mapa);
+    });
+    return () => { cancelado = true; };
+  }, []);
+
+  return tipos;
+}
 
 export function AnuncioDetailPage() {
   const { id } = useParams();
   const [anuncio, setAnuncio] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const tipos = useTipos();
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    api.get(`/anuncios/${id}`)
+    api.get(`/anuncios/${id}/`)
       .then((res) => setAnuncio(res.data))
       .catch((err) => {
         if (err.response?.status === 404) {
@@ -118,6 +155,8 @@ export function AnuncioDetailPage() {
         day: '2-digit', month: 'short', year: 'numeric',
       })
     : null;
+
+  const tipoLabel = tipos[anuncio?.tipo_anuncio_id] || null;
 
   return (
     <main style={page}>
@@ -146,15 +185,15 @@ export function AnuncioDetailPage() {
 
       {!loading && !error && anuncio && (
         <>
-          {TIPO_LABELS[anuncio.tipo_anuncio_id] && (
-            <span style={accentTag}>{TIPO_LABELS[anuncio.tipo_anuncio_id]}</span>
-          )}
+          {tipoLabel && <span style={accentTag}>{tipoLabel}</span>}
           <h1 style={title}>{anuncio.titulo || 'Sin título'}</h1>
           <div style={dateText}>{fecha || '—'}</div>
           <p style={porLine}>
             Publicado por <AutorNombre perfilId={anuncio.perfil_id} />
           </p>
           <p style={body}>{anuncio.contenido || 'Sin descripción.'}</p>
+
+          <AnuncioMultimediaGaleria multimedias={anuncio.multimedias || []} />
 
           <Comentarios anuncioId={anuncio.anuncio_id} />
         </>

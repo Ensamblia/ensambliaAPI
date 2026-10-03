@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api, { extractList } from '../../api/axios';
 import { openChatSocket } from '../../api/ws';
 import { NotificationsContext } from '../../context/NotificationsContext';
+import { uploadChatAttachment } from '../../api/multimedia';
+import { AdjuntoPreview } from './AdjuntoPreview';
 
 /* ── Layout ── */
 const layout = {
@@ -526,6 +528,58 @@ const noticeBanner = {
 
 const noticeLink = { color: '#FF5C35', fontWeight: 600 };
 
+const pendingAdjuntosBar = {
+  display: 'flex',
+  gap: '8px',
+  flexWrap: 'wrap',
+  padding: '10px 24px 0',
+  backgroundColor: '#FFFFFF',
+  borderTop: '1px solid #EBEBEB',
+};
+
+const pendingChip = {
+  position: 'relative',
+  padding: '6px 10px',
+  backgroundColor: '#F2F2F2',
+  borderRadius: '8px',
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+};
+
+const pendingChipName = {
+  maxWidth: '160px',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
+const pendingChipRemove = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  color: '#E0402B',
+  fontSize: '14px',
+  padding: 0,
+  lineHeight: 1,
+};
+
+const clipBtn = {
+  width: '42px',
+  height: '42px',
+  borderRadius: '50%',
+  border: '1px solid #EBEBEB',
+  backgroundColor: '#FAFAFA',
+  fontSize: '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  transition: 'border-color 140ms ease, background 140ms ease',
+};
+
 export function ChatBox() {
   const [searchParams] = useSearchParams();
   const chatIdFromUrl = Number(searchParams.get('chat')) || null;
@@ -551,7 +605,12 @@ export function ChatBox() {
   // Menú contextual
   const [openMenuId, setOpenMenuId] = useState(null);
   // Modal de confirmación
-const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
+  const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
+
+  // Adjuntos
+  const [adjuntosPendientes, setAdjuntosPendientes] = useState([]);
+  const [subiendoAdjunto, setSubiendoAdjunto] = useState(false);
+  const adjuntoInputRef = useRef(null);
 
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -625,7 +684,6 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
         if (cancelado) return;
         setConvs(conversaciones);
 
-        // Guardar has_more por chat
         const hasMoreMap = {};
         conversaciones.forEach((c) => {
           hasMoreMap[c.chat_id] = c.has_more || false;
@@ -647,13 +705,14 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── 2. Resetear presencia al cambiar de chat ──
+  // ── 2. Resetear presencia y adjuntos al cambiar de chat ──
   useEffect(() => {
     setOnlinePerfiles(new Set());
     setTypingPerfil(null);
     setEditingMensajeId(null);
     setEditingContenido('');
     setOpenMenuId(null);
+    setAdjuntosPendientes([]);
   }, [activeId]);
 
   // ── 3. Registrar el chat activo ──
@@ -702,7 +761,7 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
                   ? {
                       ...c,
                       mensajes: [...c.mensajes, { ...data, leido_por: data.leido_por || [] }],
-                      preview: data.contenido,
+                      preview: data.contenido || (data.adjuntos?.length ? '📎 Adjunto' : ''),
                     }
                   : c
               )
@@ -787,7 +846,7 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
         }
       };
 
-      socket.onclose = (e) => {
+      socket.onclose = () => {
         if (cerrado) return;
         setWsConnected(false);
         reconnectTimeoutRef.current = setTimeout(conectar, 2000);
@@ -856,14 +915,24 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
     ? onlinePerfiles.has(active.otroPerfilId)
     : false;
 
-  // ── 8. Enviar mensaje ──
+  // ── 8. Enviar mensaje (con adjuntos) ──
   const enviar = () => {
-    if (!input.trim() || !activeId || enviando) return;
+    const tieneContenido = input.trim().length > 0;
+    const tieneAdjuntos = adjuntosPendientes.length > 0;
+
+    if ((!tieneContenido && !tieneAdjuntos) || !activeId || enviando) return;
+
     const socket = socketRef.current;
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
-    socket.send(JSON.stringify({ tipo: 'mensaje', contenido: input.trim() }));
+    socket.send(JSON.stringify({
+      tipo: 'mensaje',
+      contenido: input.trim(),
+      adjunto_ids: adjuntosPendientes.map((a) => a.adjunto_id),
+    }));
+
     setInput('');
+    setAdjuntosPendientes([]);
   };
 
   // ── 9. Enviar typing ──
@@ -911,8 +980,8 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
     if (!mensajeAEliminar) return;
     const socket = socketRef.current;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-    setMensajeAEliminar(null);
-    return;
+      setMensajeAEliminar(null);
+      return;
     }
 
     socket.send(JSON.stringify({
@@ -923,11 +992,43 @@ const [mensajeAEliminar, setMensajeAEliminar] = useState(null);
     setMensajeAEliminar(null);
   };
 
-const cancelarBorrado = () => {
-  setMensajeAEliminar(null);
-};
+  const cancelarBorrado = () => {
+    setMensajeAEliminar(null);
+  };
 
-  // ── 12. Cerrar menú contextual al hacer click fuera ──
+  // ── 13. Adjuntos del chat ──
+  const handleAdjuntoChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    if (adjuntosPendientes.length + files.length > 5) {
+      alert('Máximo 5 adjuntos por mensaje');
+      if (adjuntoInputRef.current) adjuntoInputRef.current.value = '';
+      return;
+    }
+
+    setSubiendoAdjunto(true);
+    try {
+      const subidos = [];
+      for (const file of files) {
+        const adj = await uploadChatAttachment(file);
+        subidos.push(adj);
+      }
+      setAdjuntosPendientes((prev) => [...prev, ...subidos]);
+    } catch (err) {
+      console.error(err);
+      alert('No se pudo subir el archivo');
+    } finally {
+      setSubiendoAdjunto(false);
+      if (adjuntoInputRef.current) adjuntoInputRef.current.value = '';
+    }
+  };
+
+  const quitarAdjunto = (id) => {
+    setAdjuntosPendientes((prev) => prev.filter((a) => a.adjunto_id !== id));
+  };
+
+  // ── 14. Cerrar menú contextual al hacer click fuera ──
   useEffect(() => {
     if (!openMenuId) return;
     const cerrar = () => setOpenMenuId(null);
@@ -935,7 +1036,7 @@ const cancelarBorrado = () => {
     return () => window.removeEventListener('click', cerrar);
   }, [openMenuId]);
 
-  // ── 13. Scroll infinito: cargar mensajes antiguos ──
+  // ── 15. Scroll infinito: cargar mensajes antiguos ──
   const cargarMasAntiguos = async () => {
     if (loadingMore || !activeId) return;
     if (!hasMore[activeId]) return;
@@ -974,7 +1075,6 @@ const cancelarBorrado = () => {
 
         setHasMore((prev) => ({ ...prev, [activeId]: hay }));
 
-        // Restaurar posición del scroll
         requestAnimationFrame(() => {
           if (!el) return;
           const newScrollHeight = el.scrollHeight;
@@ -990,7 +1090,7 @@ const cancelarBorrado = () => {
     }
   };
 
-  // ── 14. Detectar scroll al principio ──
+  // ── 16. Detectar scroll al principio ──
   useEffect(() => {
     const el = messagesAreaRef.current;
     if (!el) return;
@@ -1137,9 +1237,25 @@ const cancelarBorrado = () => {
                     ) : (
                       <>
                         <div style={bubble(esMio, m.esta_eliminado)}>
-                          <div>
-                            {m.esta_eliminado ? '🚫 Este mensaje ha sido eliminado' : m.contenido}
-                          </div>
+                          {m.adjuntos && m.adjuntos.length > 0 && (
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '6px',
+                                marginBottom: m.contenido ? '8px' : 0,
+                              }}
+                            >
+                              {m.adjuntos.map((adj) => (
+                                <AdjuntoPreview key={adj.adjunto_id} adjunto={adj} isOwn={esMio} />
+                              ))}
+                            </div>
+                          )}
+                          {m.esta_eliminado ? (
+                            <div>🚫 Este mensaje ha sido eliminado</div>
+                          ) : (
+                            m.contenido && <div>{m.contenido}</div>
+                          )}
                           {esMio && !m.esta_eliminado && (
                             <div style={leidoIndicator(leidoPorOtro)}>
                               {leidoPorOtro ? '✓✓' : '✓'}
@@ -1174,7 +1290,7 @@ const cancelarBorrado = () => {
                               style={menuItemDanger}
                               onClick={() => pedirConfirmacionBorrado(m)}
                             >
-                                Borrar
+                              Borrar
                             </button>
                           </div>
                         )}
@@ -1201,7 +1317,50 @@ const cancelarBorrado = () => {
             </div>
           )}
 
+          {adjuntosPendientes.length > 0 && (
+            <div style={pendingAdjuntosBar}>
+              {adjuntosPendientes.map((adj) => (
+                <div key={adj.adjunto_id} style={pendingChip}>
+                  <span style={pendingChipName}>{adj.nombre}</span>
+                  <button
+                    type="button"
+                    onClick={() => quitarAdjunto(adj.adjunto_id)}
+                    style={pendingChipRemove}
+                    title="Quitar"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div style={inputRow}>
+            <input
+              ref={adjuntoInputRef}
+              type="file"
+              multiple
+              onChange={handleAdjuntoChange}
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={() => adjuntoInputRef.current?.click()}
+              disabled={subiendoAdjunto}
+              style={{
+                ...clipBtn,
+                cursor: subiendoAdjunto ? 'not-allowed' : 'pointer',
+              }}
+              title="Adjuntar archivo"
+              onMouseEnter={(e) => {
+                if (!subiendoAdjunto) e.currentTarget.style.borderColor = '#D0D0D0';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#EBEBEB';
+              }}
+            >
+              {subiendoAdjunto ? '…' : '📎'}
+            </button>
             <input
               style={textInput}
               placeholder="Escribe un mensaje…"
@@ -1235,7 +1394,7 @@ const cancelarBorrado = () => {
             </button>
           </div>
         </div>
-            ) : (
+      ) : (
         <div style={{ ...chatArea, alignItems: 'center', justifyContent: 'center' }}>
           <div style={emptyPane}>
             <span style={emptyIcon}>💬</span>
@@ -1253,9 +1412,9 @@ const cancelarBorrado = () => {
               Esta acción no se puede deshacer. El mensaje aparecerá como eliminado en el chat.
             </p>
             <div style={modalPreview}>
-              {mensajeAEliminar.contenido.length > 200
+              {mensajeAEliminar.contenido && mensajeAEliminar.contenido.length > 200
                 ? mensajeAEliminar.contenido.slice(0, 200) + '…'
-                : mensajeAEliminar.contenido}
+                : (mensajeAEliminar.contenido || '📎 Adjunto')}
             </div>
             <div style={modalActions}>
               <button

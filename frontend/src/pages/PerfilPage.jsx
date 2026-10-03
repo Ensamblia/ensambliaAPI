@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { FileUploader } from '../components/multimedia/FileUploader';
+import { MediaGallery } from '../components/multimedia/MediaGallery';
+import { MisAnuncios } from '../components/anuncios/MisAnuncios';
+import { Link } from 'react-router-dom';
 
 const page = {
   maxWidth: '680px',
@@ -76,7 +80,15 @@ const sectionTitle = {
   color: '#D4D4D4',
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
+  marginBottom: '8px',
+};
+
+const sectionSubtitle = {
+  fontFamily: "'Inter', sans-serif",
+  fontSize: '12.5px',
+  color: '#8A8A8A',
   marginBottom: '16px',
+  lineHeight: 1.5,
 };
 
 const fieldGroup = {
@@ -234,6 +246,10 @@ export function PerfilPage() {
   const [genSelected, setGenSelected] = useState(new Set());
   const [instrOriginal, setInstrOriginal] = useState(new Set());
   const [genOriginal, setGenOriginal] = useState(new Set());
+
+  const [bibliotecaRefresh, setBibliotecaRefresh] = useState(0);
+
+  const [anunciosRefresh, setAnunciosRefresh] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
@@ -474,7 +490,7 @@ export function PerfilPage() {
         </div>
 
         {/* Géneros */}
-        <div style={formSectionLast}>
+        <div style={formSection}>
           <p style={sectionTitle}>Géneros musicales</p>
           <div style={tagRow}>
             {generos.map((g) => (
@@ -490,6 +506,63 @@ export function PerfilPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Mi biblioteca */}
+        <div style={formSection}>
+          <p style={sectionTitle}>Mi biblioteca</p>
+          <p style={sectionSubtitle}>
+            Sube fotos, audios, vídeos o PDFs. Podrás usarlos en tus anuncios y mensajes sin volver a subirlos.
+          </p>
+
+          {perfilId ? (
+            <>
+              <FileUploader
+                onUploaded={() => setBibliotecaRefresh((k) => k + 1)}
+              />
+
+              <div style={{ marginTop: '24px' }}>
+                <MediaGallery
+                  perfilId={perfilId}
+                  refreshKey={bibliotecaRefresh}
+                />
+              </div>
+            </>
+          ) : (
+            <p style={noticeBanner}>Guarda tu perfil primero para poder subir archivos.</p>
+          )}
+        </div>
+
+                {/* Mis anuncios */}
+        <div style={formSectionLast}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <p style={sectionTitle}>Mis anuncios</p>
+            <Link
+              to="/anuncios/crear"
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: '#FF5C35',
+                textDecoration: 'none',
+                letterSpacing: '-0.01em',
+              }}
+            >
+              + Crear anuncio
+            </Link>
+          </div>
+          <p style={sectionSubtitle}>
+            Aquí puedes ver todos tus anuncios y gestionar su multimedia.
+          </p>
+
+          {perfilId ? (
+            <MisAnuncios
+              perfilId={perfilId}
+              refreshKey={anunciosRefresh}
+            />
+          ) : (
+            <p style={noticeBanner}>Guarda tu perfil primero para ver tus anuncios.</p>
+          )}
         </div>
 
         {/* Actions */}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Chat, Mensaje, MensajeLeido
+from .models import Chat, Mensaje, MensajeLeido, MensajeAdjunto
 
 
 @admin.register(Chat)
@@ -16,3 +16,10 @@ class MensajeAdmin(admin.ModelAdmin):
 @admin.register(MensajeLeido)
 class MensajeLeidoAdmin(admin.ModelAdmin):
     list_display = ('mensaje', 'perfil', 'leido_en')
+
+
+@admin.register(MensajeAdjunto)
+class MensajeAdjuntoAdmin(admin.ModelAdmin):
+    list_display = ('adjunto_id', 'nombre', 'perfil', 'mensaje', 'tamano_bytes', 'fecha_subida')
+    list_filter = ('content_type',)
+    search_fields = ('nombre',)

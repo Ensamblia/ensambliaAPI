@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Chat, Mensaje, MensajeLeido
+from .models import Chat, Mensaje, MensajeLeido, MensajeAdjunto
 
 
 # ================ CHAT ================
@@ -9,17 +9,45 @@ class ChatSerializer(serializers.ModelSerializer):
         fields = ['chat_id']
 
 
+# ================ MENSAJE ADJUNTO ================
+class MensajeAdjuntoSerializer(serializers.ModelSerializer):
+    archivo_url = serializers.SerializerMethodField()
+    perfil_id = serializers.IntegerField(read_only=True, allow_null=True)
+    mensaje_id = serializers.IntegerField(read_only=True, allow_null=True)
+
+    class Meta:
+        model = MensajeAdjunto
+        fields = [
+            'adjunto_id', 'nombre', 'archivo', 'archivo_url',
+            'tamano_bytes', 'content_type', 'fecha_subida',
+            'perfil_id', 'mensaje_id',
+        ]
+
+    def get_archivo_url(self, obj):
+        if not obj.archivo:
+            return None
+        request = self.context.get('request')
+        try:
+            url = obj.archivo.url
+            if request and not url.startswith('http'):
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
+
+
 # ================ MENSAJE ================
 class MensajeSerializer(serializers.ModelSerializer):
     chat_id = serializers.IntegerField(read_only=True, allow_null=True)
     perfil_id = serializers.IntegerField(read_only=True, allow_null=True)
     leido_por = serializers.SerializerMethodField()
+    adjuntos = MensajeAdjuntoSerializer(many=True, read_only=True)
 
     class Meta:
         model = Mensaje
         fields = [
             'mensaje_id', 'contenido', 'fecha_envio', 'esta_eliminado',
-            'chat_id', 'perfil_id', 'leido_por',
+            'chat_id', 'perfil_id', 'leido_por', 'adjuntos',
         ]
 
     def get_leido_por(self, obj):

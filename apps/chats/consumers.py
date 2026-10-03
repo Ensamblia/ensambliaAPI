@@ -8,20 +8,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
     WebSocket para el chat en tiempo real con presencia, edición y borrado.
 
     Eventos entrantes:
-        { "tipo": "mensaje", "contenido": "..." }
+        { "tipo": "mensaje", "contenido": "...", "adjunto_ids": [1, 2] }
         { "tipo": "typing" }
         { "tipo": "leido", "mensaje_id": 123 }
         { "tipo": "editar_mensaje", "mensaje_id": 123, "contenido": "nuevo" }
         { "tipo": "borrar_mensaje", "mensaje_id": 123 }
 
     Eventos salientes:
-        { "tipo": "mensaje", ... }
+        { "tipo": "mensaje", ... , "adjuntos": [...] }
         { "tipo": "typing", ... }
         { "tipo": "leido", ... }
         { "tipo": "status", ... }
         { "tipo": "presence_snapshot", ... }
-        { "tipo": "mensaje_editado", "mensaje_id": ..., "contenido": ..., "esta_editado": true }
-        { "tipo": "mensaje_borrado", "mensaje_id": ... }
+        { "tipo": "mensaje_editado", ... }
+        { "tipo": "mensaje_borrado", ... }
     """
 
     async def connect(self):
@@ -125,16 +125,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def _handle_mensaje(self, data):
         contenido = (data.get('contenido') or '').strip()
-        if not contenido:
+        adjunto_ids = data.get('adjunto_ids') or []
+
+        # Un mensaje debe tener contenido O adjuntos
+        if not contenido and not adjunto_ids:
             return
 
         mensaje = await self.crear_mensaje(
             chat_id=self.chat_id,
             perfil_id=self.perfil_id,
-            contenido=contenido,
+            contenido=contenido or '',
+            adjunto_ids=adjunto_ids,
         )
         if not mensaje:
             return
+
+        # Notificación global al otro participante
+        otros_perfiles = await self._get_otros_participantes(self.chat_id, self.perfil_id)
+        for otro_perfil_id in otros_perfiles:
+            await self.channel_layer.group_send(
+                f'user_{otro_perfil_id}',
+                {
+                    'type': 'nuevo_mensaje',
+                    'chat_id': self.chat_id,
+                    'mensaje_id': mensaje['mensaje_id'],
+                    'contenido': mensaje['contenido'],
+                    'perfil_id': self.perfil_id,
+                    'fecha_envio': mensaje['fecha_envio'],
+                },
+            )
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -245,16 +264,51 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return PerfilChat.objects.filter(chat_id=chat_id, perfil_id=perfil_id).exists()
 
     @database_sync_to_async
-    def crear_mensaje(self, chat_id, perfil_id, contenido):
-        from .models import Mensaje
+    def _get_otros_participantes(self, chat_id, perfil_id):
+        from apps.perfiles.models import PerfilChat
+        return list(
+            PerfilChat.objects.filter(chat_id=chat_id)
+            .exclude(perfil_id=perfil_id)
+            .values_list('perfil_id', flat=True)
+        )
+
+    @database_sync_to_async
+    def crear_mensaje(self, chat_id, perfil_id, contenido, adjunto_ids=None):
+        from .models import Mensaje, MensajeAdjunto
+
         try:
             m = Mensaje.objects.create(
                 chat_id=chat_id,
                 perfil_id=perfil_id,
-                contenido=contenido,
+                contenido=contenido or '',
             )
         except Exception:
             return None
+
+        # Vincular SOLO adjuntos huérfanos y del mismo perfil (seguridad)
+        adjuntos_dict = []
+        if adjunto_ids:
+            adjuntos = MensajeAdjunto.objects.filter(
+                adjunto_id__in=adjunto_ids,
+                mensaje__isnull=True,
+                perfil_id=perfil_id,
+            )
+            for a in adjuntos:
+                a.mensaje = m
+                a.save(update_fields=['mensaje'])
+
+            adjuntos_dict = [
+                {
+                    'adjunto_id': a.adjunto_id,
+                    'nombre': a.nombre,
+                    'archivo': str(a.archivo),
+                    'tamano_bytes': a.tamano_bytes,
+                    'content_type': a.content_type,
+                    'fecha_subida': a.fecha_subida.isoformat(),
+                }
+                for a in adjuntos
+            ]
+
         return {
             'mensaje_id': m.mensaje_id,
             'chat_id': m.chat_id,
@@ -263,6 +317,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'fecha_envio': m.fecha_envio.isoformat(),
             'esta_eliminado': m.esta_eliminado,
             'leido_por': [],
+            'adjuntos': adjuntos_dict,
         }
 
     @database_sync_to_async

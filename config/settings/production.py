@@ -59,6 +59,23 @@ SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ============================================================
+# MINIO EN PRODUCCIÓN — bucket privado obligatorio
+# ============================================================
+# Fuerza URLs firmadas con expiración corta en producción.
+# (En base ya está en 300s, pero lo reafirmamos por si alguien
+#  cambia base sin mirar producción.)
+STORAGES['default']['OPTIONS']['querystring_auth'] = True
+STORAGES['default']['OPTIONS']['querystring_expire'] = 300
+STORAGES['default']['OPTIONS']['default_acl'] = None
+
+# Endpoint público de MinIO (dominio con HTTPS, NUNCA la IP interna).
+# Ej: https://media.ensamblia.com
+MINIO_PUBLIC_URL = _require_env('MINIO_PUBLIC_URL')
+
+# Advertencia: si MINIO_ENDPOINT apunta a una IP interna, perfecto.
+# Pero MINIO_PUBLIC_URL debe ser un dominio con HTTPS delante de un proxy.
+
+# ============================================================
 # LOGGING
 # ============================================================
 LOGGING = {

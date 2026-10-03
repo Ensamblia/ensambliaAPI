@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -6,7 +7,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 
 from apps.usuarios.mixins import MiPerfilMixin
-from .models import TipoAnuncio, Anuncio, Comentario
+from apps.multimedia.models import Multimedia
+from .models import TipoAnuncio, Anuncio, Comentario, AnuncioMultimedia
 from .serializers import (
     TipoAnuncioSerializer, TipoAnuncioCreateSerializer,
     AnuncioSerializer, AnuncioCreateSerializer, AnuncioUpdateSerializer,
@@ -91,10 +93,8 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     lookup_field = 'pk'
     permission_classes = [AllowAny]
 
-    # ── Paginación ──────────────────────────────────────
     pagination_class = StandardLimitOffsetPagination
 
-    # ── Filtros / Búsqueda / Ordenación ─────────────────
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
         'perfil': ['exact'],
@@ -127,10 +127,9 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 {'error': f'Nothing found for id: {pk}'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(AnuncioSerializer(obj).data)
+        return Response(AnuncioSerializer(obj, context={'request': request}).data)
 
     def create(self, request, *args, **kwargs):
-        # Validación básica
         titulo = request.data.get('titulo')
         if not titulo or not str(titulo).strip():
             return Response(
@@ -138,7 +137,6 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # El usuario DEBE tener perfil
         perfil_id = self.get_mi_perfil_id(request)
         if not perfil_id:
             return Response(
@@ -148,9 +146,11 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
 
         serializer = AnuncioCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # ✅ El perfil_id se asigna AQUÍ, no desde el front
         anuncio = serializer.save(perfil_id=perfil_id)
-        return Response(AnuncioSerializer(anuncio).data, status=status.HTTP_201_CREATED)
+        return Response(
+            AnuncioSerializer(anuncio, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def update(self, request, pk=None, *args, **kwargs):
         try:
@@ -158,7 +158,6 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         except Anuncio.DoesNotExist:
             return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # ✅ Comprobación de propiedad
         mi_perfil_id = self.get_mi_perfil_id(request)
         if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
             return Response(
@@ -169,7 +168,10 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         serializer = AnuncioUpdateSerializer(obj, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(AnuncioSerializer(obj).data, status=status.HTTP_201_CREATED)
+        return Response(
+            AnuncioSerializer(obj, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def destroy(self, request, pk=None, *args, **kwargs):
         try:
@@ -177,7 +179,6 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         except Anuncio.DoesNotExist:
             return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # ✅ Comprobación de propiedad
         mi_perfil_id = self.get_mi_perfil_id(request)
         if obj.perfil_id != mi_perfil_id and not request.user.is_staff:
             return Response(
@@ -185,9 +186,85 @@ class AnuncioViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        data = AnuncioSerializer(obj).data
+        data = AnuncioSerializer(obj, context={'request': request}).data
         obj.delete()
         return Response(data, status=status.HTTP_200_OK)
+
+    # ============================================================
+    # MULTIMEDIA DEL ANUNCIO
+    # ============================================================
+
+    @action(detail=True, methods=['post'], url_path='multimedia')
+    def add_multimedia(self, request, pk=None):
+        """POST /api/anuncios/:id/multimedia/ — vincula medios al anuncio."""
+        try:
+            anuncio = Anuncio.objects.get(pk=pk)
+        except Anuncio.DoesNotExist:
+            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if anuncio.perfil_id != mi_perfil_id and not request.user.is_staff:
+            return Response(
+                {'error': 'No puedes editar el anuncio de otro usuario'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        multimedia_ids = request.data.get('multimedia_ids', [])
+        if not isinstance(multimedia_ids, list):
+            return Response(
+                {'error': 'multimedia_ids debe ser una lista'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        creados = []
+        for index, mid in enumerate(multimedia_ids):
+            media = Multimedia.objects.filter(pk=mid, perfil_id=mi_perfil_id).first()
+            if not media:
+                continue
+            obj, created = AnuncioMultimedia.objects.get_or_create(
+                anuncio=anuncio,
+                multimedia=media,
+                defaults={'orden': index},
+            )
+            if created:
+                creados.append(obj)
+
+        return Response({
+            'anuncio_id': anuncio.anuncio_id,
+            'multimedia_count': anuncio.anuncio_multimedias.count(),
+            'agregados': len(creados),
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['delete'], url_path='multimedia/(?P<multimedia_id>[^/.]+)')
+    def remove_multimedia(self, request, pk=None, multimedia_id=None):
+        """DELETE /api/anuncios/:id/multimedia/:multimedia_id/ — desvincula."""
+        try:
+            anuncio = Anuncio.objects.get(pk=pk)
+        except Anuncio.DoesNotExist:
+            return Response({'error': 'Anuncio not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if anuncio.perfil_id != mi_perfil_id and not request.user.is_staff:
+            return Response(
+                {'error': 'No puedes editar el anuncio de otro usuario'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            vinculo = AnuncioMultimedia.objects.get(
+                anuncio=anuncio,
+                multimedia_id=multimedia_id,
+            )
+        except AnuncioMultimedia.DoesNotExist:
+            return Response(
+                {'error': 'Multimedia no vinculada a este anuncio'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        vinculo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 # ==================================================================
 # COMENTARIO
 # ==================================================================

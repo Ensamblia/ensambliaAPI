@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import TipoAnuncio, Anuncio, Comentario
+from .models import TipoAnuncio, Anuncio, Comentario, AnuncioMultimedia
+from apps.multimedia.models import Multimedia
+from apps.multimedia.serializers import MultimediaSerializer
 
 
 # ================ TIPO ANUNCIO ================
@@ -26,15 +28,43 @@ class TipoAnuncioCreateSerializer(serializers.ModelSerializer):
         return value.strip()
 
 
+# ================ ANUNCIO-MULTIMEDIA (pivote) ================
+class AnuncioMultimediaSerializer(serializers.ModelSerializer):
+    multimedia = MultimediaSerializer(read_only=True)
+    multimedia_id = serializers.PrimaryKeyRelatedField(
+        source='multimedia',
+        queryset=Multimedia.objects.all(),
+        write_only=True,
+    )
+
+    class Meta:
+        model = AnuncioMultimedia
+        fields = ['id', 'multimedia', 'multimedia_id', 'orden', 'fecha_agregado']
+        read_only_fields = ['id', 'fecha_agregado']
+
+
 # ================ ANUNCIO ================
 class AnuncioSerializer(serializers.ModelSerializer):
     tipo_anuncio_id = serializers.IntegerField(read_only=True, allow_null=True)
+    multimedias = serializers.SerializerMethodField()
 
     class Meta:
         model = Anuncio
         fields = [
             'anuncio_id', 'fecha_publicacion', 'titulo', 'contenido',
-            'perfil_id', 'tipo_anuncio_id',
+            'perfil_id', 'tipo_anuncio_id', 'multimedias',
+        ]
+
+    def get_multimedias(self, obj):
+        """Devuelve los medios vinculados al anuncio (vía pivote)."""
+        request = self.context.get('request')
+        vinculados = obj.anuncio_multimedias.select_related('multimedia').all()
+        return [
+            {
+                **MultimediaSerializer(v.multimedia, context={'request': request}).data,
+                'orden': v.orden,
+            }
+            for v in vinculados
         ]
 
 

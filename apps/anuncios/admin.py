@@ -19,3 +19,11 @@ class AnuncioAdmin(admin.ModelAdmin):
 class ComentarioAdmin(admin.ModelAdmin):
     list_display = ('comentario_id', 'anuncio', 'perfil', 'fecha_publicacion', 'esta_eliminado')
     list_filter = ('esta_eliminado',)
+
+from .models import AnuncioMultimedia  # ← añade al import existente
+
+
+@admin.register(AnuncioMultimedia)
+class AnuncioMultimediaAdmin(admin.ModelAdmin):
+    list_display = ('anuncio', 'multimedia', 'orden', 'fecha_agregado')
+    list_filter = ('anuncio',)

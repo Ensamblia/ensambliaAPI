@@ -71,3 +71,51 @@ class MensajeLeido(models.Model):
 
     def __str__(self):
         return f'{self.mensaje_id} - {self.perfil_id}'
+
+
+class MensajeAdjunto(models.Model):
+    """
+    Archivo adjunto de un mensaje del chat.
+    EFÍMERO: no va a la biblioteca del perfil, vive y muere con el mensaje.
+
+    Ciclo de vida:
+    1. El usuario sube el archivo a MinIO y llama a `crear-adjunto` → se crea
+       un MensajeAdjunto con `mensaje=None` y `perfil=<quien lo sube>`.
+    2. Al enviar el mensaje por WebSocket, se vincula el adjunto al Mensaje
+       (`mensaje=<nuevo mensaje>`).
+    3. Si el mensaje se borra, el adjunto cae en cascada.
+    """
+    adjunto_id = models.BigAutoField(primary_key=True, db_column='adjunto_id')
+    mensaje = models.ForeignKey(
+        Mensaje,
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        db_column='mensaje_id',
+        related_name='adjuntos',
+    )
+    perfil = models.ForeignKey(
+        'perfiles.Perfil',
+        null=True, blank=True,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='adjuntos_subidos',
+    )
+    nombre = models.CharField(max_length=255, db_column='nombre')
+    archivo = models.FileField(
+        upload_to='chat/%Y/%m/',
+        db_column='ruta_archivo',
+        max_length=500,
+    )
+    tamano_bytes = models.BigIntegerField(null=True, blank=True, db_column='tamano_bytes')
+    content_type = models.CharField(max_length=100, null=True, blank=True, db_column='content_type')
+    fecha_subida = models.DateTimeField(auto_now_add=True, db_column='fecha_subida')
+
+    class Meta:
+        db_table = 'mensaje_adjunto'
+        managed = True
+        ordering = ['fecha_subida']
+        verbose_name = 'Adjunto de mensaje'
+        verbose_name_plural = 'Adjuntos de mensajes'
+
+    def __str__(self):
+        return f'{self.adjunto_id} - {self.nombre}'

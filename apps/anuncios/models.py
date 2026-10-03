@@ -82,3 +82,36 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f'Comentario {self.comentario_id}'
+
+
+class AnuncioMultimedia(models.Model):
+    """
+    Tabla pivote: qué medios de la biblioteca están asociados a cada anuncio.
+    Permite reutilizar el mismo medio en N anuncios sin duplicar el archivo.
+    """
+    id = models.BigAutoField(primary_key=True)
+    anuncio = models.ForeignKey(
+        Anuncio,
+        on_delete=models.CASCADE,
+        db_column='anuncio_id',
+        related_name='anuncio_multimedias',
+    )
+    multimedia = models.ForeignKey(
+        'multimedia.Multimedia',
+        on_delete=models.CASCADE,
+        db_column='multimedia_id',
+        related_name='anuncio_multimedias',
+    )
+    orden = models.IntegerField(default=0, db_column='orden')
+    fecha_agregado = models.DateTimeField(auto_now_add=True, db_column='fecha_agregado')
+
+    class Meta:
+        db_table = 'anuncio_multimedia'
+        managed = True
+        unique_together = (('anuncio', 'multimedia'),)
+        ordering = ['orden', 'fecha_agregado']
+        verbose_name = 'Anuncio-Multimedia'
+        verbose_name_plural = 'Anuncios-Multimedia'
+
+    def __str__(self):
+        return f'Anuncio {self.anuncio_id} - Multimedia {self.multimedia_id}'
