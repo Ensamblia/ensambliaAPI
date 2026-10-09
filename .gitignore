@@ -3,4 +3,7 @@ node_modules
 
 .venv/
 __pycache__/
+*.pyc__pycache__/
 *.pyc
+.DS_Store
+.env
