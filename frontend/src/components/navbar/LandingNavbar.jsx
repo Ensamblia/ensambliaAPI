@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ChevronRight, Menu, X } from 'lucide-react';
-import { SOLO_LANDING } from '../../config';
 
 /**
- * Navbar de la landing (diseño de la rama mmesab).
- * Con SOLO_LANDING = true solo enlaza a secciones de la propia página.
- * Con SOLO_LANDING = false enlaza también a /anuncios, /register y /login.
+ * Navegación de la landing y del resto de páginas de la aplicación.
  */
 export function LandingNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,9 +27,6 @@ export function LandingNavbar() {
     navigate(path);
   };
 
-  const onJoin = () => (SOLO_LANDING ? goToSection('join') : goTo('/register'));
-  const onLogin = () => (SOLO_LANDING ? goToSection('join') : goTo('/login'));
-
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -43,18 +37,18 @@ export function LandingNavbar() {
 
         <nav className="desktop-nav" aria-label="Navegación principal">
           <Link to="/">Inicio</Link>
-          {!SOLO_LANDING && <Link to="/anuncios">Anuncios</Link>}
+          <Link to="/anuncios">Anuncios</Link>
           <button onClick={() => goToSection('features')}>Funciones</button>
           <button onClick={() => goToSection('community')}>Comunidad</button>
         </nav>
 
         <div className="header-actions">
-          <button className="button button--yellow button--small" onClick={onJoin}>
+          <button className="button button--yellow button--small" onClick={() => goTo('/register')}>
             ÚNETE GRATIS <ArrowUpRight size={14} />
           </button>
           <button
             className="button button--outline button--small header-login"
-            onClick={onLogin}
+            onClick={() => goTo('/login')}
           >
             Acceso
           </button>
@@ -75,19 +69,20 @@ export function LandingNavbar() {
           <Link to="/" onClick={() => setMenuOpen(false)}>
             Inicio <ChevronRight size={16} />
           </Link>
-          {!SOLO_LANDING && (
-            <Link to="/anuncios" onClick={() => setMenuOpen(false)}>
-              Anuncios <ChevronRight size={16} />
-            </Link>
-          )}
+          <Link to="/anuncios" onClick={() => setMenuOpen(false)}>
+            Anuncios <ChevronRight size={16} />
+          </Link>
           <button onClick={() => goToSection('features')}>
             Funciones <ChevronRight size={16} />
           </button>
           <button onClick={() => goToSection('community')}>
             Comunidad <ChevronRight size={16} />
           </button>
-          <button className="button button--yellow" onClick={onJoin}>
+          <button className="button button--yellow" onClick={() => goTo('/register')}>
             ÚNETE GRATIS <ArrowUpRight size={15} />
+          </button>
+          <button className="button button--outline" onClick={() => goTo('/login')}>
+            Acceso
           </button>
         </nav>
       )}
