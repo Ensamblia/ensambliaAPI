@@ -1,122 +1,8 @@
-import React from 'react';
+// src/components/multimedia/MultimediaPreview.jsx
+import React, { useState } from 'react';
+import { Button, Lightbox } from '@/components/ui';
+import styles from './MultimediaPreview.module.css';
 
-/* ── Styles ── */
-const container = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-  borderRadius: '10px',
-  overflow: 'hidden',
-  backgroundColor: '#FFFFFF',
-};
-
-const header = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '8px',
-  padding: '8px 10px 0',
-};
-
-const filename = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12.5px',
-  fontWeight: 600,
-  color: '#0F0F0F',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  maxWidth: '220px',
-};
-
-const sizeText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '11px',
-  color: '#8A8A8A',
-  flexShrink: 0,
-};
-
-const mediaWrapper = {
-  borderRadius: '8px',
-  overflow: 'hidden',
-  backgroundColor: '#FAFAFA',
-};
-
-const imgStyle = {
-  width: '100%',
-  maxHeight: '420px',
-  objectFit: 'contain',
-  display: 'block',
-  backgroundColor: '#F2F2F2',
-};
-
-const mediaStyle = {
-  width: '100%',
-  display: 'block',
-};
-
-/* ── Tarjeta para documentos (PDF, txt, docx, odt) ── */
-const docCard = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '14px',
-  padding: '18px',
-  backgroundColor: '#FAFAFA',
-  borderRadius: '8px',
-};
-
-const docIcon = {
-  fontSize: '2rem',
-  lineHeight: 1,
-  flexShrink: 0,
-};
-
-const docInfo = {
-  flex: 1,
-  minWidth: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '3px',
-};
-
-const docName = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13.5px',
-  fontWeight: 600,
-  color: '#0F0F0F',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-};
-
-const docType = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '11.5px',
-  color: '#8A8A8A',
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-  fontWeight: 600,
-};
-
-const docBtn = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '6px',
-  padding: '8px 16px',
-  backgroundColor: '#FF5C35',
-  color: '#FFFFFF',
-  borderRadius: '7px',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12.5px',
-  fontWeight: 600,
-  textDecoration: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  flexShrink: 0,
-  transition: 'background 140ms ease',
-};
-
-/* ── Helpers ── */
 function formatBytes(bytes) {
   if (!bytes) return '—';
   if (bytes < 1024) return `${bytes} B`;
@@ -142,71 +28,135 @@ function etiquetaParaMime(mime) {
   return 'Documento';
 }
 
-/* ── Componente ── */
-export function MultimediaPreview({ multimedia }) {
+function toLightboxItem(m, index) {
+  const url = m.archivo_url || m.archivo;
+  const mime = m.tipo_mime || '';
+  return {
+    id: m.multimedia_id ?? index,
+    url,
+    type: mime.startsWith('video/') ? 'video' : 'image',
+    alt: m.nombre || `Multimedia ${index + 1}`,
+  };
+}
+
+/**
+ * Preview de un multimedia.
+ *
+ * Si se pasa `allMultimedia` e `initialIndex`, las **imágenes** son clickables
+ * y abren un `Lightbox` con navegación ←/→ entre los medios del mismo grupo.
+ * Si no, se muestran sin ampliación (retrocompatible).
+ *
+ * @param {Object} props
+ * @param {Object} props.multimedia
+ * @param {Array<Object>} [props.allMultimedia]   - lista completa para el lightbox
+ * @param {number} [props.initialIndex=0]          - índice de este medio en allMultimedia
+ */
+export function MultimediaPreview({ multimedia, allMultimedia, initialIndex = 0 }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [error, setError] = useState(false);
+
   if (!multimedia) return null;
 
   const url = multimedia.archivo_url || multimedia.archivo;
   const mime = multimedia.tipo_mime || '';
+  const ampliable = Array.isArray(allMultimedia) && allMultimedia.length > 0;
 
-  // Imagen
+  // ── Imagen ──
   if (mime.startsWith('image/')) {
+    const items = (ampliable ? allMultimedia : [multimedia]).map(toLightboxItem);
+
+    const img = error ? (
+      <div className={styles.placeholder}>🖼️ Imagen no disponible</div>
+    ) : (
+      <img
+        src={url}
+        alt={multimedia.nombre}
+        className={styles.image}
+        onError={() => setError(true)}
+      />
+    );
+
     return (
-      <div style={container}>
-        <div style={mediaWrapper}>
-          <img src={url} alt={multimedia.nombre} style={imgStyle} />
+      <div className={styles.container}>
+        <div className={styles.imageWrapper}>
+          {ampliable ? (
+            <button
+              type="button"
+              className={styles.mediaButton}
+              onClick={() => setLightboxOpen(true)}
+              aria-label={`Ampliar ${multimedia.nombre || 'imagen'}`}
+            >
+              {img}
+            </button>
+          ) : (
+            img
+          )}
         </div>
+        <Lightbox
+          open={lightboxOpen}
+          items={items}
+          initialIndex={initialIndex}
+          onClose={() => setLightboxOpen(false)}
+        />
       </div>
     );
   }
 
-  // Audio
+  // ── Audio ──
   if (mime.startsWith('audio/')) {
     return (
-      <div style={container}>
-        <div style={header}>
-          <span style={filename}>{multimedia.nombre}</span>
-          <span style={sizeText}>{formatBytes(multimedia.tamano_bytes)}</span>
+      <div className={styles.container}>
+        <div className={styles.mediaHeader}>
+          <span className={styles.filename}>{multimedia.nombre}</span>
+          <span className={styles.sizeText}>{formatBytes(multimedia.tamano_bytes)}</span>
         </div>
-        <div style={mediaWrapper}>
-          <audio controls src={url} style={mediaStyle} />
+        <div className={styles.mediaWrapper}>
+          <audio controls src={url} className={styles.media} />
         </div>
       </div>
     );
   }
 
-  // Vídeo
+  // ── Vídeo ──
   if (mime.startsWith('video/')) {
     return (
-      <div style={container}>
-        <div style={mediaWrapper}>
-          <video controls src={url} style={mediaStyle} />
+      <div className={styles.container}>
+        <div className={styles.mediaWrapper}>
+          {error ? (
+            <div className={styles.placeholder}>🎬 Vídeo no disponible</div>
+          ) : (
+            <video
+              controls
+              src={url}
+              className={styles.media}
+              onError={() => setError(true)}
+            />
+          )}
         </div>
       </div>
     );
   }
 
-  // Documentos (PDF, txt, docx, odt)
+  // ── Documento ──
   return (
-    <div style={container}>
-      <div style={docCard}>
-        <span style={docIcon}>{iconoParaMime(mime)}</span>
-        <div style={docInfo}>
-          <span style={docName}>{multimedia.nombre}</span>
-          <span style={docType}>
+    <div className={styles.container}>
+      <div className={styles.docCard}>
+        <span className={styles.docIcon}>{iconoParaMime(mime)}</span>
+        <div className={styles.docInfo}>
+          <span className={styles.docName}>{multimedia.nombre}</span>
+          <span className={styles.docType}>
             {etiquetaParaMime(mime)} · {formatBytes(multimedia.tamano_bytes)}
           </span>
         </div>
-        <a
+        <Button
           href={url}
+          variant="primary"
+          size="sm"
           target="_blank"
           rel="noopener noreferrer"
-          style={docBtn}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#E04820'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = '#FF5C35'; }}
         >
           Abrir ↗
-        </a>
+        </Button>
       </div>
     </div>
   );

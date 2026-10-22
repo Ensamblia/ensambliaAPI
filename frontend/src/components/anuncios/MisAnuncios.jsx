@@ -1,100 +1,14 @@
+// src/components/anuncios/MisAnuncios.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api/axios';
-import { EditarMediosModal } from '../multimedia/EditarMediosModal';
-
-/* ── Styles ── */
-const emptyText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  color: '#8A8A8A',
-  padding: '16px 0',
-};
-
-const list = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-};
-
-const item = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '12px',
-  padding: '14px 16px',
-  border: '1px solid #EBEBEB',
-  borderRadius: '10px',
-  backgroundColor: '#FFFFFF',
-  transition: 'border-color 140ms ease',
-};
-
-const itemInfo = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '3px',
-  minWidth: 0,
-  flex: 1,
-};
-
-const itemTitle = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '14px',
-  fontWeight: 600,
-  color: '#0F0F0F',
-  letterSpacing: '-0.01em',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-};
-
-const itemMeta = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '11.5px',
-  color: '#8A8A8A',
-};
-
-const actions = {
-  display: 'flex',
-  gap: '8px',
-  flexShrink: 0,
-};
-
-const btnBase = {
-  padding: '7px 14px',
-  borderRadius: '7px',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12.5px',
-  fontWeight: 600,
-  border: 'none',
-  cursor: 'pointer',
-  letterSpacing: '-0.01em',
-  transition: 'background 140ms ease, border-color 140ms ease, color 140ms ease',
-};
-
-const btnMedia = {
-  ...btnBase,
-  backgroundColor: '#FFF0EC',
-  color: '#FF5C35',
-};
-
-const btnDanger = {
-  ...btnBase,
-  backgroundColor: 'transparent',
-  color: '#E0402B',
-  border: '1px solid #F5C6C2',
-};
-
-const loading = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  color: '#8A8A8A',
-  padding: '12px 0',
-};
+import api, { parseApiError } from '@/api/axios';
+import { Button, Card, EmptyState, Spinner } from '@/components/ui';
+import { EditarMediosModal } from '@/components/multimedia/EditarMediosModal';
+import styles from './MisAnuncios.module.css';
 
 export function MisAnuncios({ perfilId, refreshKey = 0 }) {
   const [anuncios, setAnuncios] = useState([]);
-  const [loading_, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [editingAnuncio, setEditingAnuncio] = useState(null);
 
   const cargar = async () => {
@@ -125,67 +39,81 @@ export function MisAnuncios({ perfilId, refreshKey = 0 }) {
       await api.delete(`/anuncios/${anuncioId}/`);
       setAnuncios((prev) => prev.filter((a) => a.anuncio_id !== anuncioId));
     } catch (err) {
-      console.error(err);
-      alert('No se pudo borrar el anuncio');
+      alert(parseApiError(err, 'No se pudo borrar el anuncio'));
     }
   };
 
   if (!perfilId) {
-    return <p style={emptyText}>Guarda tu perfil primero para ver tus anuncios.</p>;
+    return (
+      <EmptyState
+        compact
+        title="Guarda tu perfil primero"
+        description="Así podrás ver y gestionar tus anuncios."
+      />
+    );
   }
 
-  if (loading_) {
-    return <p style={loading}>Cargando tus anuncios…</p>;
+  if (loading) {
+    return (
+      <div className={styles.loadingBox}>
+        <Spinner size="md" aria-label="Cargando anuncios" />
+      </div>
+    );
   }
 
   if (anuncios.length === 0) {
     return (
-      <p style={emptyText}>
-        Aún no has publicado ningún anuncio.{' '}
-        <Link to="/anuncios/crear" style={{ color: '#FF5C35', fontWeight: 600, textDecoration: 'none' }}>
-          Crea el primero
-        </Link>
-      </p>
+      <EmptyState
+        compact
+        icon="📝"
+        title="Aún no has publicado ningún anuncio"
+        description="Crea el primero para que otros músicos te encuentren."
+        action={
+          <Link to="/anuncios/crear">
+            <Button variant="primary" size="sm">Crear anuncio</Button>
+          </Link>
+        }
+      />
     );
   }
 
   return (
     <>
-      <div style={list}>
+      <div className={styles.list}>
         {anuncios.map((a) => {
           const count = a.multimedias?.length || 0;
           return (
-            <div key={a.anuncio_id} style={item}>
-              <div style={itemInfo}>
-                <Link to={`/anuncios/${a.anuncio_id}`} style={itemTitle}>
+            <Card key={a.anuncio_id} className={styles.item} padding="none">
+              <div className={styles.itemInfo}>
+                <Link to={`/anuncios/${a.anuncio_id}`} className={styles.itemTitle}>
                   {a.titulo || 'Sin título'}
                 </Link>
-                <span style={itemMeta}>
+                <span className={styles.itemMeta}>
                   {new Date(a.fecha_publicacion).toLocaleDateString('es-ES', {
-                    day: '2-digit', month: 'short', year: 'numeric',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
                   })}
                   {count > 0 ? ` · ${count} archivo${count !== 1 ? 's' : ''}` : ''}
                 </span>
               </div>
-              <div style={actions}>
-                <button
-                  style={btnMedia}
+              <div className={styles.actions}>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setEditingAnuncio(a)}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = '#FFD9CC'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = '#FFF0EC'; }}
                 >
                   📎 Multimedia
-                </button>
-                <button
-                  style={btnDanger}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleDelete(a.anuncio_id)}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#E0402B'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#F5C6C2'; }}
                 >
                   Borrar
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

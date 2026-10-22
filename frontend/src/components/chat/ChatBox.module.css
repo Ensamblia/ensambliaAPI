@@ -1,0 +1,161 @@
+/* ChatBox.module.css */
+.layout {
+    display: flex;
+    height: calc(100vh - 56px);
+    overflow: hidden;
+    background: var(--surface-elevated);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    width: 288px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+}
+
+.sidebarTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-4) var(--sp-4) var(--sp-3);
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebarTitle {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.emptySidebar {
+    padding: var(--sp-4);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+/* ── Área de chat ── */
+.chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.messagesArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    background: var(--paper);
+}
+
+/* ── Estados dentro del chat ── */
+.loadingBanner {
+    text-align: center;
+    padding: var(--sp-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+}
+
+.startBanner {
+    text-align: center;
+    padding: var(--sp-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.typingIndicator {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--sp-1) 0;
+}
+
+/* ── Edit bar ── */
+.editBar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--yellow-soft);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--warning);
+}
+
+.cancelBtn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    text-decoration: underline;
+}
+
+/* ── Empty pane ── */
+.emptyPane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    color: var(--text-muted);
+}
+
+.emptyIcon {
+    font-size: 2.5rem;
+}
+
+.emptyText {
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    color: var(--text-muted);
+}
+
+/* ── Notice ── */
+.notice {
+    padding: var(--sp-6);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    color: var(--warning);
+}
+
+.noticeLink {
+    color: var(--text-primary);
+    font-weight: var(--fw-semibold);
+    text-decoration: underline;
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    .sidebar {
+        width: 80px;
+    }
+
+    .sidebarTitle {
+        display: none;
+    }
+}
+
+.layoutLoading {
+    align-items: center;
+    justify-content: center;
+}

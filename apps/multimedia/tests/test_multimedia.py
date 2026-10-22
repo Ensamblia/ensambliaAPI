@@ -1,7 +1,8 @@
 import pytest
 from rest_framework import status
 from apps.multimedia.models import Multimedia
-
+from apps.anuncios.models import Anuncio, AnuncioMultimedia
+from django.conf import settings
 
 # ==============================================================
 # CREAR (registro tras subida a MinIO)
@@ -148,3 +149,174 @@ def test_no_borrar_multimedia_ajena(client_ana, perfil_luis):
     response = client_ana.delete(f'/api/multimedias/{m.multimedia_id}/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Multimedia.objects.filter(multimedia_id=m.multimedia_id).exists()
+
+
+#==============================================================
+# BY ANUNCIO (vía pivote AnuncioMultimedia)
+#==============================================================
+
+@pytest.mark.django_db
+def test_by_anuncio_devuelve_medios_vinculados(
+    api_client, perfil_ana, anuncio_ana,
+):
+    """Devuelve solo los medios vinculados al anuncio."""
+    m1 = Multimedia.objects.create(
+        nombre='a.jpg', archivo='multimedia/a.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    m2 = Multimedia.objects.create(
+        nombre='b.jpg', archivo='multimedia/b.jpg',
+        tamano_bytes=200, perfil=perfil_ana,
+    )
+    # m3 no se vincula al anuncio
+    Multimedia.objects.create(
+        nombre='c.jpg', archivo='multimedia/c.jpg',
+        tamano_bytes=300, perfil=perfil_ana,
+    )
+    AnuncioMultimedia.objects.create(anuncio=anuncio_ana, multimedia=m1)
+    AnuncioMultimedia.objects.create(anuncio=anuncio_ana, multimedia=m2)
+
+    response = api_client.get(
+        f'/api/multimedias/anuncio/?anuncio_id={anuncio_ana.anuncio_id}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    ids = sorted(item['multimedia_id'] for item in response.data)
+    assert ids == sorted([m1.multimedia_id, m2.multimedia_id])
+
+
+@pytest.mark.django_db
+def test_by_anuncio_sin_medios_devuelve_lista_vacia(
+    api_client, anuncio_ana,
+):
+    """Anuncio sin medios → [] con 200."""
+    response = api_client.get(
+        f'/api/multimedias/anuncio/?anuncio_id={anuncio_ana.anuncio_id}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == []
+
+
+@pytest.mark.django_db
+def test_by_anuncio_inexistente_devuelve_lista_vacia(api_client):
+    """Anuncio inexistente → [] con 200 (no 404)."""
+    response = api_client.get('/api/multimedias/anuncio/?anuncio_id=99999')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == []
+
+
+@pytest.mark.django_db
+def test_by_anuncio_sin_parametro_devuelve_400(api_client):
+    """Sin anuncio_id → 400."""
+    response = api_client.get('/api/multimedias/anuncio/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'anuncio_id' in response.data['error']
+
+
+@pytest.mark.django_db
+def test_by_anuncio_parametro_no_entero_devuelve_400(api_client):
+    """anuncio_id no entero → 400."""
+    response = api_client.get('/api/multimedias/anuncio/?anuncio_id=abc')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'entero' in response.data['error']
+
+
+@pytest.mark.django_db
+def test_by_anuncio_no_mezcla_medios_de_otros_anuncios(
+    api_client, perfil_ana, anuncio_ana, anuncio_luis,
+):
+    """Los medios de otro anuncio no aparecen."""
+    m_ana = Multimedia.objects.create(
+        nombre='ana.jpg', archivo='multimedia/ana.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    m_luis = Multimedia.objects.create(
+        nombre='luis.jpg', archivo='multimedia/luis.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    AnuncioMultimedia.objects.create(anuncio=anuncio_ana, multimedia=m_ana)
+    AnuncioMultimedia.objects.create(anuncio=anuncio_luis, multimedia=m_luis)
+
+    response = api_client.get(
+        f'/api/multimedias/anuncio/?anuncio_id={anuncio_ana.anuncio_id}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    ids = [item['multimedia_id'] for item in response.data]
+    assert m_ana.multimedia_id in ids
+    assert m_luis.multimedia_id not in ids
+
+
+@pytest.mark.django_db
+def test_by_anuncio_es_publico(api_client, perfil_ana, anuncio_ana):
+    """Sin token también funciona (endpoint público)."""
+    m = Multimedia.objects.create(
+        nombre='x.jpg', archivo='multimedia/x.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    AnuncioMultimedia.objects.create(anuncio=anuncio_ana, multimedia=m)
+
+    response = api_client.get(
+        f'/api/multimedias/anuncio/?anuncio_id={anuncio_ana.anuncio_id}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 1
+
+# ==============================================================
+# CONTRATO STORAGE HÍBRIDO (Fase D.1.5)
+# ==============================================================
+
+@pytest.mark.django_db
+def test_multimedia_serializer_url_publica_sin_firma(api_client, perfil_ana):
+    """
+    MultimediaSerializer debe devolver `archivo_url` SIN firma para multimedia/*.
+    El storage `public_media` (querystring_auth=False) es el que lo garantiza.
+    """
+    m = Multimedia.objects.create(
+        nombre='foto.jpg',
+        archivo='multimedia/2026/10/test.jpg',
+        tamano_bytes=1024,
+        perfil=perfil_ana,
+    )
+    response = api_client.get(f'/api/multimedias/{m.multimedia_id}/')
+    assert response.status_code == status.HTTP_200_OK
+    archivo_url = response.data['archivo_url']
+    assert archivo_url is not None
+    assert 'X-Amz-Signature' not in archivo_url
+    assert archivo_url.startswith(
+    f'{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET_NAME}/multimedia/'
+)
+
+
+@pytest.mark.django_db
+def test_multimedia_list_url_publica_sin_firma(api_client, perfil_ana):
+    """El listado de multimedia también devuelve URLs sin firma."""
+    Multimedia.objects.create(
+        nombre='a.jpg', archivo='multimedia/2026/10/a.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    Multimedia.objects.create(
+        nombre='b.jpg', archivo='multimedia/2026/10/b.jpg',
+        tamano_bytes=200, perfil=perfil_ana,
+    )
+    response = api_client.get(f'/api/multimedias/perfil/?perfil_id={perfil_ana.perfil_id}')
+    assert response.status_code == status.HTTP_200_OK
+    for item in response.data:
+        assert 'X-Amz-Signature' not in item['archivo_url']
+
+
+@pytest.mark.django_db
+def test_by_anuncio_url_publica_sin_firma(api_client, perfil_ana, anuncio_ana):
+    """by_anuncio también devuelve URLs sin firma."""
+    from apps.anuncios.models import AnuncioMultimedia
+
+    m = Multimedia.objects.create(
+        nombre='x.jpg', archivo='multimedia/2026/10/x.jpg',
+        tamano_bytes=100, perfil=perfil_ana,
+    )
+    AnuncioMultimedia.objects.create(anuncio=anuncio_ana, multimedia=m)
+
+    response = api_client.get(
+        f'/api/multimedias/anuncio/?anuncio_id={anuncio_ana.anuncio_id}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 1
+    assert 'X-Amz-Signature' not in response.data[0]['archivo_url']

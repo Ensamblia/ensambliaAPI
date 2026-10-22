@@ -1,8 +1,10 @@
+// src/pages/LoginPage.jsx
 import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import { AuthContext } from '../context/AuthContext';
-import '../styles/auth.css';
+import api, { parseApiError } from '@/api/axios';
+import { AuthContext } from '@/context/AuthContext';
+import { Button, Field, Input, PageHeader } from '@/components/ui';
+import styles from './LoginPage.module.css';
 
 export function LoginPage() {
   const { login } = useContext(AuthContext);
@@ -31,7 +33,7 @@ export function LoginPage() {
       if (err.response?.status === 401) {
         setError('Usuario o contraseña incorrectos.');
       } else {
-        setError('No se pudo conectar, inténtalo de nuevo.');
+        setError(parseApiError(err, 'No se pudo conectar, inténtalo de nuevo.'));
       }
     } finally {
       setLoading(false);
@@ -39,53 +41,37 @@ export function LoginPage() {
   };
 
   return (
-    <main className="auth-page">
-      <section className="auth-hero">
-        <span className="auth-tag">La red social para músicos</span>
-        <h1>
-          Conecta.<br />
-          <span>Toca.</span><br />
-          Crea.
-        </h1>
-        <p>Tu comunidad te está esperando.</p>
-      </section>
+    <main className={styles.page}>
+      <PageHeader title="Iniciar sesión" />
 
-      <section className="auth-side">
-        <form className="auth-card" onSubmit={handleSubmit}>
-          <h2>Acceso</h2>
-          <p className="auth-sub">Vuelve a tu música y a tu gente.</p>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <Field label="Usuario" required>
+          <Input
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
+          />
+        </Field>
 
-          <div className={`auth-field ${error ? 'has-error' : ''}`}>
-            <label htmlFor="usuario">Usuario</label>
-            <input
-              id="usuario"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              autoComplete="username"
-            />
-          </div>
+        <Field label="Contraseña" required>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+        </Field>
 
-          <div className={`auth-field ${error ? 'has-error' : ''}`}>
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-            {error && <p className="auth-msg">{error}</p>}
-          </div>
+        {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? 'Entrando…' : 'Entrar'}
-          </button>
+        <Button type="submit" variant="primary" size="md" block loading={loading}>
+          {loading ? 'Entrando…' : 'Entrar'}
+        </Button>
+      </form>
 
-          <p className="auth-switch">
-            ¿Aún no tienes cuenta? <Link to="/register">Únete gratis</Link>
-          </p>
-        </form>
-      </section>
+      <p className={styles.footer}>
+        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+      </p>
     </main>
   );
 }

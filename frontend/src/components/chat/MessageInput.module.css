@@ -1,0 +1,81 @@
+/* MessageInput.module.css */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+    background: var(--surface-elevated);
+}
+
+.pendientesBar {
+    display: flex;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+    padding: var(--sp-2) var(--sp-5) 0;
+}
+
+.pendienteChip {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-2);
+    background: var(--paper);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+}
+
+.pendienteNombre {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pendienteRemove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--danger);
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+}
+
+.inputRow {
+    display: flex;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-5);
+    align-items: center;
+}
+
+.hiddenInput {
+    display: none;
+}
+
+.clipBtn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.clipBtn:hover:not(:disabled) {
+    border-color: var(--border-strong);
+}
+
+.clipBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.textInput {
+    flex: 1;
+}

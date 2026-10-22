@@ -1,0 +1,50 @@
+/* SectionLabel.module.css */
+.root {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.yellow {
+    background: #FFF5BD;
+    color: #796500;
+    border-color: #EAD56B;
+}
+
+.green {
+    background: #EBF7EE;
+    color: var(--green-deep);
+    border-color: #ACD3BC;
+}
+
+.blue {
+    background: #E8F3FC;
+    color: var(--blue-deep);
+    border-color: #ABC8DF;
+}
+
+.purple {
+    background: #EEEAF5;
+    color: var(--purple-deep);
+    border-color: #C9C3E0;
+}
+
+.coral {
+    background: #FFF0E8;
+    color: var(--coral-deep);
+    border-color: #EAB49E;
+}
+
+.dark {
+    background: rgba(87, 164, 112, 0.15);
+    color: #B9F0C7;
+    border-color: rgba(185, 240, 199, 0.25);
+}

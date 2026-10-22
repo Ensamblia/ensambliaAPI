@@ -1,0 +1,56 @@
+/* MediaGallery.module.css */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--sp-3);
+}
+
+.item {
+    position: relative;
+    transition:
+        border-color var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.item:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+}
+
+.deleteBtn {
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-2);
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(224, 64, 43, 0.9);
+    color: var(--white);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background var(--dur-fast) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out);
+}
+
+.deleteBtn:hover:not(:disabled) {
+    background: var(--danger);
+    transform: scale(1.1);
+}
+
+.deleteBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.loadingBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-5) 0;
+}

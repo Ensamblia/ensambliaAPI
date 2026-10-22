@@ -1,0 +1,108 @@
+/* FileUploader.module.css */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+
+.dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-6) var(--sp-5);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    cursor: pointer;
+    text-align: center;
+    transition:
+        border-color var(--dur-fast) var(--ease-out),
+        background var(--dur-fast) var(--ease-out);
+}
+
+.dropzone:hover:not(.dragging):not(.disabled) {
+    border-color: var(--border-strong);
+    background: var(--surface-elevated);
+}
+
+.dragging {
+    border-color: var(--yellow);
+    background: var(--yellow-soft);
+}
+
+.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.dzIcon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.dzText {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+}
+
+.dzHint {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+/* ── Progreso ── */
+.progressWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+}
+
+.progressBar {
+    height: 6px;
+    background: var(--paper);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--yellow);
+    transition: width var(--dur-base) var(--ease-out);
+}
+
+.progressText {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    text-align: right;
+}
+
+/* ── Mensajes ── */
+.error {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid #F5C6C2;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+.success {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--success-soft);
+    color: var(--success);
+    border: 1px solid #BFE6CC;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}

@@ -159,3 +159,130 @@ async def test_ws_typing():
     # El propio emisor NO recibe su propio typing.
 
     await communicator.disconnect()
+
+# ==============================================================
+# ADJUNTOS POR WEBSOCKET (Fase D.3)
+# ==============================================================
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_ws_enviar_mensaje_con_adjunto_incluye_archivo_url():
+    """
+    Al enviar un mensaje con adjunto por WS, el evento `mensaje` recibido
+    incluye `adjuntos[0].archivo_url` no nulo y firmada (con X-Amz-Signature).
+    """
+    usuario, perfil = await crear_usuario_y_perfil('ws_adjunto')
+    chat = await database_sync_to_async(Chat.objects.create)()
+    await database_sync_to_async(PerfilChat.objects.create)(
+        perfil=perfil, chat=chat
+    )
+
+    # Creamos un MensajeAdjunto huérfano en BD (sin fichero real en MinIO).
+    # generate_presigned_url NO contacta MinIO; solo firma la URL. Así que
+    # el test no necesita MinIO levantado.
+    from apps.chats.models import MensajeAdjunto
+
+    adjunto = await database_sync_to_async(MensajeAdjunto.objects.create)(
+        mensaje=None,
+        perfil=perfil,
+        nombre='foto.jpg',
+        archivo='chat/2026/10/test.jpg',
+        tamano_bytes=1024,
+        content_type='image/jpeg',
+    )
+
+    token = await get_token(usuario)
+    communicator = WebsocketCommunicator(
+        application, f'/ws/chat/{chat.chat_id}/?token={token}'
+    )
+    connected, _ = await communicator.connect()
+    assert connected is True
+
+    # Consumir presence_snapshot
+    await communicator.receive_json_from()
+
+    # Enviar mensaje con adjunto_ids
+    await communicator.send_json_to({
+        'tipo': 'mensaje',
+        'contenido': 'Mira esto',
+        'adjunto_ids': [adjunto.adjunto_id],
+    })
+
+    response = await communicator.receive_json_from()
+    assert response['tipo'] == 'mensaje'
+    assert response['adjuntos'], 'El mensaje debe traer adjuntos'
+    adj = response['adjuntos'][0]
+    assert adj['adjunto_id'] == adjunto.adjunto_id
+    assert adj['nombre'] == 'foto.jpg'
+    assert adj['archivo_url'], 'archivo_url no debe ser null'
+    assert 'X-Amz-Signature' in adj['archivo_url']
+
+    await communicator.disconnect()
+
+# ==============================================================
+# BORRADO DE MENSAJE CON ADJUNTOS (F.9.2 bis)
+# ==============================================================
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_ws_borrar_mensaje_borra_adjuntos():
+    """
+    Al borrar un mensaje con adjunto por WS, el MensajeAdjunto se borra
+    de la BD (y el archivo de MinIO, vía post_delete).
+    """
+    from apps.chats.models import Mensaje, MensajeAdjunto
+
+    usuario, perfil = await crear_usuario_y_perfil('ws_borrar_adj')
+    chat = await database_sync_to_async(Chat.objects.create)()
+    await database_sync_to_async(PerfilChat.objects.create)(
+        perfil=perfil, chat=chat
+    )
+
+    # Crear mensaje con adjunto
+    mensaje = await database_sync_to_async(Mensaje.objects.create)(
+        chat=chat, perfil=perfil, contenido='Mira esto',
+    )
+    adjunto = await database_sync_to_async(MensajeAdjunto.objects.create)(
+        mensaje=mensaje,
+        perfil=perfil,
+        nombre='foto.jpg',
+        archivo='chat/2026/10/test.jpg',
+        tamano_bytes=1024,
+        content_type='image/jpeg',
+    )
+    adjunto_id = adjunto.adjunto_id
+    mensaje_id = mensaje.mensaje_id
+
+    token = await get_token(usuario)
+    communicator = WebsocketCommunicator(
+        application, f'/ws/chat/{chat.chat_id}/?token={token}'
+    )
+    connected, _ = await communicator.connect()
+    assert connected is True
+    await communicator.receive_json_from()  # presence_snapshot
+
+    # Enviar borrar_mensaje
+    await communicator.send_json_to({
+        'tipo': 'borrar_mensaje',
+        'mensaje_id': mensaje_id,
+    })
+
+    # Recibir el evento mensaje_borrado
+    response = await communicator.receive_json_from()
+    assert response['tipo'] == 'mensaje_borrado'
+    assert response['mensaje_id'] == mensaje_id
+
+    # Verificar que el adjunto se ha borrado
+    adjunto_existe = await database_sync_to_async(
+        MensajeAdjunto.objects.filter(adjunto_id=adjunto_id).exists
+    )()
+    assert adjunto_existe is False
+
+    # Verificar que el mensaje sigue existiendo con esta_eliminado=True
+    msg = await database_sync_to_async(
+        Mensaje.objects.filter(mensaje_id=mensaje_id).first
+    )()
+    assert msg is not None
+    assert msg.esta_eliminado is True
+
+    await communicator.disconnect()

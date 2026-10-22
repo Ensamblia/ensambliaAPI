@@ -61,8 +61,10 @@ services:
     container_name: ensamblia_minio_init
     depends_on:
       - minio
+    volumes:
+      - ./minio-policy.json:/minio-policy.json:ro
     entrypoint: >
-      /bin/sh -c " echo 'Esperando a MinIO...'; sleep 5; /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; /usr/bin/mc mb --ignore-existing local/${MINIO_BUCKET_NAME}; echo 'Forzando política privada en el bucket ${MINIO_BUCKET_NAME}...'; /usr/bin/mc anonymous set private local/${MINIO_BUCKET_NAME}; echo 'Bucket ${MINIO_BUCKET_NAME} listo (PRIVADO).'; exit 0; "
+      /bin/sh -c " echo 'Esperando a MinIO...'; sleep 5; /usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}; /usr/bin/mc mb --ignore-existing local/${MINIO_BUCKET_NAME}; echo 'Aplicando policy selectiva: multimedia/* público, chat/* privado...'; /usr/bin/mc anonymous set-json /minio-policy.json local/${MINIO_BUCKET_NAME}; echo 'Bucket ${MINIO_BUCKET_NAME} listo (multimedia/* PÚBLICO, chat/* PRIVADO).'; exit 0; "
     networks:
       - ensamblia_net
 

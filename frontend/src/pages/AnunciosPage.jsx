@@ -1,90 +1,10 @@
+// src/pages/AnunciosPage.jsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AnuncioCard } from '../components/cards/AnuncioCard';
-import { FiltrosAnuncios } from '../components/filters/FiltrosAnuncios';
-import api, { extractList } from '../api/axios';
-
-/* ── Layout ── */
-const page = {
-  maxWidth: '960px',
-  margin: '0 auto',
-  padding: '40px 24px 64px',
-};
-
-const pageHeader = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
-  marginBottom: '4px',
-  flexWrap: 'wrap',
-  gap: '12px',
-};
-
-const countBadge = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '4px 10px',
-  backgroundColor: '#F2F2F2',
-  borderRadius: '999px',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12px',
-  fontWeight: 600,
-  color: '#8A8A8A',
-  letterSpacing: '0.01em',
-};
-
-const grid = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-  gap: '14px',
-};
-
-/* ── States ── */
-const stateBox = {
-  padding: '56px 0',
-  textAlign: 'center',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '14px',
-  color: '#8A8A8A',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '8px',
-};
-
-const stateIcon = { fontSize: '2rem', lineHeight: 1 };
-
-const paginationBar = {
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: '10px',
-  marginTop: '32px',
-};
-
-const pagBtn = {
-  padding: '8px 18px',
-  border: '1px solid #EBEBEB',
-  borderRadius: '8px',
-  backgroundColor: 'transparent',
-  color: '#2B2B2B',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  fontWeight: 600,
-  cursor: 'pointer',
-  transition: 'border-color 140ms ease, background 140ms ease',
-};
-
-const pagBtnDisabled = {
-  ...pagBtn,
-  color: '#D4D4D4',
-  cursor: 'not-allowed',
-};
-
-const pagInfo = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  color: '#8A8A8A',
-};
+import { AnuncioCard } from '@/components/cards/AnuncioCard';
+import { FiltrosAnuncios } from '@/components/filters/FiltrosAnuncios';
+import { Button, EmptyState, PageHeader, Spinner } from '@/components/ui';
+import api, { extractList } from '@/api/axios';
+import styles from './AnunciosPage.module.css';
 
 const PAGE_SIZE = 12;
 
@@ -95,7 +15,7 @@ export function AnunciosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filtros actuales (los guarda el componente FiltrosAnuncios)
+  // Filtros actuales (los guarda FiltrosAnuncios)
   const [filtros, setFiltros] = useState({
     busqueda: '',
     tipo_anuncio: '',
@@ -109,11 +29,7 @@ export function AnunciosPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = {
-        limit: PAGE_SIZE,
-        offset: nuevoOffset,
-      };
-
+      const params = { limit: PAGE_SIZE, offset: nuevoOffset };
       if (filtrosActuales.busqueda?.trim()) {
         params.search = filtrosActuales.busqueda.trim();
       }
@@ -126,8 +42,6 @@ export function AnunciosPage() {
 
       const res = await api.get('/anuncios/', { params });
       const data = res.data;
-
-      // DRF paginado: { count, results, next, previous }
       const lista = data?.results ?? extractList(res);
       const total = data?.count ?? lista.length;
 
@@ -149,7 +63,6 @@ export function AnunciosPage() {
   // ── Al cambiar los filtros, reseteamos offset y recargamos con debounce ──
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
     debounceRef.current = setTimeout(() => {
       cargar(filtros, 0);
     }, 300);
@@ -161,7 +74,6 @@ export function AnunciosPage() {
 
   const handleFilter = useCallback((nuevosFiltros) => {
     setFiltros((prev) => {
-      // Evitamos re-render si nada cambia
       if (
         prev.busqueda === nuevosFiltros.busqueda &&
         prev.tipo_anuncio === nuevosFiltros.tipo_anuncio &&
@@ -174,8 +86,8 @@ export function AnunciosPage() {
   }, []);
 
   const irAnterior = () => {
-    const nuevoOffset = Math.max(0, offset - PAGE_SIZE);
-    cargar(filtros, nuevoOffset);
+    if (offset <= 0) return;
+    cargar(filtros, Math.max(0, offset - PAGE_SIZE));
   };
 
   const irSiguiente = () => {
@@ -188,90 +100,74 @@ export function AnunciosPage() {
   const paginaActual = Math.floor(offset / PAGE_SIZE) + 1;
   const totalPaginas = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
+  const mostrarContador = !loading && !error;
+
   return (
-    <main style={page}>
-      <div style={pageHeader}>
-        <h1
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '1.5rem',
-            fontWeight: 800,
-            letterSpacing: '-0.04em',
-            margin: 0,
-            color: '#0F0F0F',
-          }}
-        >
-          Anuncios
-        </h1>
-        {!loading && !error && (
-          <span style={countBadge}>
-            {count} resultado{count !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
+    <main className={styles.page}>
+      <PageHeader
+        title="Anuncios"
+        actions={
+          mostrarContador ? (
+            <span className={styles.countBadge}>
+              {count} resultado{count !== 1 ? 's' : ''}
+            </span>
+          ) : null
+        }
+      />
 
       <FiltrosAnuncios onFilter={handleFilter} />
 
       {loading && (
-        <div style={stateBox}>
-          <span style={stateIcon}>⏳</span>
-          <span>Cargando anuncios…</span>
+        <div className={styles.stateBox}>
+          <Spinner size="lg" aria-label="Cargando anuncios" />
         </div>
       )}
 
-      {error && !loading && (
-        <div style={{ ...stateBox, color: '#FF5C35' }}>
-          <span style={stateIcon}>⚠️</span>
-          <span>{error}</span>
-        </div>
+      {!loading && error && (
+        <EmptyState
+          icon="⚠️"
+          title="No se pudo cargar"
+          description={error}
+        />
       )}
 
       {!loading && !error && anuncios.length === 0 && (
-        <div style={stateBox}>
-          <span style={stateIcon}>🔍</span>
-          <span>Sin resultados para tu búsqueda.</span>
-        </div>
+        <EmptyState
+          icon="🔍"
+          title="Sin resultados"
+          description="Prueba con otros filtros o publica tu propio anuncio."
+        />
       )}
 
       {!loading && !error && anuncios.length > 0 && (
         <>
-          <div style={grid}>
+          <div className={styles.grid}>
             {anuncios.map((anuncio) => (
               <AnuncioCard key={anuncio.anuncio_id} anuncio={anuncio} />
             ))}
           </div>
 
           {(hayAnterior || haySiguiente) && (
-            <div style={paginationBar}>
-              <button
-                style={hayAnterior ? pagBtn : pagBtnDisabled}
+            <div className={styles.paginationBar}>
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={irAnterior}
                 disabled={!hayAnterior}
-                onMouseEnter={(e) => {
-                  if (hayAnterior) e.currentTarget.style.borderColor = '#D0D0D0';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#EBEBEB';
-                }}
               >
                 ← Anterior
-              </button>
-              <span style={pagInfo}>
+              </Button>
+              <span className={styles.pagInfo}>
                 Página {paginaActual} de {totalPaginas}
               </span>
-              <button
-                style={haySiguiente ? pagBtn : pagBtnDisabled}
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={irSiguiente}
                 disabled={!haySiguiente}
-                onMouseEnter={(e) => {
-                  if (haySiguiente) e.currentTarget.style.borderColor = '#D0D0D0';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#EBEBEB';
-                }}
               >
                 Siguiente →
-              </button>
+              </Button>
             </div>
           )}
         </>

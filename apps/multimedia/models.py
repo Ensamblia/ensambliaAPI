@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.files.storage import storages
 
 class Multimedia(models.Model):
     """
@@ -14,6 +14,9 @@ class Multimedia(models.Model):
         db_column='ruta_archivo',
         max_length=500,
         null=True, blank=True,
+        # La biblioteca de medios es pública: URLs estables sin firma.
+        # El bucket policy permite GetObject anónimo solo en multimedia/*.
+        storage=storages['public_media'],
     )
     tamano_bytes = models.BigIntegerField(null=True, blank=True, db_column='tamano_bytes')
     fecha_subida = models.DateTimeField(auto_now_add=True, db_column='fecha_subida')

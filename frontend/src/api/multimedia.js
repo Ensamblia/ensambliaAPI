@@ -1,9 +1,10 @@
+// src/api/multimedia.js
 import api from './axios';
 
 /**
  * Sube un archivo a MinIO vía URL prefirmada.
  * 1. Pide URL prefirmada al backend.
- * 2. Sube el archivo directamente a MinIO.
+ * 2. Sube el archivo directamente a MinIO (con x-amz-acl: public-read).
  * 3. Registra el multimedia en la BD.
  *
  * @param {File} file - El archivo a subir.
@@ -20,10 +21,15 @@ export async function uploadFile(file, options = {}) {
         tamano_bytes: file.size,
     });
 
-    const { upload_url, object_key, archivo_url } = presignedRes.data;
+    const { upload_url, object_key } = presignedRes.data;
 
-    // 2. Subir el archivo directamente a MinIO con XMLHttpRequest (para progreso)
-    await uploadToMinio(upload_url, file, onProgress);
+    // 2. Subir el archivo directamente a MinIO con XMLHttpRequest (para progreso).
+    //    x-amz-acl: public-read es OBLIGATORIO: la presigned URL se firmó con
+    //    ese header (Params['ACL'] = 'public-read'), y MinIO lo valida.
+    //    Sin él, el PUT devuelve 400.
+    await uploadToMinio(upload_url, file, onProgress, {
+        'x-amz-acl': 'public-read',
+    });
 
     // 3. Registrar el multimedia en la BD
     const multimediaRes = await api.post('/multimedias/', {
@@ -38,12 +44,22 @@ export async function uploadFile(file, options = {}) {
 
 /**
  * Sube un archivo a MinIO usando XMLHttpRequest (para tener progreso).
+ *
+ * @param {string} uploadUrl - URL prefirmada (PUT).
+ * @param {File} file
+ * @param {Function} [onProgress] - (percent: number) => void
+ * @param {Object} [extraHeaders] - headers adicionales requeridos por la firma
+ * @returns {Promise<void>}
  */
-function uploadToMinio(uploadUrl, file, onProgress) {
+function uploadToMinio(uploadUrl, file, onProgress, extraHeaders = {}) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', uploadUrl, true);
         xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+        Object.entries(extraHeaders).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+        });
 
         if (onProgress) {
             xhr.upload.onprogress = (e) => {
@@ -94,11 +110,10 @@ export async function getMultimediaByAnuncio(anuncioId) {
     return res.data?.results ?? res.data ?? [];
 }
 
-
 /**
  * Sube un adjunto de chat a MinIO vía URL prefirmada.
  * 1. Pide URL prefirmada al backend (endpoint de chat).
- * 2. Sube el archivo directamente a MinIO.
+ * 2. Sube el archivo directamente a MinIO (sin x-amz-acl, chat privado).
  * 3. Registra el MensajeAdjunto (sin mensaje asociado todavía).
  *
  * @param {File} file - El archivo a subir.
@@ -114,18 +129,8 @@ export async function uploadChatAttachment(file) {
 
     const { upload_url, object_key } = presignedRes.data;
 
-    // 2. Subir el archivo directamente a MinIO
-    await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', upload_url, true);
-        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-        xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) resolve();
-            else reject(new Error(`Error al subir: ${xhr.status}`));
-        };
-        xhr.onerror = () => reject(new Error('Error de red al subir'));
-        xhr.send(file);
-    });
+    // 2. Subir a MinIO SIN x-amz-acl (los adjuntos de chat son privados).
+    await uploadToMinio(upload_url, file, undefined, {});
 
     // 3. Registrar el adjunto en la BD
     const adjuntoRes = await api.post('/mensajes/crear-adjunto/', {

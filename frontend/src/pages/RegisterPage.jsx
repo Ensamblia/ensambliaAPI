@@ -1,8 +1,10 @@
+// src/pages/RegisterPage.jsx
 import React, { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/axios';
-import { AuthContext } from '../context/AuthContext';
-import '../styles/auth.css';
+import api, { parseApiError } from '@/api/axios';
+import { AuthContext } from '@/context/AuthContext';
+import { Button, Field, Input, PageHeader } from '@/components/ui';
+import styles from './RegisterPage.module.css';
 
 export function RegisterPage() {
   const { login } = useContext(AuthContext);
@@ -36,13 +38,9 @@ export function RegisterPage() {
       if (err.response?.status === 409) {
         setError('Ese usuario ya está en uso.');
       } else if (err.response?.status === 400) {
-        // Errores de validación de DRF
-        const data = err.response.data;
-        const primerError = Object.values(data || {})[0];
-        const mensaje = Array.isArray(primerError) ? primerError[0] : primerError;
-        setError(mensaje || 'Datos inválidos.');
+        setError(parseApiError(err, 'Datos inválidos.'));
       } else {
-        setError('No se pudo conectar, inténtalo de nuevo.');
+        setError(parseApiError(err, 'No se pudo conectar, inténtalo de nuevo.'));
       }
     } finally {
       setLoading(false);
@@ -50,64 +48,46 @@ export function RegisterPage() {
   };
 
   return (
-    <main className="auth-page">
-      <section className="auth-hero">
-        <span className="auth-tag">La red social para músicos</span>
-        <h1>
-          Conecta.<br />
-          <span>Toca.</span><br />
-          Crea.
-        </h1>
-        <p>Tu próxima banda está más cerca.</p>
-      </section>
+    <main className={styles.page}>
+      <PageHeader title="Crear cuenta" />
 
-      <section className="auth-side">
-        <form className="auth-card" onSubmit={handleSubmit}>
-          <h2>Únete gratis</h2>
-          <p className="auth-sub">Crea tu perfil y encuentra tu gente.</p>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <Field label="Usuario" required>
+          <Input
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
+            autoComplete="username"
+          />
+        </Field>
 
-          <div className={`auth-field ${error ? 'has-error' : ''}`}>
-            <label htmlFor="usuario">Usuario</label>
-            <input
-              id="usuario"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              autoComplete="username"
-            />
-          </div>
+        <Field label="Contraseña" required hint="Mínimo 6 caracteres">
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </Field>
 
-          <div className={`auth-field ${error ? 'has-error' : ''}`}>
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </div>
+        <Field label="Confirmar contraseña" required>
+          <Input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </Field>
 
-          <div className={`auth-field ${error ? 'has-error' : ''}`}>
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-            {error && <p className="auth-msg">{error}</p>}
-          </div>
+        {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" disabled={loading} className="auth-btn">
-            {loading ? 'Creando cuenta…' : 'Crear cuenta'}
-          </button>
+        <Button type="submit" variant="primary" size="md" block loading={loading}>
+          {loading ? 'Creando cuenta…' : 'Crear cuenta'}
+        </Button>
+      </form>
 
-          <p className="auth-switch">
-            ¿Ya tienes cuenta? <Link to="/login">Accede</Link>
-          </p>
-        </form>
-      </section>
+      <p className={styles.footer}>
+        ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
+      </p>
     </main>
   );
 }

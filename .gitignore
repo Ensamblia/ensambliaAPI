@@ -1,4 +1,8 @@
-# Python
+# ─────────────────────────────────────────────
+# ENSAMBLIA — .gitignore
+# ─────────────────────────────────────────────
+
+# ── Python ──
 __pycache__/
 *.py[cod]
 *$py.class
@@ -8,49 +12,66 @@ build/
 dist/
 *.egg-info/
 
-# Virtualenv
+# ── Virtualenv ──
 .venv/
 venv/
 env/
 ENV/
 
-# Django
+# ── Django ──
 *.log
 db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
 
-# Variables de entorno
+# ── Tests back ──
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ── Variables de entorno ──
 .env
 .env.local
 .env.*.local
+ensamblia DB/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
-# IDE
+# ── Node / Front ──
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/coverage/
+frontend/.vite/
+frontend/.vitest/
+frontend/.eslintcache
+frontend/.oxlintcache
+*.local
+
+# ── Docker / Infra ──
+*.pid
+minio-data/
+ensamblia DB/minio-data/
+ensamblia DB/pgadmin/
+pgadmin/
+
+# ── IDE ──
 .vscode/
 .idea/
 *.swp
 *.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
-# OS
+# ── OS ──
 .DS_Store
 Thumbs.db
-
-# Node (por si acaso)
-node_modules/
-
-# Docker
-*.pid
-
-# Coverage
-.coverage
-htmlcov/
-
-# Docker env
-ensamblia DB/.env
-
-# Coverage
-.pytest_cache/
-.coverage
-htmlcov/
-coverage.xml

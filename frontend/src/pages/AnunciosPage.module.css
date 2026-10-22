@@ -1,0 +1,64 @@
+/* AnunciosPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--sp-4);
+}
+
+.countBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--sp-1) var(--sp-3);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+.stateBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-8) 0;
+}
+
+.paginationBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    margin-top: var(--sp-8);
+}
+
+.pagInfo {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 32px, 1180px);
+        padding: var(--sp-5) 0 var(--sp-7);
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: var(--sp-3);
+    }
+
+    .paginationBar {
+        margin-top: var(--sp-5);
+    }
+}
