@@ -82,14 +82,40 @@ class MultimediaViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
     # ============================================================
     # BY ANUNCIO
     # ============================================================
+    # ============================================================
+    # BY ANUNCIO
+    # ============================================================
     def by_anuncio(self, request):
+        """
+        GET /api/multimedias/anuncio/?anuncio_id=X
+        Devuelve los medios vinculados al anuncio (vía pivote AnuncioMultimedia).
+        Si el anuncio no existe o no tiene medios, devuelve [].
+        """
         anuncio_id = request.query_params.get('anuncio_id')
         if not anuncio_id:
-            return Response({'error': 'anuncio_id es un parámetro requerido'}, status=status.HTTP_400_BAD_REQUEST)
-        qs = Multimedia.objects.filter(anuncio_id=anuncio_id).order_by('-fecha_subida')
+            return Response(
+                {'error': 'anuncio_id es un parámetro requerido'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            anuncio_id_int = int(anuncio_id)
+        except (TypeError, ValueError):
+            return Response(
+                {'error': 'anuncio_id debe ser un entero'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Relación inversa de la pivote: multimedia.anuncio_multimedias -> AnuncioMultimedia
+        qs = (
+            Multimedia.objects
+            .filter(anuncio_multimedias__anuncio_id=anuncio_id_int)
+            .order_by('-fecha_subida')
+        )
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
-        return Response(MultimediaSerializer(qs, many=True, context={'request': request}).data)
+        return Response(
+            MultimediaSerializer(qs, many=True, context={'request': request}).data,
+        )
 
     # ============================================================
     # PRESIGNED URL
@@ -147,6 +173,10 @@ class MultimediaViewSet(PaginationMixin, viewsets.ViewSet, MiPerfilMixin):
                     'Bucket': settings.MINIO_BUCKET_NAME,
                     'Key': object_key,
                     'ContentType': content_type,
+                    # La biblioteca de medios es pública: el objeto se sube
+                    # con ACL public-read, así la URL estable funciona sin firma.
+                    # El bucket policy permite GetObject anónimo solo en multimedia/*.
+                    'ACL': 'public-read',
                 },
                 ExpiresIn=3600,
             )

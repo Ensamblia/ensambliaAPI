@@ -1,0 +1,55 @@
+/* CrearAnuncioPage.module.css */
+.page {
+    width: min(640px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.formCard {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--sp-4);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-5);
+}
+
+.actionsBar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    background: var(--paper);
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.counter {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.error {
+    margin: 0 0 var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid #F5C6C2;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 32px, 640px);
+        padding: var(--sp-5) 0 var(--sp-7);
+    }
+}

@@ -1,0 +1,63 @@
+/* NotFoundPage.module.css */
+.page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-5);
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--sp-8) var(--sp-5);
+    text-align: center;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--yellow);
+}
+
+.heading {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: var(--fw-black);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+}
+
+.accent {
+    color: var(--yellow);
+    /* Sobre fondo cream, el amarillo puro no contrasta. Usamos un tono más oscuro. */
+    text-shadow: 1px 1px 0 var(--ink);
+}
+
+.subtext {
+    max-width: 440px;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+.action {
+    margin-top: var(--sp-3);
+}

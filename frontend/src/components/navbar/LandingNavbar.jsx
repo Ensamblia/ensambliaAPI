@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+// src/components/navbar/LandingNavbar.jsx
+import React, { useContext, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, ChevronRight, Menu, X } from 'lucide-react';
+import { AuthContext } from '@/context/AuthContext';
+import { NotificationsContext } from '@/context/NotificationsContext';
+import { Badge, Button } from '@/components/ui';
 
 /**
- * Navegación de la landing y del resto de páginas de la aplicación.
+ * Navegación de la landing y del resto de páginas públicas.
+ * Mantiene el look del landing (landing.css) en logo/nav/menú,
+ * y usa Button/Badge del design system para los CTAs.
  */
 export function LandingNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { user, logout } = useContext(AuthContext);
+  const { totalUnread } = useContext(NotificationsContext);
 
   const goToSection = (id) => {
     setMenuOpen(false);
@@ -27,6 +35,12 @@ export function LandingNavbar() {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    setMenuOpen(false);
+    logout();
+    navigate('/');
+  };
+
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -43,15 +57,46 @@ export function LandingNavbar() {
         </nav>
 
         <div className="header-actions">
-          <button className="button button--yellow button--small" onClick={() => goTo('/register')}>
-            ÚNETE GRATIS <ArrowUpRight size={14} />
-          </button>
-          <button
-            className="button button--outline button--small header-login"
-            onClick={() => goTo('/login')}
-          >
-            Acceso
-          </button>
+          {user ? (
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => goTo('/perfil')}
+                leftIcon={<ArrowUpRight size={14} />}
+              >
+                Mi perfil
+              </Button>
+              {totalUnread > 0 && (
+                <Badge value={totalUnread} variant="danger" size="sm" />
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => goTo('/register')}
+                leftIcon={<ArrowUpRight size={14} />}
+              >
+                ÚNETE GRATIS
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => goTo('/login')}
+              >
+                Acceso
+              </Button>
+            </>
+          )}
         </div>
 
         <button
@@ -78,12 +123,51 @@ export function LandingNavbar() {
           <button onClick={() => goToSection('community')}>
             Comunidad <ChevronRight size={16} />
           </button>
-          <button className="button button--yellow" onClick={() => goTo('/register')}>
-            ÚNETE GRATIS <ArrowUpRight size={15} />
-          </button>
-          <button className="button button--outline" onClick={() => goTo('/login')}>
-            Acceso
-          </button>
+
+          {user ? (
+            <>
+              <Button
+                variant="primary"
+                size="md"
+                block
+                onClick={() => goTo('/perfil')}
+                leftIcon={<ArrowUpRight size={15} />}
+              >
+                Mi perfil
+              </Button>
+              {totalUnread > 0 && (
+                <Badge value={totalUnread} variant="danger" size="sm" />
+              )}
+              <Button
+                variant="secondary"
+                size="md"
+                block
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="primary"
+                size="md"
+                block
+                onClick={() => goTo('/register')}
+                leftIcon={<ArrowUpRight size={15} />}
+              >
+                ÚNETE GRATIS
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                block
+                onClick={() => goTo('/login')}
+              >
+                Acceso
+              </Button>
+            </>
+          )}
         </nav>
       )}
     </header>

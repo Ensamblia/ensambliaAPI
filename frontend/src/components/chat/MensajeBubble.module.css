@@ -1,0 +1,160 @@
+/* MensajeBubble.module.css */
+.row {
+    display: flex;
+    width: 100%;
+}
+
+.rowMio {
+    justify-content: flex-end;
+}
+
+.rowOtro {
+    justify-content: flex-start;
+}
+
+.wrapper {
+    position: relative;
+    max-width: 70%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.wrapperEnEdicion {
+    max-width: 90%;
+    width: 90%;
+}
+
+.bubble {
+    padding: var(--sp-2) var(--sp-3);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+    letter-spacing: -0.01em;
+    word-break: break-word;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    align-self: flex-start;
+}
+
+.bubbleMio {
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 16px 16px 4px 16px;
+    align-self: flex-end;
+}
+
+.bubbleOtro {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+}
+
+.bubbleEliminado {
+    font-style: italic;
+    opacity: 0.6;
+}
+
+.adjuntosWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    margin-bottom: var(--sp-1);
+}
+
+.leidoIndicator {
+    font-size: var(--fs-xs);
+    margin-top: var(--sp-1);
+    text-align: right;
+    letter-spacing: -1px;
+}
+
+.leidoIndicatorMio {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.leidoIndicatorLeido {
+    color: var(--success);
+}
+
+.editIndicator {
+    font-size: 10px;
+    margin-top: var(--sp-1);
+    text-align: right;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+}
+
+.editIndicatorOtro {
+    color: var(--text-muted);
+}
+
+/* ── Acciones ── */
+.menuWrapper {
+    position: relative;
+    align-self: flex-end;
+    margin-top: 2px;
+}
+
+.menuBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    padding: 0 var(--sp-1);
+    opacity: 0.4;
+    transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.menuBtn:hover {
+    opacity: 1;
+}
+
+.menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--sp-1);
+    z-index: 100;
+    min-width: 120px;
+}
+
+.menuItem {
+    display: block;
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.menuItem:hover {
+    background: var(--paper);
+}
+
+.menuItemDanger {
+    color: var(--danger);
+}
+
+/* ── Edición ── */
+.editBox {
+    width: 100%;
+}
+
+.editActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-1);
+    margin-top: var(--sp-1);
+}

@@ -1,0 +1,257 @@
+/* PerfilPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+/* ── Layout 2 columnas en desktop ── */
+.layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--sp-5);
+    align-items: start;
+}
+
+@media (min-width: 1024px) {
+    .layout {
+        grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+        gap: var(--sp-6);
+    }
+}
+
+/* ── Sidebar (columna izquierda, sticky) ── */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+}
+
+@media (min-width: 1024px) {
+    .sidebar {
+        position: sticky;
+        top: calc(56px + var(--sp-5));
+        /* Navbar 56px + margen */
+        align-self: start;
+        /* Sin max-height ni overflow: si el sidebar es más alto que la ventana,
+       el sticky se desactiva al hacer scroll y el usuario ve el botón. */
+    }
+}
+
+/* ── Content (columna derecha) ── */
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+}
+
+/* ── Profile header ── */
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 1.7rem;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+}
+
+.profileName {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-black);
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.profileHandle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+/* ── Card con secciones (columna izquierda) ── */
+.card {
+    display: flex;
+    flex-direction: column;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-5);
+    border-bottom: 1px solid var(--border);
+}
+
+.sectionLast {
+    border-bottom: none;
+}
+
+.sectionSubtitle {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.fieldRow {
+    display: flex;
+    gap: var(--sp-3);
+}
+
+/* ── Card de content (biblioteca, anuncios) ── */
+.contentCard {
+    padding: var(--sp-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.sectionHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.linkAction {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.linkAction:hover {
+    opacity: 0.7;
+}
+
+/* ── Wrapper de MediaGallery ── */
+.mediaWrapper {
+    margin-top: var(--sp-4);
+}
+
+/* ── Tags de instrumentos y géneros ── */
+.tagRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+}
+
+.tagBtn {
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background: var(--surface-elevated);
+    cursor: pointer;
+    transition:
+        background var(--dur-fast) var(--ease-out),
+        color var(--dur-fast) var(--ease-out),
+        border-color var(--dur-fast) var(--ease-out);
+}
+
+.tagBtn:hover {
+    border-color: var(--border-strong);
+}
+
+.tagBtnActive {
+    background: var(--ink);
+    color: var(--white);
+    border-color: var(--ink);
+}
+
+.tagBtnActive:hover {
+    border-color: var(--ink);
+}
+
+/* ── Acciones ── */
+.actionsBar {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    background: var(--paper);
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* ── Banners ── */
+.errorBanner {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid #F5C6C2;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+.successBanner {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--success-soft);
+    color: var(--success);
+    border: 1px solid #BFE6CC;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+.noticeBanner {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--warning-soft);
+    color: var(--warning);
+    border: 1px solid #F2E2A0;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 32px, 1180px);
+        padding: var(--sp-5) 0 var(--sp-7);
+    }
+
+    .fieldRow {
+        flex-direction: column;
+    }
+
+    .profileHeader {
+        flex-direction: column;
+        text-align: center;
+    }
+}

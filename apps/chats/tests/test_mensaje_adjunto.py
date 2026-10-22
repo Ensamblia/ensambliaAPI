@@ -275,3 +275,51 @@ def test_adjunto_tiene_perfil_al_crearse(client_ana, perfil_ana):
     assert response.status_code == status.HTTP_201_CREATED
     adjunto = MensajeAdjunto.objects.get(adjunto_id=response.data['adjunto_id'])
     assert adjunto.perfil_id == perfil_ana.perfil_id
+
+# ==============================================================
+# CONTRATO STORAGE HÍBRIDO (Fase D.1.5)
+# ==============================================================
+
+@pytest.mark.django_db
+def test_adjunto_serializer_url_firmada(client_ana, perfil_ana, chat_ana_luis):
+    """
+    MensajeAdjuntoSerializer debe devolver `archivo_url` CON firma para chat/*.
+    El storage `default` (querystring_auth=True) es el que lo garantiza.
+    """
+    from apps.chats.models import Mensaje, MensajeAdjunto
+
+    mensaje = Mensaje.objects.create(
+        chat=chat_ana_luis, perfil=perfil_ana, contenido='Con adjunto',
+    )
+    adj = MensajeAdjunto.objects.create(
+        mensaje=mensaje, perfil=perfil_ana,
+        nombre='foto.jpg', archivo='chat/2026/10/test.jpg',
+        tamano_bytes=1024, content_type='image/jpeg',
+    )
+    response = client_ana.get(f'/api/mensajes/{mensaje.mensaje_id}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['adjuntos']) == 1
+    archivo_url = response.data['adjuntos'][0]['archivo_url']
+    assert archivo_url is not None
+    assert 'X-Amz-Signature' in archivo_url
+
+
+@pytest.mark.django_db
+def test_adjunto_por_chat_url_firmada(client_ana, perfil_ana, chat_ana_luis):
+    """Al listar mensajes por chat, los adjuntos vienen con URL firmada."""
+    from apps.chats.models import Mensaje, MensajeAdjunto
+
+    mensaje = Mensaje.objects.create(
+        chat=chat_ana_luis, perfil=perfil_ana, contenido='Con adjunto',
+    )
+    MensajeAdjunto.objects.create(
+        mensaje=mensaje, perfil=perfil_ana,
+        nombre='foto.jpg', archivo='chat/2026/10/test2.jpg',
+        tamano_bytes=1024, content_type='image/jpeg',
+    )
+    response = client_ana.get(f'/api/mensajes/chat/?chat_id={chat_ana_luis.chat_id}')
+    assert response.status_code == status.HTTP_200_OK
+    results = response.data['results']
+    assert len(results) == 1
+    assert len(results[0]['adjuntos']) == 1
+    assert 'X-Amz-Signature' in results[0]['adjuntos'][0]['archivo_url']

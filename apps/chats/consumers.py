@@ -199,6 +199,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not ok:
             return
 
+        
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -298,15 +300,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 a.save(update_fields=['mensaje'])
 
             adjuntos_dict = [
-                {
-                    'adjunto_id': a.adjunto_id,
-                    'nombre': a.nombre,
-                    'archivo': str(a.archivo),
-                    'tamano_bytes': a.tamano_bytes,
-                    'content_type': a.content_type,
-                    'fecha_subida': a.fecha_subida.isoformat(),
-                }
-                for a in adjuntos
+                self._serialize_adjunto(a) for a in adjuntos
             ]
 
         return {
@@ -318,6 +312,49 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'esta_eliminado': m.esta_eliminado,
             'leido_por': [],
             'adjuntos': adjuntos_dict,
+        }
+
+    @staticmethod
+    def _serialize_adjunto(a):
+        """
+        Serializa un MensajeAdjunto para el evento WS, incluyendo `archivo_url`
+        firmada. Los adjuntos de chat viven bajo `chat/` (privado), así que
+        la URL debe ir firmada; si no, el receptor no podría cargarla.
+        """
+        from django.conf import settings
+        import boto3
+        from botocore.client import Config
+
+        archivo_url = None
+        if a.archivo:
+            try:
+                s3 = boto3.client(
+                    's3',
+                    endpoint_url=settings.MINIO_ENDPOINT,
+                    aws_access_key_id=settings.MINIO_ACCESS_KEY,
+                    aws_secret_access_key=settings.MINIO_SECRET_KEY,
+                    config=Config(signature_version='s3v4'),
+                    region_name='us-east-1',
+                )
+                archivo_url = s3.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': settings.MINIO_BUCKET_NAME,
+                        'Key': str(a.archivo),
+                    },
+                    ExpiresIn=300,  # 5 min, coherente con querystring_expire
+                )
+            except Exception:
+                archivo_url = None
+
+        return {
+            'adjunto_id': a.adjunto_id,
+            'nombre': a.nombre,
+            'archivo': str(a.archivo),
+            'archivo_url': archivo_url,
+            'tamano_bytes': a.tamano_bytes,
+            'content_type': a.content_type,
+            'fecha_subida': a.fecha_subida.isoformat(),
         }
 
     @database_sync_to_async
@@ -342,6 +379,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         if m.perfil_id != perfil_id:
             return False
+
+    # 1. Borrar los adjuntos del mensaje (hard delete).
+    #    La señal post_delete de MensajeAdjunto borra el archivo en MinIO.
+    #    Los adjuntos de chat son efímeros: no van a la biblioteca del perfil.
+        m.adjuntos.all().delete()
+
+    # 2. Soft delete del mensaje (queda como "eliminado" para auditoría).
         m.esta_eliminado = True
         m.save(update_fields=['esta_eliminado'])
         return True

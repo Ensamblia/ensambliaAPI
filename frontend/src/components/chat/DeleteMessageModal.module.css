@@ -1,0 +1,26 @@
+/* DeleteMessageModal.module.css */
+.text {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.preview {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--paper);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-primary);
+    font-style: italic;
+    max-height: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+}

@@ -1,0 +1,90 @@
+/* AdjuntoPreview.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    max-width: 280px;
+}
+
+/* ── Botón clickable (imagen / vídeo) ── */
+.mediaButton {
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: zoom-in;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: block;
+    transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.mediaButton:hover {
+    opacity: 0.9;
+}
+
+.mediaButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.5);
+}
+
+.imgStyle {
+    max-width: 100%;
+    max-height: 240px;
+    border-radius: var(--radius-md);
+    display: block;
+}
+
+.mediaStyle {
+    width: 100%;
+    border-radius: var(--radius-md);
+    display: block;
+}
+
+/* ── Placeholder (imagen/vídeo roto) ── */
+.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-4);
+    background: var(--paper);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* ── Link de documento ── */
+.fileLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: inherit;
+    word-break: break-all;
+}
+
+.fileLink:hover {
+    opacity: 0.85;
+}
+
+.fileName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fileSize {
+    opacity: 0.7;
+    flex-shrink: 0;
+}

@@ -1,0 +1,131 @@
+/* PerfilPublicoPage.module.css */
+.page {
+    width: min(820px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.profileHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+    margin-bottom: var(--sp-5);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 1.7rem;
+}
+
+.profileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+}
+
+.profileName {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-black);
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.profileHandle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-5);
+    border-bottom: 1px solid var(--border);
+}
+
+.sectionLast {
+    border-bottom: none;
+}
+
+.bodyText {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.tagRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+}
+
+.actionsBar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+    background: var(--paper);
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.myProfileNote {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.errorBanner {
+    margin: 0 0 var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid #F5C6C2;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+}
+
+.stateBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-8) 0;
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 32px, 820px);
+        padding: var(--sp-5) 0 var(--sp-7);
+    }
+
+    .profileHeader {
+        flex-direction: column;
+        text-align: center;
+    }
+}

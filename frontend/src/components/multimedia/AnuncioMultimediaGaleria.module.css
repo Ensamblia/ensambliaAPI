@@ -1,0 +1,29 @@
+/* AnuncioMultimediaGaleria.module.css */
+.section {
+    margin-top: var(--sp-6);
+}
+
+.sectionTitle {
+    margin: 0 0 var(--sp-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--sp-3);
+}
+
+.item {
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.item:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+}

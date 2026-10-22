@@ -1,0 +1,106 @@
+/* Navbar.module.css */
+.nav {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    height: 56px;
+    padding: 0 var(--sp-6);
+    background: rgba(255, 253, 248, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}
+
+/* ── Brand ── */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-sans);
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.brandDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+    flex-shrink: 0;
+}
+
+/* ── Links ── */
+.links {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.link {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.link:hover {
+    background: var(--paper);
+    color: var(--text-primary);
+}
+
+.linkActive {
+    background: var(--paper);
+    color: var(--text-primary);
+    font-weight: var(--fw-semibold);
+}
+
+/* ── CTA (derecha) ── */
+.cta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.userName {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    margin-left: var(--sp-1);
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    .nav {
+        padding: 0 var(--sp-4);
+    }
+
+    .links {
+        gap: 0;
+    }
+
+    .link {
+        padding: 6px 10px;
+    }
+
+    .userName {
+        display: none;
+    }
+}

@@ -1,0 +1,33 @@
+/* AnuncioDetailPage.module.css */
+.page {
+    width: min(820px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.tagRow {
+    margin-top: var(--sp-2);
+    margin-bottom: var(--sp-4);
+}
+
+.body {
+    margin: 0 0 var(--sp-6);
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    color: var(--text-secondary);
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.stateBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-8) 0;
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: min(100% - 32px, 820px);
+        padding: var(--sp-5) 0 var(--sp-7);
+    }
+}

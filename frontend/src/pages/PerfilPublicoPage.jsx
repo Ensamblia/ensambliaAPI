@@ -1,135 +1,19 @@
+// src/pages/PerfilPublicoPage.jsx
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import api from '../api/axios';
-import { getPerfilPublico } from '../api/perfiles';
-import { AuthContext } from '../context/AuthContext';
-
-const page = { maxWidth: '680px', margin: '0 auto', padding: '48px 24px 80px' };
-
-const profileHeader = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '20px',
-  padding: '28px',
-  border: '1px solid #EBEBEB',
-  borderRadius: '12px',
-  marginBottom: '20px',
-  backgroundColor: '#FAFAFA',
-};
-
-const avatarCircle = {
-  width: '68px',
-  height: '68px',
-  borderRadius: '50%',
-  backgroundColor: '#0F0F0F',
-  color: '#FFFFFF',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '1.6rem',
-  flexShrink: 0,
-};
-
-const profileInfo = { display: 'flex', flexDirection: 'column', gap: '4px' };
-
-const profileName = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '1.1rem',
-  fontWeight: 700,
-  color: '#0F0F0F',
-  letterSpacing: '-0.02em',
-  margin: 0,
-};
-
-const profileHandle = { fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8A8A8A' };
-
-const formCard = { border: '1px solid #EBEBEB', borderRadius: '12px', overflow: 'hidden' };
-const formSection = { padding: '24px 28px', borderBottom: '1px solid #EBEBEB' };
-const formSectionLast = { padding: '24px 28px' };
-
-const sectionTitle = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '11px',
-  fontWeight: 700,
-  color: '#D4D4D4',
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
-  marginBottom: '16px',
-};
-
-const bodyText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '14px',
-  color: '#2B2B2B',
-  lineHeight: 1.6,
-  margin: 0,
-};
-
-const tagRow = { display: 'flex', flexWrap: 'wrap', gap: '6px' };
-
-const tagBase = {
-  padding: '5px 12px',
-  borderRadius: '999px',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12px',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  border: '1px solid #EBEBEB',
-  color: '#555555',
-  backgroundColor: '#FFFFFF',
-};
-
-const actionsBar = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: '10px',
-  padding: '16px 28px',
-  borderTop: '1px solid #EBEBEB',
-  backgroundColor: '#FAFAFA',
-};
-
-const btnContactar = {
-  padding: '9px 22px',
-  backgroundColor: '#FF5C35',
-  color: '#FFFFFF',
-  borderRadius: '7px',
-  fontFamily: "'Inter', sans-serif",
-  fontWeight: 600,
-  fontSize: '13.5px',
-  letterSpacing: '-0.01em',
-  border: 'none',
-  cursor: 'pointer',
-};
-
-const btnContactarDisabled = { ...btnContactar, backgroundColor: '#F2B3A2', cursor: 'not-allowed' };
-
-const noticeBanner = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  color: '#8A6D00',
-  backgroundColor: '#FFF8E1',
-  border: '1px solid #F2E2A0',
-  borderRadius: '8px',
-  padding: '10px 14px',
-  marginBottom: '20px',
-};
-
-const errorBanner = { ...noticeBanner, color: '#B3261E', backgroundColor: '#FDECEA', border: '1px solid #F5C6C2' };
-
-const stateBox = {
-  padding: '56px 0',
-  textAlign: 'center',
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '14px',
-  color: '#8A8A8A',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '8px',
-};
-
-const editLink = { color: '#FF5C35', fontWeight: 600, textDecoration: 'none' };
+import { useParams, useNavigate } from 'react-router-dom';
+import api, { parseApiError } from '@/api/axios';
+import { getPerfilPublico } from '@/api/perfiles';
+import { AuthContext } from '@/context/AuthContext';
+import {
+  Button,
+  Card,
+  EmptyState,
+  PageHeader,
+  SectionLabel,
+  Spinner,
+  Tag,
+} from '@/components/ui';
+import styles from './PerfilPublicoPage.module.css';
 
 export function PerfilPublicoPage() {
   const { id } = useParams();
@@ -169,32 +53,52 @@ export function PerfilPublicoPage() {
       setPerfil(data);
 
       try {
-        const [comarcasRes, instrumentosRes, generosRes, instrRes, genRes] = await Promise.all([
-          api.get('/comarcas').catch(() => ({ data: [] })),
-          api.get('/instrumentos').catch(() => ({ data: [] })),
-          api.get('/genero_musical').catch(() => ({ data: [] })),
-          api.get('/perfil-instrumentos/perfil', { params: { perfil_id: id } }).catch(() => ({ data: [] })),
-          api.get('/perfil-genero-musicales/perfil', { params: { perfil_id: id } }).catch(() => ({ data: [] })),
-        ]);
+        const [comarcasRes, instrumentosRes, generosRes, instrRes, genRes] =
+          await Promise.all([
+            api.get('/comarcas').catch(() => ({ data: [] })),
+            api.get('/instrumentos').catch(() => ({ data: [] })),
+            api.get('/genero_musical').catch(() => ({ data: [] })),
+            api
+              .get('/perfil-instrumentos/perfil', { params: { perfil_id: id } })
+              .catch(() => ({ data: [] })),
+            api
+              .get('/perfil-genero-musicales/perfil', { params: { perfil_id: id } })
+              .catch(() => ({ data: [] })),
+          ]);
         if (cancelado) return;
 
-        const comarca = comarcasRes.data.find((c) => c.comarca_id === data.comarca_id);
+        const comarca = comarcasRes.data.find(
+          (c) => c.comarca_id === data.comarca_id,
+        );
         setComarcaNombre(comarca ? comarca.nombre : '');
 
         const instrIds = new Set(instrRes.data.map((r) => r.instrumento_id));
-        setInstrumentos(instrumentosRes.data.filter((i) => instrIds.has(i.instrumento_id)));
+        setInstrumentos(
+          instrumentosRes.data.filter((i) => instrIds.has(i.instrumento_id)),
+        );
 
         const genIds = new Set(genRes.data.map((r) => r.genero_id));
-        setGeneros(generosRes.data.filter((g) => genIds.has(g.genero_musical_id)));
-      } catch {
-        if (!cancelado) setErrorMsg('No se pudo cargar toda la información del perfil.');
+        setGeneros(
+          generosRes.data.filter((g) => genIds.has(g.genero_musical_id)),
+        );
+      } catch (err) {
+        if (!cancelado) {
+          setErrorMsg(
+            parseApiError(
+              err,
+              'No se pudo cargar toda la información del perfil.',
+            ),
+          );
+        }
       } finally {
         if (!cancelado) setLoading(false);
       }
     }
 
     cargar();
-    return () => { cancelado = true; };
+    return () => {
+      cancelado = true;
+    };
   }, [id]);
 
   useEffect(() => {
@@ -202,7 +106,8 @@ export function PerfilPublicoPage() {
       setMiPerfilId(null);
       return;
     }
-    api.get('/perfiles/me')
+    api
+      .get('/perfiles/me')
       .then((res) => setMiPerfilId(res.data.perfil_id))
       .catch(() => setMiPerfilId(null));
   }, [user]);
@@ -221,7 +126,9 @@ export function PerfilPublicoPage() {
       } else if (err.response?.status === 403) {
         setContactarError('Necesitas crear tu perfil antes de contactar.');
       } else if (err.response?.status === 400) {
-        setContactarError(err.response.data?.error || 'No puedes contactar contigo mismo.');
+        setContactarError(
+          err.response.data?.error || 'No puedes contactar contigo mismo.',
+        );
       } else {
         setContactarError('No se pudo iniciar la conversación.');
       }
@@ -232,10 +139,9 @@ export function PerfilPublicoPage() {
 
   if (loading) {
     return (
-      <main style={page}>
-        <div style={stateBox}>
-          <span style={{ fontSize: '2rem' }}>⏳</span>
-          <span>Cargando perfil…</span>
+      <main className={styles.page}>
+        <div className={styles.stateBox}>
+          <Spinner size="lg" aria-label="Cargando perfil" />
         </div>
       </main>
     );
@@ -243,76 +149,96 @@ export function PerfilPublicoPage() {
 
   if (notFound) {
     return (
-      <main style={page}>
-        <div style={stateBox}>
-          <span style={{ fontSize: '2rem' }}>🔍</span>
-          <span>Este perfil no existe o fue eliminado.</span>
-        </div>
+      <main className={styles.page}>
+        <PageHeader title="Perfil de músico" backTo="/anuncios" backLabel="Anuncios" />
+        <EmptyState
+          icon="🔍"
+          title="Este perfil no existe"
+          description="Puede que se haya eliminado o que la URL sea incorrecta."
+        />
       </main>
     );
   }
 
   return (
-    <main style={page}>
-      <h1 style={{ fontFamily: "'Inter', sans-serif", fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: '24px', color: '#0F0F0F' }}>
-        Perfil de músico
-      </h1>
+    <main className={styles.page}>
+      <PageHeader
+        title="Perfil de músico"
+        backTo="/anuncios"
+        backLabel="Anuncios"
+      />
 
-      {errorMsg && <p style={errorBanner}>{errorMsg}</p>}
-      {contactarError && <p style={errorBanner}>{contactarError}</p>}
+      {errorMsg && <p className={styles.errorBanner}>{errorMsg}</p>}
+      {contactarError && <p className={styles.errorBanner}>{contactarError}</p>}
 
-      <div style={profileHeader}>
-        <div style={avatarCircle}>🎸</div>
-        <div style={profileInfo}>
-          <p style={profileName}>{perfil.nombre} {perfil.apellido}</p>
-          <span style={profileHandle}>{comarcaNombre || 'Sin comarca'}</span>
+      <div className={styles.profileHeader}>
+        <div className={styles.avatar}>🎸</div>
+        <div className={styles.profileInfo}>
+          <p className={styles.profileName}>
+            {perfil.nombre} {perfil.apellido}
+          </p>
+          <span className={styles.profileHandle}>
+            {comarcaNombre || 'Sin comarca'}
+          </span>
         </div>
       </div>
 
-      <div style={formCard}>
-        <div style={formSection}>
-          <p style={sectionTitle}>Descripción</p>
-          <p style={bodyText}>{perfil.descripcion || 'Sin descripción.'}</p>
+      <Card className={styles.card} padding="none">
+        <div className={styles.section}>
+          <SectionLabel tone="blue">DESCRIPCIÓN</SectionLabel>
+          <p className={styles.bodyText}>
+            {perfil.descripcion || 'Sin descripción.'}
+          </p>
         </div>
 
-        <div style={formSection}>
-          <p style={sectionTitle}>Instrumentos</p>
-          <div style={tagRow}>
-            {instrumentos.length === 0 && <span style={bodyText}>Sin instrumentos indicados.</span>}
+        <div className={styles.section}>
+          <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>
+          <div className={styles.tagRow}>
+            {instrumentos.length === 0 && (
+              <span className={styles.bodyText}>Sin instrumentos indicados.</span>
+            )}
             {instrumentos.map((inst) => (
-              <span key={inst.instrumento_id} style={tagBase}>{inst.nombre}</span>
+              <Tag key={inst.instrumento_id} color="green">
+                {inst.nombre}
+              </Tag>
             ))}
           </div>
         </div>
 
-        <div style={formSectionLast}>
-          <p style={sectionTitle}>Géneros musicales</p>
-          <div style={tagRow}>
-            {generos.length === 0 && <span style={bodyText}>Sin géneros indicados.</span>}
+        <div className={`${styles.section} ${styles.sectionLast}`}>
+          <SectionLabel tone="purple">GÉNEROS MUSICALES</SectionLabel>
+          <div className={styles.tagRow}>
+            {generos.length === 0 && (
+              <span className={styles.bodyText}>Sin géneros indicados.</span>
+            )}
             {generos.map((g) => (
-              <span key={g.genero_musical_id} style={tagBase}>{g.nombre}</span>
+              <Tag key={g.genero_musical_id} color="purple">
+                {g.nombre}
+              </Tag>
             ))}
           </div>
         </div>
 
-        <div style={actionsBar}>
+        <div className={styles.actionsBar}>
           {esMiPerfil ? (
             <>
-              <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8A8A8A' }}>Este es tu perfil</span>
-              <Link to="/perfil" style={editLink}>Editarlo</Link>
+              <span className={styles.myProfileNote}>Este es tu perfil</span>
+              <Button to="/perfil" variant="primary" size="sm">
+                Editarlo
+              </Button>
             </>
           ) : (
-            <button
-              type="button"
-              disabled={contactando}
-              style={contactando ? btnContactarDisabled : btnContactar}
+            <Button
+              variant="primary"
+              size="md"
               onClick={handleContactar}
+              loading={contactando}
             >
               {contactando ? 'Contactando…' : 'Contactar'}
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
     </main>
   );
 }

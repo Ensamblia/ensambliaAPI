@@ -1,0 +1,68 @@
+/* Avatar.module.css */
+.root {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    font-family: var(--font-sans);
+    font-weight: var(--fw-bold);
+    color: var(--white);
+    overflow: hidden;
+    user-select: none;
+}
+
+.sm {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+}
+
+.md {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+
+.lg {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+}
+
+/* ── Colores deterministas ── */
+.tone1 {
+    background: #C77E57;
+}
+
+.tone2 {
+    background: #6F92B2;
+}
+
+.tone3 {
+    background: #837C9F;
+}
+
+.tone4 {
+    background: #7F9F75;
+}
+
+.tone5 {
+    background: #A18CAD;
+}
+
+.tone6 {
+    background: #D49779;
+}
+
+.toneNeutral {
+    background: var(--ink);
+}
+
+/* ── Imagen dentro del avatar ── */
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}

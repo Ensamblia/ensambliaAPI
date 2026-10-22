@@ -131,6 +131,12 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
         'PORT': os.getenv('DB_PORT', '5432'),
+        # Nombre explícito de la BD de test. Evita que Django intente
+        # conectar a la BD `postgres` (default) para crear la BD de test,
+        # lo que genera un RuntimeWarning si el usuario no tiene permisos.
+        'TEST': {
+            'NAME': 'test_ENSAMBLIA_DB',
+        },
     }
 }
 
@@ -217,6 +223,9 @@ MINIO_BUCKET_NAME = os.getenv('MINIO_BUCKET_NAME', 'ensamblia-media')
 MINIO_PUBLIC_URL = os.getenv('MINIO_PUBLIC_URL', 'http://127.0.0.1:9000')
 
 STORAGES = {
+    # Storage por defecto: PRIVADO, URLs firmadas.
+    # Lo usan los FileField que NO especifican `storage=` (p. ej. MensajeAdjunto).
+    # Los objetos viven bajo `chat/` (adjuntos efímeros del chat).
     'default': {
         'BACKEND': 'storages.backends.s3.S3Storage',
         'OPTIONS': {
@@ -230,6 +239,25 @@ STORAGES = {
             'default_acl': None,
             'querystring_auth': True,
             'querystring_expire': 300,
+            'file_overwrite': False,
+            'custom_domain': None,
+        },
+    },
+    # Storage PÚBLICO para la biblioteca de medios (multimedia/*).
+    # URLs estables sin firma. El bucket policy permite GetObject anónimo
+    # solo en `multimedia/*`; `chat/*` sigue privado.
+    'public_media': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+        'OPTIONS': {
+            'endpoint_url': MINIO_ENDPOINT,
+            'access_key': MINIO_ACCESS_KEY,
+            'secret_key': MINIO_SECRET_KEY,
+            'bucket_name': MINIO_BUCKET_NAME,
+            'region_name': 'us-east-1',
+            'signature_version': 's3v4',
+            'addressing_style': 'path',
+            'default_acl': 'public-read',
+            'querystring_auth': False,
             'file_overwrite': False,
             'custom_domain': None,
         },

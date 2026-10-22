@@ -1,20 +1,8 @@
+// src/components/perfil/AutorNombre.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getPerfilPublico } from '../../api/perfiles';
-
-const linkStyle = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13px',
-  fontWeight: 600,
-  color: '#0F0F0F',
-  textDecoration: 'none',
-};
-
-const plainStyle = {
-  ...linkStyle,
-  color: '#8A8A8A',
-  cursor: 'default',
-};
+import { getPerfilPublico } from '@/api/perfiles';
+import styles from './AutorNombre.module.css';
 
 export function AutorNombre({ perfilId }) {
   const [perfil, setPerfil] = useState(null);
@@ -36,15 +24,17 @@ export function AutorNombre({ perfilId }) {
       setLoaded(true);
     });
 
-    return () => { cancelado = true; };
+    return () => {
+      cancelado = true;
+    };
   }, [perfilId]);
 
   if (!loaded || !perfil) {
-    return <span style={plainStyle}>Usuario</span>;
+    return <span className={styles.plain}>Usuario</span>;
   }
 
   return (
-    <Link to={`/perfiles/${perfilId}`} style={linkStyle}>
+    <Link to={`/perfiles/${perfilId}`} className={styles.link}>
       {perfil.nombre} {perfil.apellido}
     </Link>
   );

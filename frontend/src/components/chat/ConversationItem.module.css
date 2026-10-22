@@ -1,0 +1,51 @@
+/* ConversationItem.module.css */
+.item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background var(--dur-fast) var(--ease-out);
+}
+
+.item:hover {
+    background: var(--paper);
+}
+
+.itemActive {
+    background: var(--paper);
+}
+
+.meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nombre {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

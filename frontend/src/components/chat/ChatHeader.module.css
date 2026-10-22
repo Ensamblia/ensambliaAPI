@@ -1,0 +1,54 @@
+/* ChatHeader.module.css */
+.header {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-5);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-elevated);
+    flex-shrink: 0;
+}
+
+.info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nombre {
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.connectionBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+}
+
+.connectionDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--grey-300);
+    flex-shrink: 0;
+}
+
+.connectionDotOnline {
+    background: var(--success);
+}
+
+.connectionBadgeOnline {
+    color: var(--success);
+}

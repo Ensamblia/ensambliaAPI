@@ -1,0 +1,22 @@
+/* AutorNombre.module.css */
+.link {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.link:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.plain {
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-muted);
+    cursor: default;
+}

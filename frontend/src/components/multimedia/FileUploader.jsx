@@ -1,91 +1,16 @@
+// src/components/multimedia/FileUploader.jsx
 import React, { useRef, useState } from 'react';
-import { uploadFile } from '../../api/multimedia';
-
-/* ── Styles ── */
-const wrapper = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-};
-
-const dropzone = (dragging) => ({
-  border: `2px dashed ${dragging ? '#FF5C35' : '#EBEBEB'}`,
-  borderRadius: '12px',
-  padding: '28px 20px',
-  textAlign: 'center',
-  backgroundColor: dragging ? '#FFF0EC' : '#FAFAFA',
-  cursor: 'pointer',
-  transition: 'all 160ms ease',
-});
-
-const dzIcon = { fontSize: '1.8rem', marginBottom: '6px' };
-
-const dzText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '13.5px',
-  color: '#555555',
-  margin: 0,
-};
-
-const dzHint = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '11.5px',
-  color: '#8A8A8A',
-  marginTop: '4px',
-};
-
-const progressWrapper = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const progressBar = {
-  height: '6px',
-  backgroundColor: '#F2F2F2',
-  borderRadius: '999px',
-  overflow: 'hidden',
-};
-
-const progressFill = (percent) => ({
-  height: '100%',
-  width: `${percent}%`,
-  backgroundColor: '#FF5C35',
-  transition: 'width 200ms ease',
-});
-
-const progressText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12px',
-  color: '#8A8A8A',
-};
-
-const errorText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12.5px',
-  color: '#E0402B',
-  margin: 0,
-};
-
-const successText = {
-  fontFamily: "'Inter', sans-serif",
-  fontSize: '12.5px',
-  color: '#1E6B3A',
-  margin: 0,
-};
+import { uploadFile } from '@/api/multimedia';
+import styles from './FileUploader.module.css';
 
 /**
  * Tipos aceptados en el selector de archivos. Debe coincidir con
  * la lista blanca del backend (apps/chats/utils.py).
  */
 const ACCEPT =
-  // Imágenes
   'image/jpeg,image/png,image/gif,image/webp,' +
-  // Audio
   'audio/mpeg,audio/wav,audio/ogg,audio/webm,' +
-  // Vídeo
   'video/mp4,video/webm,video/quicktime,' +
-  // Documentos
   'application/pdf,text/plain,' +
   'application/msword,' +
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document,' +
@@ -141,7 +66,7 @@ export function FileUploader({
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    setDragging(true);
+    if (!uploading) setDragging(true);
   };
 
   const handleDragLeave = () => setDragging(false);
@@ -155,18 +80,35 @@ export function FileUploader({
     handleFile(file);
   };
 
+  const dropzoneClass = [
+    styles.dropzone,
+    dragging ? styles.dragging : '',
+    uploading ? styles.disabled : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div style={wrapper}>
+    <div className={styles.wrapper}>
       <div
-        style={dropzone(dragging)}
+        className={dropzoneClass}
         onClick={handleClick}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        role="button"
+        tabIndex={0}
+        aria-label={label}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
       >
-        <div style={dzIcon}>📎</div>
-        <p style={dzText}>{uploading ? 'Subiendo…' : label}</p>
-        <p style={dzHint}>{hint}</p>
+        <div className={styles.dzIcon}>📎</div>
+        <p className={styles.dzText}>{uploading ? 'Subiendo…' : label}</p>
+        <p className={styles.dzHint}>{hint}</p>
         <input
           ref={inputRef}
           type="file"
@@ -178,16 +120,19 @@ export function FileUploader({
       </div>
 
       {uploading && (
-        <div style={progressWrapper}>
-          <div style={progressBar}>
-            <div style={progressFill(progress)} />
+        <div className={styles.progressWrapper}>
+          <div className={styles.progressBar}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${progress}%` }}
+            />
           </div>
-          <span style={progressText}>{progress}%</span>
+          <span className={styles.progressText}>{progress}%</span>
         </div>
       )}
 
-      {error && <p style={errorText}>⚠️ {error}</p>}
-      {success && <p style={successText}>✅ {success}</p>}
+      {error && <p className={styles.error}>⚠️ {error}</p>}
+      {success && <p className={styles.success}>✅ {success}</p>}
     </div>
   );
 }
