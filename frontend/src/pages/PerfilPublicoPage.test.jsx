@@ -47,6 +47,28 @@ describe('PerfilPublicoPage', () => {
     expect(screen.getByText('Rock')).toBeInTheDocument();
   });
 
+  it('un perfil de local muestra la etiqueta "Local" y su título', async () => {
+    server.use(
+      http.get(`${API}/perfiles/3/`, () =>
+        HttpResponse.json({
+          perfil_id: 3,
+          nombre: 'Sala Rock',
+          apellido: '',
+          correo: 'sala@test.com',
+          descripcion: 'Sala de conciertos',
+          tipo: 'local',
+          comarca_id: null,
+          usuario_id: 2,
+        }),
+      ),
+    );
+    renderPerfil(3);
+    await waitFor(() => {
+      expect(screen.getByText('Local')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Perfil de local')).toBeInTheDocument();
+  });
+
   it('muestra EmptyState si el perfil no existe', async () => {
     server.use(
       http.get(`${API}/perfiles/99999/`, () =>
