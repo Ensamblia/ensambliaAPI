@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { OPCIONES_BUSCO, motivosMatch } from './match';
+import { OPCIONES_BUSCO, motivosAnuncio, motivosMatch } from './match';
 
 describe('match', () => {
   it('ofrece las cuatro búsquedas', () => {
-    expect(OPCIONES_BUSCO.map((o) => o.value)).toEqual(['musico', 'grupo', 'ensayo', 'tocar']);
+    expect(OPCIONES_BUSCO.map((o) => o.value)).toEqual(['musico', 'grupo', 'ensayo', 'tocar', 'anuncios']);
   });
 
   it('explica por qué encaja un músico', () => {
@@ -28,5 +28,11 @@ describe('match', () => {
     expect(
       motivosMatch({ tipo: 'grupo', zona: null, misma_comarca: false, generos_comunes: [], instrumentos: [], local: null }),
     ).toEqual([]);
+  });
+
+  it('motivosAnuncio explica por qué un anuncio es para ti', () => {
+    expect(
+      motivosAnuncio({ busca_mi_instrumento: true, instrumento: 'Batería', misma_comarca: false, zona: 'Toledo', generos_comunes: ['Rock'] }),
+    ).toEqual(['Busca tu instrumento (Batería)', 'Toledo', 'Comparte Rock']);
   });
 });

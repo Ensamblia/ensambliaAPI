@@ -5,6 +5,7 @@ import api, { extractList } from '@/api/axios';
 import { AutorNombre } from '@/components/perfil/AutorNombre';
 import { AnuncioMultimediaGaleria } from '@/components/multimedia/AnuncioMultimediaGaleria';
 import { Comentarios } from '@/components/comentarios/Comentarios';
+import { BusquedaAnuncioInfo } from '@/components/match/BusquedaAnuncioInfo';
 import { EmptyState, PageHeader, Spinner, Tag } from '@/components/ui';
 import styles from './AnuncioDetailPage.module.css';
 
@@ -139,6 +140,8 @@ export function AnuncioDetailPage() {
       <p className={styles.body}>{anuncio.contenido || 'Sin descripción.'}</p>
 
       <AnuncioMultimediaGaleria multimedias={anuncio.multimedias || []} />
+
+      <BusquedaAnuncioInfo anuncioId={anuncio.anuncio_id} />
 
       <Comentarios anuncioId={anuncio.anuncio_id} />
     </main>

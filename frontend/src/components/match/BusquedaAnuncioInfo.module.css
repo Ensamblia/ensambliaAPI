@@ -1,0 +1,32 @@
+/* BusquedaAnuncioInfo.module.css */
+.busca {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: var(--sp-4) 0;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1);
+}
+
+.nota {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.candidatos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: var(--sp-6) 0;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--sp-4);
+}
