@@ -155,3 +155,30 @@ def test_param_invalido_400(api_client, escenario, params):
     response = api_client.get(URL, params)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'error' in response.data
+
+
+# La BD real (SQL original del proyecto) tiene las pivotes con PK compuesta y
+# sin columna id: nunca hay que cargar instancias de PerfilGeneroMusical.
+@pytest.mark.django_db
+@pytest.mark.parametrize('ruta', ['lista', 'detalle', 'sugeridos'])
+def test_no_consulta_id_de_pivote_generos(api_client, escenario, ruta):
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+    pid = escenario['madrid_rock'].perfil_id
+    urls = {
+        'lista': URL,
+        'detalle': f'{URL}{pid}/',
+        'sugeridos': f'{URL}{pid}/artistas-sugeridos/',
+    }
+    with CaptureQueriesContext(connection) as ctx:
+        response = api_client.get(urls[ruta])
+    assert response.status_code == status.HTTP_200_OK
+    assert not [q['sql'] for q in ctx.captured_queries if '"perfil_genero_musical"."id"' in q['sql']]
+
+
+@pytest.mark.django_db
+def test_lista_devuelve_generos_del_local(api_client, escenario, genero_rock, genero_jazz):
+    response = api_client.get(URL, {'ciudad': escenario['talavera'].ciudad_id})
+    assert sorted(response.data['results'][0]['generos']) == sorted(
+        [genero_rock.genero_musical_id, genero_jazz.genero_musical_id],
+    )

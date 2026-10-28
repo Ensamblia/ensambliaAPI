@@ -22,7 +22,7 @@ def anotar_afinidad(qs, referencia):
 
     return qs.annotate(
         generos_comunes=Count(
-            'perfil_generos',
+            'perfil_generos__genero_id',
             filter=Q(perfil_generos__genero_id__in=generos_ref),
             distinct=True,
         ),

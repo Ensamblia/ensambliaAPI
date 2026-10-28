@@ -2,7 +2,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Q
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Q, Value
 from apps.perfiles.models import Perfil
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 from .afinidad import anotar_afinidad
@@ -92,7 +93,14 @@ class LocalListView(APIView):
             qs = qs.filter(Q(nombre__icontains=search) | Q(descripcion__icontains=search))
 
         qs = anotar_afinidad(qs, perfil_de_referencia(request))
-        qs = qs.select_related('local__ciudad').prefetch_related('perfil_generos')
+        qs = qs.select_related('local__ciudad').annotate(
+            generos_ids=ArrayAgg(
+                'perfil_generos__genero_id',
+                filter=Q(perfil_generos__genero_id__isnull=False),
+                distinct=True,
+                default=Value([]),
+            ),
+        )
 
         paginator = StandardLimitOffsetPagination()
         page = paginator.paginate_queryset(qs, request, view=self)

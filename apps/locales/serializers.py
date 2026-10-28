@@ -63,7 +63,11 @@ class LocalPerfilSerializer(serializers.ModelSerializer):
             return None
 
     def get_generos(self, obj):
-        return [pg.genero_id for pg in obj.perfil_generos.all()]
+        # Solo genero_id: en la BD real la pivote no tiene columna id
+        ids = getattr(obj, 'generos_ids', None)
+        if ids is None:
+            ids = obj.perfil_generos.values_list('genero_id', flat=True)
+        return sorted(ids)
 
     def get_generos_comunes(self, obj):
         return getattr(obj, 'generos_comunes', None)
