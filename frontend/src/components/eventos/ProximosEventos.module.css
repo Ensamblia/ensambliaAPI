@@ -1,0 +1,7 @@
+/* ProximosEventos.module.css */
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin-top: var(--sp-3);
+}

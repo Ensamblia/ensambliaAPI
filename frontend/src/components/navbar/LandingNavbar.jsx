@@ -53,6 +53,7 @@ export function LandingNavbar() {
           <Link to="/">Inicio</Link>
           <Link to="/anuncios">Anuncios</Link>
           <Link to="/locales">Locales</Link>
+          <Link to="/eventos">Eventos</Link>
           <Link to="/match">Match</Link>
           <Link to="/precios">Precios</Link>
           <button onClick={() => goToSection('features')}>Funciones</button>
@@ -122,6 +123,9 @@ export function LandingNavbar() {
           </Link>
           <Link to="/locales" onClick={() => setMenuOpen(false)}>
             Locales <ChevronRight size={16} />
+          </Link>
+          <Link to="/eventos" onClick={() => setMenuOpen(false)}>
+            Eventos <ChevronRight size={16} />
           </Link>
           <Link to="/match" onClick={() => setMenuOpen(false)}>
             Match <ChevronRight size={16} />

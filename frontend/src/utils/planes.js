@@ -15,6 +15,7 @@ export const PLANES = [
       'Hasta 2 anuncios activos',
       'Responder a los mensajes que recibes',
       'Biblioteca con 5 archivos',
+      'Ver el calendario de eventos',
     ],
   },
   {
@@ -30,6 +31,7 @@ export const PLANES = [
       'Ver por qué encajas con cada local o artista',
       'Artistas sugeridos para tu local',
       'Biblioteca con 50 archivos',
+      'Publicar hasta 4 eventos al mes',
     ],
   },
   {
@@ -43,6 +45,7 @@ export const PLANES = [
       'Anuncios ilimitados y destacados arriba del listado',
       'Tu perfil primero en búsquedas y sugerencias',
       'Biblioteca ilimitada',
+      'Eventos ilimitados y destacados en el calendario',
       'Insignia Premium en tu perfil',
     ],
   },
