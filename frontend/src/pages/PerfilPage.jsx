@@ -4,6 +4,8 @@ import api, { parseApiError } from '@/api/axios';
 import { FileUploader } from '@/components/multimedia/FileUploader';
 import { MediaGallery } from '@/components/multimedia/MediaGallery';
 import { MisAnuncios } from '@/components/anuncios/MisAnuncios';
+import { DatosLocalForm } from '@/components/locales/DatosLocalForm';
+import { ArtistasSugeridos } from '@/components/locales/ArtistasSugeridos';
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -421,6 +423,17 @@ export function PerfilPage() {
 
         {/* ── Columna derecha: biblioteca + anuncios ── */}
         <section className={styles.content}>
+          {perfilId && form.tipo === 'local' && (
+            <>
+              <Card className={styles.contentCard}>
+                <DatosLocalForm perfilId={perfilId} />
+              </Card>
+              <Card className={styles.contentCard}>
+                <ArtistasSugeridos perfilId={perfilId} />
+              </Card>
+            </>
+          )}
+
           <Card className={styles.contentCard}>
             <SectionLabel tone="coral">MI BIBLIOTECA</SectionLabel>
             <p className={styles.sectionSubtitle}>

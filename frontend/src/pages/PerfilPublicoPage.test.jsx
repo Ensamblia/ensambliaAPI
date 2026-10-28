@@ -62,11 +62,20 @@ describe('PerfilPublicoPage', () => {
         }),
       ),
     );
+    server.use(
+      http.get(`${API}/locales/3/`, () =>
+        HttpResponse.json({
+          perfil_id: 3,
+          local: { ciudad_id: 3, ciudad: 'Getafe', direccion: 'C/ Mayor 1', aforo: 200, tipos: ['sala'] },
+        }),
+      ),
+    );
     renderPerfil(3);
     await waitFor(() => {
       expect(screen.getByText('Local')).toBeInTheDocument();
     });
     expect(screen.getByText('Perfil de local')).toBeInTheDocument();
+    expect(await screen.findByText('C/ Mayor 1')).toBeInTheDocument();
   });
 
   it('muestra EmptyState si el perfil no existe', async () => {

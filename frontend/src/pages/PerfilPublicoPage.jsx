@@ -14,6 +14,7 @@ import {
   Tag,
 } from '@/components/ui';
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
+import { DatosLocalInfo } from '@/components/locales/DatosLocalInfo';
 import styles from './PerfilPublicoPage.module.css';
 
 export function PerfilPublicoPage() {
@@ -198,6 +199,10 @@ export function PerfilPublicoPage() {
             {perfil.descripcion || 'Sin descripción.'}
           </p>
         </div>
+
+        {perfil.tipo === 'local' && (
+          <DatosLocalInfo perfilId={id} className={styles.section} />
+        )}
 
         <div className={styles.section}>
           <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>
