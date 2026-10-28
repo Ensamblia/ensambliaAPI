@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import api, { extractList, parseApiError } from '@/api/axios';
 import { getMatches } from '@/api/match';
 import { MatchCard } from '@/components/match/MatchCard';
+import { AnuncioMatchCard } from '@/components/match/AnuncioMatchCard';
 import { Button, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
 import { OPCIONES_BUSCO } from '@/utils/match';
 import styles from './MatchPage.module.css';
@@ -65,7 +66,13 @@ export function MatchPage() {
                 .filter(Boolean)
                 .join(' ')}
               aria-pressed={busco === o.value}
-              onClick={() => setBusco(o.value)}
+              onClick={() => {
+                if (o.value === busco) return;
+                // Vaciar ya: perfiles y anuncios se pintan con tarjetas distintas
+                setMatches([]);
+                setLoading(true);
+                setBusco(o.value);
+              }}
             >
               {o.label}
             </button>
@@ -123,9 +130,13 @@ export function MatchPage() {
 
       {!loading && !error && matches.length > 0 && (
         <div className={styles.grid}>
-          {matches.map((m) => (
-            <MatchCard key={m.perfil_id} match={m} />
-          ))}
+          {matches.map((m) =>
+            busco === 'anuncios' ? (
+              <AnuncioMatchCard key={m.anuncio_id} anuncio={m} />
+            ) : (
+              <MatchCard key={m.perfil_id} match={m} />
+            ),
+          )}
         </div>
       )}
     </main>

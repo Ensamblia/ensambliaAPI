@@ -3,6 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api, { parseApiError } from '@/api/axios';
 import { EditarMediosModal } from '@/components/multimedia/EditarMediosModal';
+import { QueBuscasFields } from '@/components/match/QueBuscasFields';
+import { guardarBusquedaAnuncio } from '@/api/match';
+import { QUE_BUSCAS_VACIO, hayQueBuscas, payloadQueBuscas } from '@/utils/match';
 import {
   Button,
   Card,
@@ -25,6 +28,7 @@ export function CrearAnuncioPage() {
   const [titulo, setTitulo] = useState('');
   const [contenido, setContenido] = useState('');
   const [tipoId, setTipoId] = useState('');
+  const [queBuscas, setQueBuscas] = useState(QUE_BUSCAS_VACIO);
 
   const [creadoAnuncio, setCreadoAnuncio] = useState(null);
 
@@ -69,6 +73,14 @@ export function CrearAnuncioPage() {
         tipo_anuncio_id: Number(tipoId),
       };
       const res = await api.post('/anuncios/', payload);
+      if (hayQueBuscas(queBuscas)) {
+        try {
+          await guardarBusquedaAnuncio(res.data.anuncio_id, payloadQueBuscas(queBuscas));
+        } catch {
+          // El anuncio ya está publicado; no lo bloqueamos por esto
+          setError('El anuncio se ha publicado, pero no se pudo guardar qué buscas.');
+        }
+      }
       setCreadoAnuncio(res.data);
     } catch (err) {
       setError(
@@ -136,6 +148,8 @@ export function CrearAnuncioPage() {
   />
 </Field>
 <span className={styles.counter}>{contenido.length} / 750</span>
+
+            <QueBuscasFields value={queBuscas} onChange={setQueBuscas} />
           </div>
 
           <div className={styles.actionsBar}>

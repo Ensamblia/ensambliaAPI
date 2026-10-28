@@ -1,6 +1,6 @@
 // src/pages/AnuncioDetailPage.test.jsx
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
@@ -42,6 +42,14 @@ const anuncio = {
 };
 
 describe('AnuncioDetailPage', () => {
+  beforeEach(() => {
+    server.use(
+      http.get(`${API}/match/anuncios/:id/busqueda/`, ({ params }) =>
+        HttpResponse.json({ anuncio_id: Number(params.id), tipo_perfil: null, instrumento_id: null, instrumento: null, generos: [], inferida: true }),
+      ),
+    );
+  });
+
   it('carga y renderiza el anuncio', async () => {
     server.use(
       http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
@@ -76,5 +84,55 @@ describe('AnuncioDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/No se pudo cargar el anuncio/i)).toBeInTheDocument();
     });
+  });
+
+  it('muestra lo que busca el anuncio', async () => {
+    server.use(
+      http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
+      http.get(`${API}/match/anuncios/1/busqueda/`, () =>
+        HttpResponse.json({
+          anuncio_id: 1, tipo_perfil: 'usuario', instrumento_id: 2, instrumento: 'Batería',
+          generos: [{ genero_musical_id: 1, nombre: 'Rock' }], inferida: false,
+        }),
+      ),
+    );
+    renderDetail(1);
+    expect(await screen.findByText('Busca')).toBeInTheDocument();
+    expect(screen.getByText('Músico')).toBeInTheDocument();
+    expect(screen.getByText('Batería')).toBeInTheDocument();
+    expect(screen.getByText('Rock')).toBeInTheDocument();
+  });
+
+  it('si eres el autor ve los perfiles que encajan con su anuncio', async () => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'ana');
+    server.use(
+      http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
+      http.get(`${API}/match/anuncios/1/candidatos/`, () =>
+        HttpResponse.json({
+          count: 1,
+          results: [{ perfil_id: 9, nombre: 'Marta', apellido: 'Ruiz', tipo: 'usuario', zona: 'Madrid',
+            misma_comarca: true, generos_comunes: ['Rock'], instrumentos: ['Batería'], local: null }],
+        }),
+      ),
+    );
+    renderDetail(1);
+    expect(await screen.findByRole('link', { name: 'Marta Ruiz' })).toHaveAttribute('href', '/perfiles/9');
+    expect(screen.getByText('En tu comarca (Madrid)')).toBeInTheDocument();
+  });
+
+  it('si no eres el autor no enseña candidatos', async () => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'luis');
+    server.use(
+      http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
+      http.get(`${API}/match/anuncios/1/candidatos/`, () =>
+        HttpResponse.json({ error: 'Solo el autor' }, { status: 403 }),
+      ),
+    );
+    renderDetail(1);
+    await screen.findByText('Busco batería para grupo de rock');
+    await new Promise((r) => setTimeout(r, 100));
+    expect(screen.queryByText(/Perfiles que encajan/i)).not.toBeInTheDocument();
   });
 });

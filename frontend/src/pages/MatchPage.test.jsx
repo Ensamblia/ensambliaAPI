@@ -103,4 +103,29 @@ describe('MatchPage', () => {
     renderPage();
     expect(await screen.findByText(/Todavía no hay matches/i)).toBeInTheDocument();
   });
+
+  it('"Anuncios para mí" lista anuncios que encajan con su motivo', async () => {
+    server.use(
+      http.get(`${API}/match/`, ({ request }) => {
+        const busco = new URL(request.url).searchParams.get('busco');
+        if (busco !== 'anuncios') return HttpResponse.json({ count: 0, results: [] });
+        return HttpResponse.json({
+          count: 1,
+          results: [{
+            anuncio_id: 5, titulo: 'Sala Rock busca batería', contenido: 'Para tocar los viernes',
+            autor: { perfil_id: 7, nombre: 'Sala Rock', apellido: '', tipo: 'local' },
+            zona: 'Getafe', misma_comarca: true, busca_mi_instrumento: true, instrumento: 'Batería',
+            generos_comunes: ['Rock'], inferida: false,
+          }],
+        });
+      }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(screen.getByRole('button', { name: 'Anuncios para mí' }));
+    expect(await screen.findByRole('link', { name: 'Sala Rock busca batería' })).toHaveAttribute('href', '/anuncios/5');
+    expect(screen.getByText('Busca tu instrumento (Batería)')).toBeInTheDocument();
+    expect(screen.getByText('En tu comarca (Getafe)')).toBeInTheDocument();
+    expect(screen.getByText('Comparte Rock')).toBeInTheDocument();
+  });
 });

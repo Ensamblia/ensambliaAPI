@@ -1,0 +1,58 @@
+/* QueBuscasFields.module.css */
+.bloque {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: var(--sp-4) 0 0;
+    padding: var(--sp-4);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+}
+
+.titulo {
+    padding: 0 var(--sp-1);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+}
+
+.ayuda {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.fila {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+}
+
+.estilos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-4);
+}
+
+.etiqueta {
+    width: 100%;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.estilo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .fila {
+        grid-template-columns: 1fr;
+    }
+}

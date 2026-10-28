@@ -12,17 +12,19 @@ def comarca_de(perfil):
     return perfil.comarca_id
 
 
-def anotar_afinidad(qs, referencia, campo_comarca='comarca_id'):
+def anotar_afinidad(qs, referencia, campo_comarca='comarca_id', generos_ref=None):
     """
     Ordena perfiles por afinidad con un perfil de referencia:
     primero los de su misma comarca, luego los que comparten más géneros.
     `campo_comarca` es el campo de comarca de los candidatos (para locales,
-    'local__ciudad__comarca_id'). Sin referencia, orden por perfil_id sin anotaciones.
+    'local__ciudad__comarca_id'). `generos_ref` sustituye a los géneros de la referencia
+    (p. ej. los estilos que busca un anuncio). Sin referencia, orden por perfil_id sin anotaciones.
     """
     if referencia is None:
         return qs.order_by('perfil_id')
 
-    generos_ref = list(referencia.perfil_generos.values_list('genero_id', flat=True))
+    if generos_ref is None:
+        generos_ref = list(referencia.perfil_generos.values_list('genero_id', flat=True))
     comarca_ref = comarca_de(referencia)
     if comarca_ref is None:
         misma_comarca = Value(False, output_field=BooleanField())
