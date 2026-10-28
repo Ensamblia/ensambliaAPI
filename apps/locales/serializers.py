@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from apps.catalogo.models import Ciudad
 from apps.perfiles.models import Perfil
+from apps.perfiles.serializers import PerfilSerializer
 from .models import Local
 
 
@@ -69,3 +70,11 @@ class LocalPerfilSerializer(serializers.ModelSerializer):
 
     def get_misma_comarca(self, obj):
         return getattr(obj, 'misma_comarca', None)
+
+
+class ArtistaSugeridoSerializer(PerfilSerializer):
+    generos_comunes = serializers.IntegerField(read_only=True)
+    misma_comarca = serializers.BooleanField(read_only=True)
+
+    class Meta(PerfilSerializer.Meta):
+        fields = PerfilSerializer.Meta.fields + ['generos_comunes', 'misma_comarca']

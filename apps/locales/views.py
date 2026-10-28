@@ -7,7 +7,7 @@ from apps.perfiles.models import Perfil
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 from .afinidad import anotar_afinidad
 from .models import Local
-from .serializers import LocalPerfilSerializer, LocalWriteSerializer
+from .serializers import ArtistaSugeridoSerializer, LocalPerfilSerializer, LocalWriteSerializer
 
 
 class ParametroInvalido(Exception):
@@ -138,3 +138,40 @@ class LocalDetailView(APIView):
 
         perfil.refresh_from_db()
         return Response(LocalPerfilSerializer(perfil).data, status=status.HTTP_200_OK)
+
+
+class ArtistasSugeridosView(APIView):
+    """
+    GET /api/locales/:perfil_id/artistas-sugeridos  → músicos y grupos disponibles,
+    ordenados por afinidad con el local (misma comarca, géneros en común). Público.
+    Filtros opcionales: comarca, genero (repetible).
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk=None):
+        local = Perfil.objects.filter(pk=pk, tipo=Perfil.TipoPerfil.LOCAL).first()
+        if not local:
+            return Response({'error': 'Local no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            comarca = leer_entero(request.query_params, 'comarca')
+            generos = leer_enteros(request.query_params, 'genero')
+        except ParametroInvalido as e:
+            return respuesta_parametro_invalido(e.nombre)
+
+        qs = Perfil.objects.filter(
+            tipo__in=[Perfil.TipoPerfil.USUARIO, Perfil.TipoPerfil.GRUPO],
+            disponibilidad=True,
+        )
+        if comarca is not None:
+            qs = qs.filter(comarca_id=comarca)
+        if generos:
+            qs = qs.filter(
+                pk__in=Perfil.objects.filter(perfil_generos__genero_id__in=generos).values('pk'),
+            )
+
+        qs = anotar_afinidad(qs, local)
+
+        paginator = StandardLimitOffsetPagination()
+        page = paginator.paginate_queryset(qs, request, view=self)
+        return paginator.get_paginated_response(ArtistaSugeridoSerializer(page, many=True).data)
