@@ -35,6 +35,26 @@ describe('PerfilPublicoPage', () => {
   beforeEach(() => {
     navigateMock.mockClear();
     localStorage.clear();
+    server.use(http.get(`${API}/eventos/`, () => HttpResponse.json({ count: 0, results: [] })));
+  });
+
+  it('muestra los próximos eventos del perfil', async () => {
+    server.use(
+      http.get(`${API}/eventos/`, ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get('perfil')).toBe('2');
+        return HttpResponse.json({
+          count: 1,
+          results: [{
+            evento_id: 4, titulo: 'Concierto de otoño', fecha_inicio: '2030-11-21T20:00:00Z', precio: '',
+            lugar: 'Parque', ciudad: 'Getafe', local: null, generos: [],
+            autor: { perfil_id: 2, nombre: 'Luis', apellido: 'Flotu', tipo: 'usuario' },
+          }],
+        });
+      }),
+    );
+    renderPerfil(2);
+    expect(await screen.findByRole('link', { name: 'Concierto de otoño' })).toHaveAttribute('href', '/eventos/4');
   });
 
   it('carga y muestra nombre, descripción, instrumentos y géneros', async () => {
@@ -45,6 +65,37 @@ describe('PerfilPublicoPage', () => {
     expect(screen.getByText('Guitarrista')).toBeInTheDocument();
     expect(screen.getByText('Guitarra')).toBeInTheDocument();
     expect(screen.getByText('Rock')).toBeInTheDocument();
+  });
+
+  it('un perfil de local muestra la etiqueta "Local" y su título', async () => {
+    server.use(
+      http.get(`${API}/perfiles/3/`, () =>
+        HttpResponse.json({
+          perfil_id: 3,
+          nombre: 'Sala Rock',
+          apellido: '',
+          correo: 'sala@test.com',
+          descripcion: 'Sala de conciertos',
+          tipo: 'local',
+          comarca_id: null,
+          usuario_id: 2,
+        }),
+      ),
+    );
+    server.use(
+      http.get(`${API}/locales/3/`, () =>
+        HttpResponse.json({
+          perfil_id: 3,
+          local: { ciudad_id: 3, ciudad: 'Getafe', direccion: 'C/ Mayor 1', aforo: 200, tipos: ['sala'] },
+        }),
+      ),
+    );
+    renderPerfil(3);
+    await waitFor(() => {
+      expect(screen.getByText('Local')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Perfil de local')).toBeInTheDocument();
+    expect(await screen.findByText('C/ Mayor 1')).toBeInTheDocument();
   });
 
   it('muestra EmptyState si el perfil no existe', async () => {

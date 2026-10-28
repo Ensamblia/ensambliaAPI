@@ -1,0 +1,44 @@
+/* EventoCard.module.css */
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+}
+
+.fecha {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--coral-deep);
+    text-transform: capitalize;
+}
+
+.titulo {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.titulo:hover {
+    text-decoration: underline;
+}
+
+.lugar {
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+}
+
+.pie {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-1);
+    margin-top: var(--sp-1);
+}
+
+.precio {
+    margin-left: auto;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}

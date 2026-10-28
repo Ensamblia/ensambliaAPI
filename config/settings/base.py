@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     'apps.anuncios',
     'apps.chats',
     'apps.multimedia',
+    'apps.locales',
+    'apps.matching',
+    'apps.eventos',
 ]
 
 MIDDLEWARE = [

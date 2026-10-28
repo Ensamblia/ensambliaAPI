@@ -15,7 +15,7 @@ class PerfilSerializer(serializers.ModelSerializer):
         model = Perfil
         fields = [
             'perfil_id', 'nombre', 'apellido', 'correo', 'numero_telefono',
-            'edad', 'sexo', 'disponibilidad', 'descripcion', 'testimonio',
+            'edad', 'sexo', 'disponibilidad', 'descripcion', 'testimonio', 'tipo', 
             'fecha_creacion', 'fecha_baja',
             'comarca_id', 'usuario_id', 'foto_url',
         ]
@@ -47,6 +47,7 @@ class PerfilCreateSerializer(serializers.ModelSerializer):
         fields = [
             'nombre', 'apellido', 'correo', 'numero_telefono',
             'edad', 'sexo', 'disponibilidad', 'descripcion', 'comarca_id',
+            'tipo',
         ]
 
     def validate_nombre(self, value):
@@ -55,9 +56,7 @@ class PerfilCreateSerializer(serializers.ModelSerializer):
         return value.strip()
 
     def validate_apellido(self, value):
-        if not value or not value.strip():
-            raise serializers.ValidationError('El apellido es obligatorio')
-        return value.strip()
+        return value.strip() if value else ''
 
     def validate_correo(self, value):
         if not value or not value.strip():
@@ -68,6 +67,13 @@ class PerfilCreateSerializer(serializers.ModelSerializer):
         if not value or not value.strip():
             raise serializers.ValidationError('La descripción es obligatoria')
         return value.strip()
+
+    def validate(self, attrs):
+        # Solo el perfil personal lleva apellido; un local o grupo no lo tiene
+        tipo = attrs.get('tipo', Perfil.TipoPerfil.USUARIO)
+        if tipo == Perfil.TipoPerfil.USUARIO and not attrs.get('apellido'):
+            raise serializers.ValidationError({'apellido': 'El apellido es obligatorio'})
+        return attrs
 
 
 class PerfilUpdateSerializer(serializers.ModelSerializer):

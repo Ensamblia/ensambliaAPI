@@ -9,6 +9,10 @@ import styles from './Navbar.module.css';
 
 const LINKS = [
   { to: '/anuncios', label: 'Anuncios' },
+  { to: '/locales', label: 'Locales' },
+  { to: '/eventos', label: 'Eventos' },
+  { to: '/precios', label: 'Precios' },
+  { to: '/match', label: 'Match', authOnly: true },
   { to: '/perfil', label: 'Mi perfil', authOnly: true },
   { to: '/chat', label: 'Mensajes', authOnly: true, withBadge: true },
 ];

@@ -54,6 +54,7 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         'usuario': ['exact'],
         'disponibilidad': ['exact'],
         'sexo': ['exact'],
+        'tipo': ['exact'],
         'edad': ['gte', 'lte'],
         'fecha_creacion': ['gte', 'lte'],
     }

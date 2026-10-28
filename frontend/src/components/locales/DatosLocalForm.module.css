@@ -1,0 +1,53 @@
+/* DatosLocalForm.module.css */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+}
+
+.aviso {
+    margin: 0;
+    padding: var(--sp-3);
+    border-radius: var(--radius-md);
+    background: var(--warning-soft);
+    color: var(--warning);
+    font-size: var(--fs-sm);
+}
+
+.tipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-4);
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.legend {
+    width: 100%;
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.tipo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.error {
+    margin: 0;
+    color: var(--danger);
+    font-size: var(--fs-sm);
+}
+
+.ok {
+    margin: 0;
+    color: var(--success);
+    font-size: var(--fs-sm);
+}

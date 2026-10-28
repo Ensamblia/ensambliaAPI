@@ -1,0 +1,193 @@
+/* PreciosPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+/* ── Selector mensual / anual ── */
+.periodos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--sp-6);
+}
+
+.periodo {
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color var(--dur-base) var(--ease-out),
+        background var(--dur-base) var(--ease-out);
+}
+
+.periodo:hover {
+    border-color: var(--border-strong);
+}
+
+.periodo:focus-visible {
+    outline: none;
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.35);
+}
+
+.periodoActivo {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--white);
+}
+
+.periodoActivo:hover {
+    border-color: var(--ink);
+}
+
+.ahorro {
+    margin-left: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+}
+
+/* ── Tarjetas ── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-4);
+    align-items: stretch;
+}
+
+.plan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.recomendado {
+    border-color: var(--ink);
+}
+
+.cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+}
+
+.nombre {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-black);
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+}
+
+.descripcion {
+    margin: 0;
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    min-height: 3em;
+}
+
+.precio {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-1);
+    margin: 0;
+    padding: var(--sp-3) 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.importe {
+    font-family: var(--font-sans);
+    font-size: var(--fs-3xl);
+    font-weight: var(--fw-black);
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.periodoTexto {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+.ventajas {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex: 1;
+}
+
+.ventaja {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-primary);
+    line-height: 1.45;
+}
+
+.check {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--green-deep);
+}
+
+.accion {
+    margin-top: var(--sp-2);
+}
+
+.planActual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+}
+
+.nota {
+    margin: var(--sp-6) 0 0;
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+
+    .descripcion {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: calc(100% - 32px);
+    }
+}

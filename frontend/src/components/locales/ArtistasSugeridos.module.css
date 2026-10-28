@@ -1,0 +1,32 @@
+/* ArtistasSugeridos.module.css */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.nombre {
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.afinidad {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+}
