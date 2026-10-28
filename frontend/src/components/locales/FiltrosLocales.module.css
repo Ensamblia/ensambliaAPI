@@ -1,0 +1,44 @@
+/* FiltrosLocales.module.css */
+.wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--sp-6);
+}
+
+.search {
+    flex: 1 1 240px;
+    min-width: 200px;
+}
+
+.select {
+    flex: 0 1 170px;
+    min-width: 140px;
+}
+
+.aforo {
+    flex: 0 1 130px;
+    min-width: 110px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+    .wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search,
+    .select,
+    .aforo {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+
+    .clear {
+        align-self: flex-start;
+    }
+}
