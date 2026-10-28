@@ -4,6 +4,8 @@ import api, { parseApiError } from '@/api/axios';
 import { FileUploader } from '@/components/multimedia/FileUploader';
 import { MediaGallery } from '@/components/multimedia/MediaGallery';
 import { MisAnuncios } from '@/components/anuncios/MisAnuncios';
+import { DatosLocalForm } from '@/components/locales/DatosLocalForm';
+import { ArtistasSugeridos } from '@/components/locales/ArtistasSugeridos';
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -11,8 +13,15 @@ import {
   Field,
   Input,
   SectionLabel,
+  Select,
+  Tag,
   Textarea,
 } from '@/components/ui';
+import {
+  TIPOS_PERFIL,
+  etiquetaTipoPerfil,
+  llevaApellido,
+} from '@/utils/tipoPerfil';
 import styles from './PerfilPage.module.css';
 
 const emptyForm = {
@@ -21,6 +30,7 @@ const emptyForm = {
   correo: '',
   descripcion: '',
   comarcaTexto: '',
+  tipo: 'usuario',
 };
 
 export function PerfilPage() {
@@ -79,6 +89,7 @@ export function PerfilPage() {
             correo: perfil.correo || '',
             descripcion: perfil.descripcion || '',
             comarcaTexto: comarca ? comarca.nombre : '',
+            tipo: perfil.tipo || 'usuario',
           });
 
           const [instrRes, genRes] = await Promise.all([
@@ -155,13 +166,18 @@ export function PerfilPage() {
     setErrorMsg('');
     setSuccessMsg('');
 
+    const conApellido = llevaApellido(form.tipo);
     if (
       !form.nombre.trim() ||
-      !form.apellido.trim() ||
+      (conApellido && !form.apellido.trim()) ||
       !form.correo.trim() ||
       !form.descripcion.trim()
     ) {
-      setErrorMsg('Nombre, apellido, correo y descripción son obligatorios.');
+      setErrorMsg(
+        conApellido
+          ? 'Nombre, apellido, correo y descripción son obligatorios.'
+          : 'Nombre, correo y descripción son obligatorios.',
+      );
       return;
     }
 
@@ -173,7 +189,7 @@ export function PerfilPage() {
 
     const payload = {
       nombre: form.nombre.trim(),
-      apellido: form.apellido.trim(),
+      apellido: conApellido ? form.apellido.trim() : '',
       correo: form.correo.trim(),
       descripcion: form.descripcion.trim(),
       comarca_id,
@@ -186,7 +202,8 @@ export function PerfilPage() {
       if (currentPerfilId) {
         await api.put(`/perfiles/${currentPerfilId}`, payload);
       } else {
-        const res = await api.post('/perfiles', payload);
+        // El tipo solo se elige al crear; el backend no deja cambiarlo después
+        const res = await api.post('/perfiles', { ...payload, tipo: form.tipo });
         currentPerfilId = res.data.perfil_id;
         setPerfilId(currentPerfilId);
       }
@@ -243,8 +260,8 @@ export function PerfilPage() {
 
       {!perfilId && (
         <p className={styles.noticeBanner}>
-          Aún no has creado tu perfil de músico. Rellena el formulario y guarda
-          para crearlo.
+          Aún no has creado tu perfil. Elige si eres músico, grupo o local,
+          rellena el formulario y guarda para crearlo.
         </p>
       )}
       {errorMsg && <p className={styles.errorBanner}>{errorMsg}</p>}
@@ -264,6 +281,11 @@ export function PerfilPage() {
               <span className={styles.profileHandle}>
                 {form.comarcaTexto || 'Sin comarca'}
               </span>
+              {perfilId && (
+                <Tag color="coral" size="sm">
+                  {etiquetaTipoPerfil(form.tipo)}
+                </Tag>
+              )}
             </div>
           </div>
 
@@ -271,19 +293,39 @@ export function PerfilPage() {
             <div className={styles.section}>
               <SectionLabel tone="blue">INFORMACIÓN BÁSICA</SectionLabel>
 
+              {!perfilId && (
+                <Field label="Tipo de perfil">
+                  <Select value={form.tipo} onChange={handleChange('tipo')}>
+                    {TIPOS_PERFIL.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              )}
+
               <div className={styles.fieldRow}>
-                <Field label="Nombre">
+                <Field
+                  label={
+                    llevaApellido(form.tipo)
+                      ? 'Nombre'
+                      : `Nombre del ${etiquetaTipoPerfil(form.tipo).toLowerCase()}`
+                  }
+                >
                   <Input
                     value={form.nombre}
                     onChange={handleChange('nombre')}
                   />
                 </Field>
-                <Field label="Apellido">
-                  <Input
-                    value={form.apellido}
-                    onChange={handleChange('apellido')}
-                  />
-                </Field>
+                {llevaApellido(form.tipo) && (
+                  <Field label="Apellido">
+                    <Input
+                      value={form.apellido}
+                      onChange={handleChange('apellido')}
+                    />
+                  </Field>
+                )}
               </div>
 
               <Field label="Correo">
@@ -381,6 +423,17 @@ export function PerfilPage() {
 
         {/* ── Columna derecha: biblioteca + anuncios ── */}
         <section className={styles.content}>
+          {perfilId && form.tipo === 'local' && (
+            <>
+              <Card className={styles.contentCard}>
+                <DatosLocalForm perfilId={perfilId} />
+              </Card>
+              <Card className={styles.contentCard}>
+                <ArtistasSugeridos perfilId={perfilId} />
+              </Card>
+            </>
+          )}
+
           <Card className={styles.contentCard}>
             <SectionLabel tone="coral">MI BIBLIOTECA</SectionLabel>
             <p className={styles.sectionSubtitle}>

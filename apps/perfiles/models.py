@@ -17,7 +17,7 @@ class Perfil(models.Model):
 
     perfil_id = models.BigAutoField(primary_key=True, db_column='perfil_id')
     nombre = models.CharField(max_length=50, db_column='nombre')
-    apellido = models.CharField(max_length=50, db_column='apellido')
+    apellido = models.CharField(max_length=50, blank=True, default='', db_column='apellido')
     correo = models.EmailField(max_length=100, unique=True, db_column='correo')
     numero_telefono = models.CharField(
         max_length=20,

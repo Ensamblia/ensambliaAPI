@@ -6,6 +6,7 @@ import { PublicLayout } from './PublicLayout';
 import { AppLayout } from './AppLayout';
 import { HomePage } from '../pages/HomePage';
 import { AnunciosPage } from '../pages/AnunciosPage';
+import { LocalesPage } from '../pages/LocalesPage';
 import { AnuncioDetailPage } from '../pages/AnuncioDetailPage';
 import { PerfilPage } from '../pages/PerfilPage';
 import { PerfilPublicoPage } from '../pages/PerfilPublicoPage';
@@ -25,6 +26,7 @@ export function AppRouter() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/anuncios" element={<AnunciosPage />} />
+            <Route path="/locales" element={<LocalesPage />} />
             <Route path="/anuncios/:id" element={<AnuncioDetailPage />} />
             <Route path="/perfiles/:id" element={<PerfilPublicoPage />} />
             <Route

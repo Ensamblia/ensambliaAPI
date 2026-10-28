@@ -1,0 +1,29 @@
+/* DatosLocalInfo.module.css */
+.datos {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--sp-1) var(--sp-4);
+    margin: var(--sp-3) 0;
+    font-size: var(--fs-base);
+}
+
+.datos dt {
+    color: var(--text-muted);
+}
+
+.datos dd {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.aforo {
+    margin: 0 0 var(--sp-3);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+}
+
+.tipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}

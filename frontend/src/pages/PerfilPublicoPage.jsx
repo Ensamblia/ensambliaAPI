@@ -13,6 +13,8 @@ import {
   Spinner,
   Tag,
 } from '@/components/ui';
+import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
+import { DatosLocalInfo } from '@/components/locales/DatosLocalInfo';
 import styles from './PerfilPublicoPage.module.css';
 
 export function PerfilPublicoPage() {
@@ -163,7 +165,11 @@ export function PerfilPublicoPage() {
   return (
     <main className={styles.page}>
       <PageHeader
-        title="Perfil de músico"
+        title={
+          perfil.tipo && perfil.tipo !== 'usuario'
+            ? `Perfil de ${etiquetaTipoPerfil(perfil.tipo).toLowerCase()}`
+            : 'Perfil de músico'
+        }
         backTo="/anuncios"
         backLabel="Anuncios"
       />
@@ -180,6 +186,9 @@ export function PerfilPublicoPage() {
           <span className={styles.profileHandle}>
             {comarcaNombre || 'Sin comarca'}
           </span>
+          <Tag color="coral" size="sm">
+            {etiquetaTipoPerfil(perfil.tipo)}
+          </Tag>
         </div>
       </div>
 
@@ -190,6 +199,10 @@ export function PerfilPublicoPage() {
             {perfil.descripcion || 'Sin descripción.'}
           </p>
         </div>
+
+        {perfil.tipo === 'local' && (
+          <DatosLocalInfo perfilId={id} className={styles.section} />
+        )}
 
         <div className={styles.section}>
           <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>

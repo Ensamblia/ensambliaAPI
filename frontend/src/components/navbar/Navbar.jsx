@@ -8,6 +8,7 @@ import styles from './Navbar.module.css';
 
 const LINKS = [
   { to: '/anuncios', label: 'Anuncios' },
+  { to: '/locales', label: 'Locales' },
   { to: '/perfil', label: 'Mi perfil', authOnly: true },
   { to: '/chat', label: 'Mensajes', authOnly: true, withBadge: true },
 ];

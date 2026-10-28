@@ -188,3 +188,98 @@ def test_no_borrar_perfil_ajeno(client_ana, perfil_luis):
     response = client_ana.delete(f'/api/perfiles/{perfil_luis.perfil_id}/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Perfil.objects.filter(perfil_id=perfil_luis.perfil_id).exists()
+
+# ==============================================================
+# TIPO DE PERFIL (usuario / grupo / local)
+# ==============================================================
+
+@pytest.mark.django_db
+def test_crear_perfil_local_sin_apellido(client_ana):
+    """Un local se crea sin apellido y la respuesta incluye su tipo."""
+    response = client_ana.post('/api/perfiles/', {
+        'nombre': 'Sala Rock',
+        'correo': 'sala@test.com',
+        'descripcion': 'Sala de conciertos',
+        'tipo': 'local',
+    })
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['tipo'] == 'local'
+    assert response.data['apellido'] == ''
+
+
+@pytest.mark.django_db
+def test_crear_perfil_sin_tipo_es_usuario(client_ana):
+    """Si no se indica tipo, el perfil es de tipo usuario."""
+    response = client_ana.post('/api/perfiles/', {
+        'nombre': 'Ana',
+        'apellido': 'Garcia',
+        'correo': 'ana@test.com',
+        'descripcion': 'Cantante',
+    })
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['tipo'] == 'usuario'
+
+
+@pytest.mark.django_db
+def test_crear_perfil_tipo_invalido(client_ana):
+    """Un tipo que no existe devuelve 400."""
+    response = client_ana.post('/api/perfiles/', {
+        'nombre': 'Ana',
+        'apellido': 'Garcia',
+        'correo': 'ana@test.com',
+        'descripcion': 'Cantante',
+        'tipo': 'discoteca',
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'tipo' in response.data
+
+
+@pytest.mark.django_db
+def test_crear_perfil_usuario_sin_apellido_falla(client_ana):
+    """Un perfil personal sigue necesitando apellido."""
+    response = client_ana.post('/api/perfiles/', {
+        'nombre': 'Ana',
+        'correo': 'ana@test.com',
+        'descripcion': 'Cantante',
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'apellido' in response.data
+
+
+@pytest.mark.django_db
+def test_usuario_con_perfil_personal_puede_crear_local(client_ana, perfil_ana):
+    """La restricción de un perfil por usuario solo aplica al tipo usuario."""
+    response = client_ana.post('/api/perfiles/', {
+        'nombre': 'Sala Rock',
+        'correo': 'sala@test.com',
+        'descripcion': 'Sala de conciertos',
+        'tipo': 'local',
+    })
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Perfil.objects.filter(usuario=perfil_ana.usuario).count() == 2
+
+
+@pytest.mark.django_db
+def test_editar_perfil_no_cambia_tipo(client_ana, perfil_ana):
+    """El tipo se fija al crear: un PUT no lo cambia."""
+    response = client_ana.put(f'/api/perfiles/{perfil_ana.perfil_id}/', {
+        'nombre': 'Ana',
+        'tipo': 'local',
+    })
+    assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
+    perfil_ana.refresh_from_db()
+    assert perfil_ana.tipo == 'usuario'
+
+
+@pytest.mark.django_db
+def test_filtrar_perfiles_por_tipo(client_ana, perfil_ana, luis):
+    """GET /api/perfiles/?tipo=local devuelve solo locales."""
+    Perfil.objects.create(
+        nombre='Sala Rock', correo='sala@test.com',
+        descripcion='Sala de conciertos', usuario=luis, tipo='local',
+    )
+    response = client_ana.get('/api/perfiles/', {'tipo': 'local'})
+    assert response.status_code == status.HTTP_200_OK
+    resultados = response.data['results'] if 'results' in response.data else response.data
+    assert len(resultados) == 1
+    assert resultados[0]['tipo'] == 'local'
