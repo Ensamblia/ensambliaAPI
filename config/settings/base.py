@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.chats',
     'apps.multimedia',
     'apps.locales',
+    'apps.matching',
 ]
 
 MIDDLEWARE = [
