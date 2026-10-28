@@ -64,8 +64,14 @@ class EventoWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_local_id(self, value):
-        if value is not None and (value.tipo != Perfil.TipoPerfil.LOCAL or not hasattr(value, 'local')):
+        if value is None:
+            return value
+        if value.tipo != Perfil.TipoPerfil.LOCAL or not hasattr(value, 'local'):
             raise serializers.ValidationError('El local tiene que ser un perfil de local con sus datos completos')
+        # Solo se puede enlazar un local propio: si no, cualquiera podría publicar
+        # eventos que aparecen como de ese local. Para otros sitios, usar `lugar`.
+        if value.usuario_id != self.context['usuario_id']:
+            raise serializers.ValidationError('Solo puedes enlazar un local tuyo. Para otro sitio, escríbelo en "lugar".')
         return value
 
     def validate_generos(self, value):

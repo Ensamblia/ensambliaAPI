@@ -76,13 +76,28 @@ def test_crear_evento_como_mi_local(client_luis, perfil_luis, sala_luis, getafe)
 
 
 @pytest.mark.django_db
-def test_crear_evento_en_un_local_toma_su_ciudad(client_ana, perfil_ana, sala_luis):
+def test_crear_evento_en_mi_local_toma_su_ciudad(client_luis, perfil_luis, sala_luis):
     body = datos(sala_luis.local.ciudad, local_id=sala_luis.perfil_id)
     body.pop('ciudad_id')
-    response = client_ana.post(URL, body, format='json')
+    response = client_luis.post(URL, body, format='json')
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data['local'] == {'perfil_id': sala_luis.perfil_id, 'nombre': 'Sala Rock'}
     assert response.data['ciudad'] == 'Getafe'
+
+
+@pytest.mark.django_db
+def test_no_puedo_enlazar_un_local_ajeno(client_ana, perfil_ana, sala_luis, getafe):
+    """Nadie puede publicar eventos 'en' un local que no es suyo (suplantación)."""
+    response = client_ana.post(URL, datos(getafe, local_id=sala_luis.perfil_id), format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'local_id' in response.data
+
+
+@pytest.mark.django_db
+def test_no_puedo_editar_para_enlazar_un_local_ajeno(client_ana, perfil_ana, sala_luis, getafe):
+    evento = crear_evento(perfil_ana, 'Jam', en(1), getafe)
+    response = client_ana.put(f'{URL}{evento.evento_id}/', {'local_id': sala_luis.perfil_id}, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

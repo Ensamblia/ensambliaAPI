@@ -112,7 +112,7 @@ class EventoListView(APIView):
             if not autor:
                 return error('Crea tu perfil antes de publicar un evento', status.HTTP_400_BAD_REQUEST)
 
-        serializer = EventoWriteSerializer(data=request.data)
+        serializer = EventoWriteSerializer(data=request.data, context={'usuario_id': request.user.usuario_id})
         serializer.is_valid(raise_exception=True)
         evento = serializer.save(perfil=autor)
         return Response(serializar(base_queryset().get(pk=evento.pk)), status=status.HTTP_201_CREATED)
@@ -148,7 +148,9 @@ class EventoDetailView(APIView):
             return error('Evento no encontrado', status.HTTP_404_NOT_FOUND)
         if not self.es_autor(request, evento):
             return error('No puedes editar el evento de otro usuario', status.HTTP_403_FORBIDDEN)
-        serializer = EventoWriteSerializer(evento, data=request.data, partial=True)
+        serializer = EventoWriteSerializer(
+            evento, data=request.data, partial=True, context={'usuario_id': request.user.usuario_id},
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializar(self.obtener(pk)))
