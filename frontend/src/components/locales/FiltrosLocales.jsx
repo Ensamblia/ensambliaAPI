@@ -4,20 +4,23 @@ import api, { extractList } from '@/api/axios';
 import { Button, Input, Select } from '@/components/ui';
 import styles from './FiltrosLocales.module.css';
 
-const INICIAL = { uso: '', comarca: '', aforo_min: '', genero: '', search: '' };
+const INICIAL = { uso: '', ciudad: '', comarca: '', aforo_min: '', genero: '', search: '' };
 
 export function FiltrosLocales({ onFilter }) {
   const [filtros, setFiltros] = useState(INICIAL);
+  const [ciudades, setCiudades] = useState([]);
   const [comarcas, setComarcas] = useState([]);
   const [generos, setGeneros] = useState([]);
 
   useEffect(() => {
     let cancelado = false;
     Promise.all([
+      api.get('/ciudades/').then(extractList).catch(() => []),
       api.get('/comarcas/').then(extractList).catch(() => []),
       api.get('/genero_musical/').then(extractList).catch(() => []),
-    ]).then(([listaComarcas, listaGeneros]) => {
+    ]).then(([listaCiudades, listaComarcas, listaGeneros]) => {
       if (cancelado) return;
+      setCiudades(listaCiudades);
       setComarcas(listaComarcas);
       setGeneros(listaGeneros);
     });
@@ -53,6 +56,17 @@ export function FiltrosLocales({ onFilter }) {
           <option value="">Ensayar o tocar</option>
           <option value="ensayar">Ensayar</option>
           <option value="tocar">Tocar en directo</option>
+        </Select>
+      </div>
+
+      <div className={styles.select}>
+        <Select value={filtros.ciudad} onChange={set('ciudad')} aria-label="Filtrar por ciudad">
+          <option value="">Todas las ciudades</option>
+          {ciudades.map((c) => (
+            <option key={c.ciudad_id} value={c.ciudad_id}>
+              {c.nombre}
+            </option>
+          ))}
         </Select>
       </div>
 

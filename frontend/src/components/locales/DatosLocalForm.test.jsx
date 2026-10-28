@@ -99,4 +99,15 @@ describe('DatosLocalForm', () => {
     await user.click(screen.getByRole('button', { name: /Guardar datos del local/i }));
     expect(await screen.findByText(/Indica al menos un tipo de local/i)).toBeInTheDocument();
   });
+
+  it('si falla la carga muestra un error y no el aviso de completar datos', async () => {
+    server.use(
+      http.get(`${API}/ciudades/`, () => HttpResponse.json(CIUDADES)),
+      http.get(`${API}/locales/5/`, () => HttpResponse.json({ error: 'x' }, { status: 500 })),
+    );
+    render(<DatosLocalForm perfilId={5} />);
+    expect(await screen.findByText(/No se pudieron cargar los datos del local/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Completa los datos de tu local/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Guardar datos del local/i })).not.toBeInTheDocument();
+  });
 });

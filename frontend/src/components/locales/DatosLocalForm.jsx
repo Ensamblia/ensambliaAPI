@@ -15,17 +15,23 @@ export function DatosLocalForm({ perfilId, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [errorCarga, setErrorCarga] = useState('');
   const [ok, setOk] = useState('');
 
   useEffect(() => {
     let cancelado = false;
     Promise.all([
-      getLocal(perfilId).catch(() => null),
+      getLocal(perfilId).catch(() => undefined),
       api.get('/ciudades/').then(extractList).catch(() => []),
     ]).then(([perfilLocal, listaCiudades]) => {
       if (cancelado) return;
       setCiudades(listaCiudades);
-      const local = perfilLocal?.local;
+      if (perfilLocal === undefined) {
+        setErrorCarga('No se pudieron cargar los datos del local. Recarga la página para intentarlo de nuevo.');
+        setLoading(false);
+        return;
+      }
+      const local = perfilLocal.local;
       setTieneDatos(Boolean(local));
       if (local) {
         setForm({
@@ -78,6 +84,15 @@ export function DatosLocalForm({ perfilId, onSaved }) {
   };
 
   if (loading) return null;
+
+  if (errorCarga) {
+    return (
+      <div className={styles.form}>
+        <SectionLabel tone="coral">DATOS DEL LOCAL</SectionLabel>
+        <p className={styles.error}>{errorCarga}</p>
+      </div>
+    );
+  }
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>

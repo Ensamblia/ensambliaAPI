@@ -7,12 +7,13 @@ import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
 import { textoAfinidad } from '@/utils/tipoLocal';
 import styles from './ArtistasSugeridos.module.css';
 
-export function ArtistasSugeridos({ perfilId }) {
+export function ArtistasSugeridos({ perfilId, refreshKey = 0 }) {
   const [artistas, setArtistas] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelado = false;
+    setLoading(true);
     getArtistasSugeridos(perfilId, { limit: 10 })
       .then((data) => {
         if (!cancelado) setArtistas(data.results ?? []);
@@ -26,7 +27,7 @@ export function ArtistasSugeridos({ perfilId }) {
     return () => {
       cancelado = true;
     };
-  }, [perfilId]);
+  }, [perfilId, refreshKey]);
 
   return (
     <div className={styles.wrapper}>
@@ -36,8 +37,8 @@ export function ArtistasSugeridos({ perfilId }) {
         <EmptyState
           compact
           icon="🎤"
-          title="Todavía no hay artistas que encajen"
-          description="Añade los estilos de tu local para recibir mejores sugerencias."
+          title="Todavía no hay artistas disponibles"
+          description="Cuando haya músicos o grupos disponibles aparecerán aquí. Añadir los estilos de tu local ayuda a afinar las sugerencias."
         />
       )}
       <ul className={styles.lista}>

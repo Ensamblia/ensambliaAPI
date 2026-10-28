@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db.models import ProtectedError
 
 from .models import (
     Comarca, Ciudad, Instrumento, GeneroMusical, Grupo, GrupoGenero, TipoArchivo,
@@ -58,7 +59,13 @@ class BaseCRUDViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
         data = self.get_serializer(instance).data
-        instance.delete()
+        try:
+            instance.delete()
+        except ProtectedError:
+            return Response(
+                {'error': 'No se puede borrar: hay otros datos que lo usan'},
+                status=status.HTTP_409_CONFLICT,
+            )
         return Response(data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
