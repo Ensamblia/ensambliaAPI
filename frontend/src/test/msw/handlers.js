@@ -229,4 +229,40 @@ export const handlers = [
             201,
         );
     }),
+    http.get(`${API}/stats/`, () =>
+        json({
+            usuarios_activos: 12345,
+            usuarios_online: 5678,
+            grupos_formados: 3210,
+            anuncios_mes: 987,
+            matches: 15678,
+            testimonios: [],
+        }),
+    ),
+    http.post(`${API}/presence/offline/`, () => json({ ok: true })),
+    http.post(`${API}/perfiles/presigned-avatar/`, () =>
+        json({
+            upload_url: 'http://localhost:9000/ensamblia-media/multimedia/avatars/test.jpg?X-Amz-Signature=abc',
+            object_key: 'multimedia/avatars/test.jpg',
+            archivo_url: 'http://localhost:9000/ensamblia-media/multimedia/avatars/test.jpg',
+        }),
+    ),
+    http.post(`${API}/perfiles/:id/set-avatar/`, () => json({ ok: true })),
+    http.delete(`${API}/perfiles/:id/avatar/`, () => json({ ok: true })),
+    http.get(`${API}/perfiles/me/`, ({ request }) => {
+        const auth = request.headers.get('authorization') || '';
+        if (!auth.startsWith('Bearer ')) {
+            return json({ detail: 'Authentication credentials were not provided.' }, 401);
+        }
+        return json({
+            perfil_id: 1,
+            nombre: 'Ana',
+            apellido: 'García',
+            correo: 'ana@test.com',
+            descripcion: 'Cantante',
+            comarca_id: null,
+            usuario_id: 1,
+            foto_url: null,  // ← NUEVO
+        });
+    }),
 ];

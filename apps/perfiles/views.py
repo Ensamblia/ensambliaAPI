@@ -3,7 +3,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
+
+from django.db import IntegrityError
+from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
+
+import boto3
+from botocore.client import Config
+import uuid
+from datetime import datetime
+
+from apps.chats.utils import validar_archivo 
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 from apps.usuarios.mixins import MiPerfilMixin
 from .models import (
@@ -15,7 +25,7 @@ from .serializers import (
     PerfilGrupoSerializer, PerfilInstrumentoSerializer,
 )
 from apps.usuarios.pagination import StandardLimitOffsetPagination
-from django.db import IntegrityError
+
 
 class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     """
@@ -27,6 +37,9 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     - POST   /api/perfiles                        → crear (auth)
     - PUT    /api/perfiles/:id                    → editar (auth, solo mío)
     - DELETE /api/perfiles/:id                    → borrar (auth, solo mío)
+    - POST   /api/perfiles/presigned-avatar/      → URL prefirmada para foto (auth)
+    - POST   /api/perfiles/:id/set-avatar/        → guardar foto (auth, solo mío)
+    - DELETE /api/perfiles/:id/avatar/            → borrar foto (auth, solo mío)
     """
     queryset = Perfil.objects.all()
     serializer_class = PerfilSerializer
@@ -57,9 +70,9 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = self.get_serializer(page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -70,7 +83,7 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 {'error': f'Nothing found for id: {pk}'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(PerfilSerializer(obj).data)
+        return Response(PerfilSerializer(obj, context={'request': request}).data)
 
     @action(detail=False, methods=['get'], url_path='usuario')
     def get_by_usuario(self, request):
@@ -78,7 +91,9 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         qs = Perfil.objects.filter(usuario_id=usuario_id)
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
-        return Response(PerfilSerializer(qs, many=True).data)
+        return Response(
+            PerfilSerializer(qs, many=True, context={'request': request}).data,
+        )
 
     @action(detail=False, methods=['get'], url_path='comarca')
     def get_by_comarca(self, request):
@@ -86,7 +101,9 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         qs = Perfil.objects.filter(comarca_id=comarca_id)
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
-        return Response(PerfilSerializer(qs, many=True).data)
+        return Response(
+            PerfilSerializer(qs, many=True, context={'request': request}).data,
+        )
 
     @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):
@@ -97,16 +114,17 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 {'error': 'Todavía no has creado tu perfil'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        return Response(PerfilSerializer(qs.first()).data)
+        return Response(
+            PerfilSerializer(qs.first(), context={'request': request}).data,
+        )
 
     def create(self, request, *args, **kwargs):
-    # Comprobación temprana: si ya tengo un perfil personal, error 400
         usuario_id = request.user.usuario_id
         tipo = request.data.get('tipo', 'usuario')
         if tipo == 'usuario' and Perfil.objects.filter(usuario_id=usuario_id, tipo='usuario').exists():
             return Response(
-            {'error': 'Ya tienes un perfil personal. No puedes crear otro.'},
-            status=status.HTTP_400_BAD_REQUEST,
+                {'error': 'Ya tienes un perfil personal. No puedes crear otro.'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         serializer = PerfilCreateSerializer(data=request.data)
@@ -120,7 +138,10 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(PerfilSerializer(perfil).data, status=status.HTTP_201_CREATED)
+        return Response(
+            PerfilSerializer(perfil, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def update(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
@@ -131,14 +152,17 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
 
         if obj.usuario_id != request.user.usuario_id:
             return Response(
-            {'error': 'No puedes editar el perfil de otro usuario'},
-            status=status.HTTP_403_FORBIDDEN,
+                {'error': 'No puedes editar el perfil de otro usuario'},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = PerfilUpdateSerializer(obj, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(PerfilSerializer(obj).data, status=status.HTTP_201_CREATED)
+        return Response(
+            PerfilSerializer(obj, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def destroy(self, request, *args, **kwargs):
         pk = kwargs.get('pk')
@@ -153,11 +177,127 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        data = PerfilSerializer(obj).data
+        data = PerfilSerializer(obj, context={'request': request}).data
         obj.delete()
         return Response(data, status=status.HTTP_200_OK)
 
+    # ────────────────────────────────────────────────────────────
+    # FOTO DE PERFIL
+    # ────────────────────────────────────────────────────────────
 
+    @action(detail=False, methods=['post'], url_path='presigned-avatar')
+    def presigned_avatar(self, request):
+        """
+        POST /api/perfiles/presigned-avatar/
+        Body: { nombre, content_type, tamano_bytes? }
+        Respuesta: { upload_url, object_key, archivo_url }
+        """
+        nombre = request.data.get('nombre')
+        content_type = request.data.get('content_type', 'application/octet-stream')
+        tamano_bytes = request.data.get('tamano_bytes')
+
+        if not nombre:
+            return Response({'error': 'nombre es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        ok, resultado = validar_archivo(nombre, content_type, tamano_bytes)
+        if not ok:
+            return Response({'error': resultado}, status=status.HTTP_400_BAD_REQUEST)
+        content_type = resultado
+
+        if not content_type.startswith('image/'):
+            return Response(
+                {'error': 'Solo se aceptan imágenes para la foto de perfil'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        extension = nombre.rsplit('.', 1)[-1] if '.' in nombre else 'bin'
+        now = datetime.now()
+        object_key = f'multimedia/avatars/{now.year}/{now.month:02d}/{uuid.uuid4()}.{extension}'
+
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=settings.MINIO_ENDPOINT,
+            aws_access_key_id=settings.MINIO_ACCESS_KEY,
+            aws_secret_access_key=settings.MINIO_SECRET_KEY,
+            config=Config(signature_version='s3v4'),
+            region_name='us-east-1',
+        )
+
+        try:
+            upload_url = s3_client.generate_presigned_url(
+                'put_object',
+                Params={
+                    'Bucket': settings.MINIO_BUCKET_NAME,
+                    'Key': object_key,
+                    'ContentType': content_type,
+                    'ACL': 'public-read',
+                },
+                ExpiresIn=3600,
+            )
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        archivo_url = f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET_NAME}/{object_key}"
+
+        return Response({
+            'upload_url': upload_url,
+            'object_key': object_key,
+            'archivo_url': archivo_url,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='set-avatar')
+    def set_avatar(self, request, pk=None):
+        """
+        POST /api/perfiles/:id/set-avatar/
+        Body: { object_key }
+        """
+        try:
+            perfil = Perfil.objects.get(pk=pk)
+        except Perfil.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if perfil.usuario_id != request.user.usuario_id:
+            return Response(
+                {'error': 'No puedes cambiar la foto de otro perfil'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        object_key = request.data.get('object_key')
+        if not object_key:
+            return Response({'error': 'object_key es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not object_key.startswith('multimedia/avatars/'):
+            return Response(
+                {'error': 'object_key debe empezar por multimedia/avatars/'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        perfil.foto = object_key
+        perfil.save(update_fields=['foto'])
+        return Response(
+            PerfilSerializer(perfil, context={'request': request}).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=['delete'], url_path='avatar')
+    def delete_avatar(self, request, pk=None):
+        """
+        DELETE /api/perfiles/:id/avatar/
+        """
+        try:
+            perfil = Perfil.objects.get(pk=pk)
+        except Perfil.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        if perfil.usuario_id != request.user.usuario_id:
+            return Response(
+                {'error': 'No puedes borrar la foto de otro perfil'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        perfil.foto = None
+        perfil.save(update_fields=['foto'])
+        return Response({'ok': True}, status=status.HTTP_200_OK)
 class PerfilChatViewSet(viewsets.ViewSet, MiPerfilMixin):
     """
     Endpoints custom para la tabla pivote perfil_chat.

@@ -15,6 +15,8 @@ urlpatterns = [
     # Auth + usuarios
     path('api/auth/', include('apps.usuarios.urls_auth')),
     path('api/usuarios/', include('apps.usuarios.urls')),
+    path('api/stats/', include('apps.usuarios.urls_stats')),
+    path('api/presence/', include('apps.usuarios.urls_presence')),
 
     # Catálogo
     path('api/instrumentos/', include('apps.catalogo.urls_instrumento')),
@@ -42,4 +44,5 @@ urlpatterns = [
 
     # Multimedia
     path('api/multimedias/', include('apps.multimedia.urls')),
+
 ]

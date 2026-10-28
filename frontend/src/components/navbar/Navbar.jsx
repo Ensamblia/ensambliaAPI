@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
 import { NotificationsContext } from '@/context/NotificationsContext';
 import { Avatar, Badge, Button } from '@/components/ui';
+import { PerfilContext } from '@/context/PerfilContext';
 import styles from './Navbar.module.css';
 
 const LINKS = [
@@ -16,6 +17,7 @@ export function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const { totalUnread } = useContext(NotificationsContext);
   const navigate = useNavigate();
+  const { me } = useContext(PerfilContext);
 
   const handleLogout = () => {
     logout();
@@ -50,7 +52,7 @@ export function Navbar() {
       <div className={styles.cta}>
         {user ? (
           <>
-            <Avatar name={user.usuario} size="sm" />
+            <Avatar name={user.usuario} src={me?.foto_url} size="sm"/>
             <span className={styles.userName}>{user.usuario}</span>
             <Button variant="secondary" size="sm" onClick={handleLogout}>
               Cerrar sesión

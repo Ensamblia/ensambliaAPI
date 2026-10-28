@@ -172,7 +172,11 @@ export function PerfilPublicoPage() {
       {contactarError && <p className={styles.errorBanner}>{contactarError}</p>}
 
       <div className={styles.profileHeader}>
-        <div className={styles.avatar}>🎸</div>
+        {perfil.foto_url ? (
+          <img src={perfil.foto_url} alt={`Foto de ${perfil.nombre}`} className={styles.avatarImg} />
+          ) : (
+            <div className={styles.avatar}>🎸</div>
+          )}
         <div className={styles.profileInfo}>
           <p className={styles.profileName}>
             {perfil.nombre} {perfil.apellido}

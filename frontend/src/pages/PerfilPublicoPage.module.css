@@ -129,3 +129,11 @@
         text-align: center;
     }
 }
+
+.avatarImg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}

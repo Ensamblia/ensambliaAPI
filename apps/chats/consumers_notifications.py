@@ -2,6 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
+from apps.usuarios.presence import mark_online
 
 class NotificationsConsumer(AsyncWebsocketConsumer):
     """
@@ -28,6 +29,7 @@ class NotificationsConsumer(AsyncWebsocketConsumer):
 
         await self.channel_layer.group_add(self.user_group_name, self.channel_name)
         await self.accept()
+        await database_sync_to_async(mark_online)(self.perfil_id)
 
     async def disconnect(self, close_code):
         if hasattr(self, 'user_group_name'):

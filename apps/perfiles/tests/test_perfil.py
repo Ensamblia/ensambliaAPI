@@ -188,3 +188,95 @@ def test_no_borrar_perfil_ajeno(client_ana, perfil_luis):
     response = client_ana.delete(f'/api/perfiles/{perfil_luis.perfil_id}/')
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Perfil.objects.filter(perfil_id=perfil_luis.perfil_id).exists()
+
+
+@pytest.mark.django_db
+def test_editar_testimonio(client_ana, perfil_ana):
+    """Se puede editar el testimonio de un perfil existente."""
+    response = client_ana.put(f'/api/perfiles/{perfil_ana.perfil_id}/', {
+        'testimonio': 'Testimonio editado con más de cuarenta caracteres para el landing.',
+    })
+    assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
+    perfil_ana.refresh_from_db()
+    assert 'Testimonio editado' in perfil_ana.testimonio
+
+
+# ── Foto de perfil (M.4) ──
+
+@pytest.mark.django_db
+def test_presigned_avatar_ok(client_ana, perfil_ana):
+    """presigned-avatar devuelve upload_url, object_key, archivo_url."""
+    response = client_ana.post('/api/perfiles/presigned-avatar/', {
+        'nombre': 'foto.jpg',
+        'content_type': 'image/jpeg',
+        'tamano_bytes': 1024,
+    })
+    assert response.status_code == status.HTTP_200_OK
+    assert 'upload_url' in response.data
+    assert 'object_key' in response.data
+    assert 'archivo_url' in response.data
+    assert response.data['object_key'].startswith('multimedia/avatars/')
+
+
+@pytest.mark.django_db
+def test_presigned_avatar_solo_imagenes(client_ana, perfil_ana):
+    """presigned-avatar rechaza archivos que no son imagen."""
+    response = client_ana.post('/api/perfiles/presigned-avatar/', {
+        'nombre': 'doc.pdf',
+        'content_type': 'application/pdf',
+        'tamano_bytes': 1024,
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    error_lower = response.data['error'].lower()
+    assert 'imagen' in error_lower or 'imágen' in error_lower
+
+
+@pytest.mark.django_db
+def test_set_avatar_ok(client_ana, perfil_ana):
+    """set-avatar guarda el object_key en foto."""
+    object_key = 'multimedia/avatars/2026/10/test.jpg'
+    response = client_ana.post(f'/api/perfiles/{perfil_ana.perfil_id}/set-avatar/', {
+        'object_key': object_key,
+    })
+    assert response.status_code == status.HTTP_200_OK
+    perfil_ana.refresh_from_db()
+    assert perfil_ana.foto == object_key
+
+
+@pytest.mark.django_db
+def test_set_avatar_object_key_invalido(client_ana, perfil_ana):
+    """set-avatar rechaza object_key que no empieza por multimedia/avatars/."""
+    response = client_ana.post(f'/api/perfiles/{perfil_ana.perfil_id}/set-avatar/', {
+        'object_key': 'otro/sitio/test.jpg',
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_set_avatar_ajeno(client_ana, perfil_luis):
+    """No puedo cambiar la foto de otro perfil."""
+    response = client_ana.post(f'/api/perfiles/{perfil_luis.perfil_id}/set-avatar/', {
+        'object_key': 'multimedia/avatars/2026/10/test.jpg',
+    })
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_delete_avatar_ok(client_ana, perfil_ana):
+    """delete-avatar borra la foto (pone None)."""
+    perfil_ana.foto = 'multimedia/avatars/2026/10/test.jpg'
+    perfil_ana.save()
+    response = client_ana.delete(f'/api/perfiles/{perfil_ana.perfil_id}/avatar/')
+    assert response.status_code == status.HTTP_200_OK
+    perfil_ana.refresh_from_db()
+    assert not perfil_ana.foto
+
+
+@pytest.mark.django_db
+def test_perfil_serializer_incluye_foto_url(client_ana, perfil_ana):
+    """PerfilSerializer incluye foto_url."""
+    perfil_ana.foto = 'multimedia/avatars/2026/10/test.jpg'
+    perfil_ana.save()
+    response = client_ana.get(f'/api/perfiles/{perfil_ana.perfil_id}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert 'foto_url' in response.data
