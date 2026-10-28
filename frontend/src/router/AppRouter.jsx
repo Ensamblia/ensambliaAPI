@@ -8,6 +8,7 @@ import { HomePage } from '../pages/HomePage';
 import { AnunciosPage } from '../pages/AnunciosPage';
 import { LocalesPage } from '../pages/LocalesPage';
 import { PreciosPage } from '../pages/PreciosPage';
+import { MatchPage } from '../pages/MatchPage';
 import { AnuncioDetailPage } from '../pages/AnuncioDetailPage';
 import { PerfilPage } from '../pages/PerfilPage';
 import { PerfilPublicoPage } from '../pages/PerfilPublicoPage';
@@ -60,6 +61,7 @@ export function AppRouter() {
           >
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/match" element={<MatchPage />} />
             <Route path="/anuncios/crear" element={<CrearAnuncioPage />} />
           </Route>
         </Routes>

@@ -1,0 +1,80 @@
+/* MatchPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--sp-6);
+}
+
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+
+.opcion {
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color var(--dur-base) var(--ease-out),
+        background var(--dur-base) var(--ease-out);
+}
+
+.opcion:hover {
+    border-color: var(--border-strong);
+}
+
+.opcion:focus-visible {
+    outline: none;
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.35);
+}
+
+.opcionActiva,
+.opcionActiva:hover {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--white);
+}
+
+.select {
+    flex: 0 1 220px;
+    min-width: 180px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--sp-4);
+}
+
+.stateBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-8) 0;
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: calc(100% - 32px);
+    }
+
+    .select {
+        flex: 1 1 100%;
+    }
+}
