@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -38,12 +38,21 @@ describe('paramsDesdeFiltros', () => {
 
   it('omite los filtros vacíos y recorta la búsqueda', () => {
     expect(
-      paramsDesdeFiltros({ uso: '', comarca: '1', aforo_min: '', genero: '2', search: '  rock ' }),
+      paramsDesdeFiltros({ uso: '', ciudad: '', comarca: '1', aforo_min: '', genero: '2', search: '  rock ' }),
     ).toEqual({ comarca: '1', genero: '2', search: 'rock' });
+    expect(paramsDesdeFiltros({ ciudad: '3' })).toEqual({ ciudad: '3' });
   });
 });
 
 describe('LocalesPage', () => {
+  beforeEach(() => {
+    server.use(
+      http.get(`${API}/ciudades/`, () =>
+        HttpResponse.json([{ ciudad_id: 3, nombre: 'Getafe', comarca_id: 1 }]),
+      ),
+    );
+  });
+
   it('muestra los locales con su ciudad, aforo, tipos y afinidad', async () => {
     server.use(
       http.get(`${API}/locales/`, () => HttpResponse.json({ count: 1, results: [SALA] })),
@@ -51,7 +60,7 @@ describe('LocalesPage', () => {
     renderPage();
     const link = await screen.findByRole('link', { name: 'Sala Rock' });
     expect(link).toHaveAttribute('href', '/perfiles/7');
-    expect(screen.getByText('Getafe')).toBeInTheDocument();
+    expect(screen.getByText('Getafe', { selector: 'span' })).toBeInTheDocument();
     expect(screen.getByText('Aforo: 200')).toBeInTheDocument();
     expect(screen.getByText('Sala de conciertos')).toBeInTheDocument();
     expect(screen.getByText('En tu comarca · 2 estilos en común')).toBeInTheDocument();
@@ -91,5 +100,47 @@ describe('LocalesPage', () => {
     );
     renderPage();
     expect(await screen.findByText(/No se pudo cargar/i)).toBeInTheDocument();
+  });
+
+  it('filtrar por ciudad envía el parámetro ciudad', async () => {
+    const urls = [];
+    server.use(
+      http.get(`${API}/locales/`, ({ request }) => {
+        urls.push(new URL(request.url));
+        return HttpResponse.json({ count: 0, results: [] });
+      }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByRole('option', { name: 'Getafe' });
+    await user.selectOptions(screen.getByLabelText(/Filtrar por ciudad/i), '3');
+    await waitFor(() => {
+      expect(urls[urls.length - 1].searchParams.get('ciudad')).toBe('3');
+    });
+  });
+
+  it('una respuesta lenta de una búsqueda anterior no pisa la última', async () => {
+    const VIEJO = { ...SALA, perfil_id: 1, nombre: 'Resultado viejo' };
+    const NUEVO = { ...SALA, perfil_id: 2, nombre: 'Resultado nuevo' };
+    let primera = true;
+    server.use(
+      http.get(`${API}/locales/`, async () => {
+        if (primera) {
+          primera = false;
+          await new Promise((r) => setTimeout(r, 1200));
+          return HttpResponse.json({ count: 1, results: [VIEJO] });
+        }
+        return HttpResponse.json({ count: 1, results: [NUEVO] });
+      }),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await waitFor(() => expect(primera).toBe(false));
+    await user.selectOptions(screen.getByLabelText(/Para qué/i), 'ensayar');
+
+    expect(await screen.findByText('Resultado nuevo')).toBeInTheDocument();
+    await new Promise((r) => setTimeout(r, 1500));
+    expect(screen.queryByText('Resultado viejo')).not.toBeInTheDocument();
+    expect(screen.getByText('Resultado nuevo')).toBeInTheDocument();
   });
 });

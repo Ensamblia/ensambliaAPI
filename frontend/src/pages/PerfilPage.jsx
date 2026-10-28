@@ -53,6 +53,7 @@ export function PerfilPage() {
 
   const [bibliotecaRefresh, setBibliotecaRefresh] = useState(0);
   const [anunciosRefresh] = useState(0);
+  const [localRefresh, setLocalRefresh] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
@@ -426,10 +427,10 @@ export function PerfilPage() {
           {perfilId && form.tipo === 'local' && (
             <>
               <Card className={styles.contentCard}>
-                <DatosLocalForm perfilId={perfilId} />
+                <DatosLocalForm perfilId={perfilId} onSaved={() => setLocalRefresh((k) => k + 1)} />
               </Card>
               <Card className={styles.contentCard}>
-                <ArtistasSugeridos perfilId={perfilId} />
+                <ArtistasSugeridos perfilId={perfilId} refreshKey={localRefresh} />
               </Card>
             </>
           )}

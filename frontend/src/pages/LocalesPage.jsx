@@ -18,8 +18,11 @@ export function LocalesPage() {
   const [filtros, setFiltros] = useState({});
 
   const debounceRef = useRef(null);
+  // Solo la última petición puede actualizar la lista
+  const ultimaPeticionRef = useRef(0);
 
   const cargar = useCallback(async (filtrosActuales, nuevoOffset = 0) => {
+    const peticion = ++ultimaPeticionRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -28,17 +31,19 @@ export function LocalesPage() {
         limit: PAGE_SIZE,
         offset: nuevoOffset,
       });
+      if (peticion !== ultimaPeticionRef.current) return;
       setLocales(data.results ?? []);
       setCount(data.count ?? 0);
       setOffset(nuevoOffset);
     } catch (err) {
+      if (peticion !== ultimaPeticionRef.current) return;
       setError(
         err.response?.status === 400
           ? 'Revisa los filtros: alguno no es válido.'
           : 'No se pudo conectar con el servidor.',
       );
     } finally {
-      setLoading(false);
+      if (peticion === ultimaPeticionRef.current) setLoading(false);
     }
   }, []);
 

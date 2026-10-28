@@ -27,10 +27,11 @@ export function textoAfinidad({ misma_comarca, generos_comunes }) {
 }
 
 // Traduce el estado de los filtros a los query params de GET /api/locales/
-export function paramsDesdeFiltros({ uso, comarca, aforo_min, genero, search } = {}) {
+export function paramsDesdeFiltros({ uso, ciudad, comarca, aforo_min, genero, search } = {}) {
   const params = {};
   if (uso === 'ensayar') params.tipo = ['ensayo'];
   if (uso === 'tocar') params.tipo = TIPOS_PARA_TOCAR;
+  if (ciudad) params.ciudad = ciudad;
   if (comarca) params.comarca = comarca;
   if (aforo_min) params.aforo_min = aforo_min;
   if (genero) params.genero = genero;
