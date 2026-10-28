@@ -255,3 +255,29 @@
         text-align: center;
     }
 }
+
+.avatarImg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.cambiarFotoBtn {
+    margin-top: var(--sp-2);
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.cambiarFotoBtn:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+}

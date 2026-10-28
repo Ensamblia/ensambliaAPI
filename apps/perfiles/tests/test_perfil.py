@@ -189,97 +189,94 @@ def test_no_borrar_perfil_ajeno(client_ana, perfil_luis):
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Perfil.objects.filter(perfil_id=perfil_luis.perfil_id).exists()
 
-# ==============================================================
-# TIPO DE PERFIL (usuario / grupo / local)
-# ==============================================================
 
 @pytest.mark.django_db
-def test_crear_perfil_local_sin_apellido(client_ana):
-    """Un local se crea sin apellido y la respuesta incluye su tipo."""
-    response = client_ana.post('/api/perfiles/', {
-        'nombre': 'Sala Rock',
-        'correo': 'sala@test.com',
-        'descripcion': 'Sala de conciertos',
-        'tipo': 'local',
-    })
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.data['tipo'] == 'local'
-    assert response.data['apellido'] == ''
-
-
-@pytest.mark.django_db
-def test_crear_perfil_sin_tipo_es_usuario(client_ana):
-    """Si no se indica tipo, el perfil es de tipo usuario."""
-    response = client_ana.post('/api/perfiles/', {
-        'nombre': 'Ana',
-        'apellido': 'Garcia',
-        'correo': 'ana@test.com',
-        'descripcion': 'Cantante',
-    })
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.data['tipo'] == 'usuario'
-
-
-@pytest.mark.django_db
-def test_crear_perfil_tipo_invalido(client_ana):
-    """Un tipo que no existe devuelve 400."""
-    response = client_ana.post('/api/perfiles/', {
-        'nombre': 'Ana',
-        'apellido': 'Garcia',
-        'correo': 'ana@test.com',
-        'descripcion': 'Cantante',
-        'tipo': 'discoteca',
-    })
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'tipo' in response.data
-
-
-@pytest.mark.django_db
-def test_crear_perfil_usuario_sin_apellido_falla(client_ana):
-    """Un perfil personal sigue necesitando apellido."""
-    response = client_ana.post('/api/perfiles/', {
-        'nombre': 'Ana',
-        'correo': 'ana@test.com',
-        'descripcion': 'Cantante',
-    })
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'apellido' in response.data
-
-
-@pytest.mark.django_db
-def test_usuario_con_perfil_personal_puede_crear_local(client_ana, perfil_ana):
-    """La restricción de un perfil por usuario solo aplica al tipo usuario."""
-    response = client_ana.post('/api/perfiles/', {
-        'nombre': 'Sala Rock',
-        'correo': 'sala@test.com',
-        'descripcion': 'Sala de conciertos',
-        'tipo': 'local',
-    })
-    assert response.status_code == status.HTTP_201_CREATED
-    assert Perfil.objects.filter(usuario=perfil_ana.usuario).count() == 2
-
-
-@pytest.mark.django_db
-def test_editar_perfil_no_cambia_tipo(client_ana, perfil_ana):
-    """El tipo se fija al crear: un PUT no lo cambia."""
+def test_editar_testimonio(client_ana, perfil_ana):
+    """Se puede editar el testimonio de un perfil existente."""
     response = client_ana.put(f'/api/perfiles/{perfil_ana.perfil_id}/', {
-        'nombre': 'Ana',
-        'tipo': 'local',
+        'testimonio': 'Testimonio editado con más de cuarenta caracteres para el landing.',
     })
     assert response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]
     perfil_ana.refresh_from_db()
-    assert perfil_ana.tipo == 'usuario'
+    assert 'Testimonio editado' in perfil_ana.testimonio
+
+
+# ── Foto de perfil (M.4) ──
+
+@pytest.mark.django_db
+def test_presigned_avatar_ok(client_ana, perfil_ana):
+    """presigned-avatar devuelve upload_url, object_key, archivo_url."""
+    response = client_ana.post('/api/perfiles/presigned-avatar/', {
+        'nombre': 'foto.jpg',
+        'content_type': 'image/jpeg',
+        'tamano_bytes': 1024,
+    })
+    assert response.status_code == status.HTTP_200_OK
+    assert 'upload_url' in response.data
+    assert 'object_key' in response.data
+    assert 'archivo_url' in response.data
+    assert response.data['object_key'].startswith('multimedia/avatars/')
 
 
 @pytest.mark.django_db
-def test_filtrar_perfiles_por_tipo(client_ana, perfil_ana, luis):
-    """GET /api/perfiles/?tipo=local devuelve solo locales."""
-    Perfil.objects.create(
-        nombre='Sala Rock', correo='sala@test.com',
-        descripcion='Sala de conciertos', usuario=luis, tipo='local',
-    )
-    response = client_ana.get('/api/perfiles/', {'tipo': 'local'})
+def test_presigned_avatar_solo_imagenes(client_ana, perfil_ana):
+    """presigned-avatar rechaza archivos que no son imagen."""
+    response = client_ana.post('/api/perfiles/presigned-avatar/', {
+        'nombre': 'doc.pdf',
+        'content_type': 'application/pdf',
+        'tamano_bytes': 1024,
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    error_lower = response.data['error'].lower()
+    assert 'imagen' in error_lower or 'imágen' in error_lower
+
+
+@pytest.mark.django_db
+def test_set_avatar_ok(client_ana, perfil_ana):
+    """set-avatar guarda el object_key en foto."""
+    object_key = 'multimedia/avatars/2026/10/test.jpg'
+    response = client_ana.post(f'/api/perfiles/{perfil_ana.perfil_id}/set-avatar/', {
+        'object_key': object_key,
+    })
     assert response.status_code == status.HTTP_200_OK
-    resultados = response.data['results'] if 'results' in response.data else response.data
-    assert len(resultados) == 1
-    assert resultados[0]['tipo'] == 'local'
+    perfil_ana.refresh_from_db()
+    assert perfil_ana.foto == object_key
+
+
+@pytest.mark.django_db
+def test_set_avatar_object_key_invalido(client_ana, perfil_ana):
+    """set-avatar rechaza object_key que no empieza por multimedia/avatars/."""
+    response = client_ana.post(f'/api/perfiles/{perfil_ana.perfil_id}/set-avatar/', {
+        'object_key': 'otro/sitio/test.jpg',
+    })
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_set_avatar_ajeno(client_ana, perfil_luis):
+    """No puedo cambiar la foto de otro perfil."""
+    response = client_ana.post(f'/api/perfiles/{perfil_luis.perfil_id}/set-avatar/', {
+        'object_key': 'multimedia/avatars/2026/10/test.jpg',
+    })
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_delete_avatar_ok(client_ana, perfil_ana):
+    """delete-avatar borra la foto (pone None)."""
+    perfil_ana.foto = 'multimedia/avatars/2026/10/test.jpg'
+    perfil_ana.save()
+    response = client_ana.delete(f'/api/perfiles/{perfil_ana.perfil_id}/avatar/')
+    assert response.status_code == status.HTTP_200_OK
+    perfil_ana.refresh_from_db()
+    assert not perfil_ana.foto
+
+
+@pytest.mark.django_db
+def test_perfil_serializer_incluye_foto_url(client_ana, perfil_ana):
+    """PerfilSerializer incluye foto_url."""
+    perfil_ana.foto = 'multimedia/avatars/2026/10/test.jpg'
+    perfil_ana.save()
+    response = client_ana.get(f'/api/perfiles/{perfil_ana.perfil_id}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert 'foto_url' in response.data

@@ -1,5 +1,7 @@
 import "../styles/landing.css";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "@/api/axios";
 import {
     ArrowDownRight,
     ArrowUpRight,
@@ -66,6 +68,8 @@ const featureCards = [
     },
 ];
 
+// Fallback si el back no devuelve testimonios (o falla la petición).
+// Estos datos NO son reales: son un placeholder para no romper el diseño.
 const testimonials = [
     {
         quote:
@@ -186,6 +190,39 @@ function AppMockup() {
 }
 
 export function HomePage() {
+    const [stats, setStats] = useState(null);
+
+    useEffect(() => {
+        let cancelado = false;
+        api.get("/stats/")
+            .then((res) => {
+                if (!cancelado) setStats(res.data);
+            })
+            .catch(() => {
+                // Fallback silencioso
+            });
+        return () => {
+            cancelado = true;
+        };
+    }, []);
+
+    const colores = ["avatar--orange", "avatar--blue", "avatar--green"];
+    const testimoniosReales = (stats?.testimonios || []).map((t, i) => ({
+        quote: t.quote,
+        name: t.nombre,
+        role: t.rol,
+        initials: (t.nombre || "")
+            .split(" ")
+            .map((w) => w[0])
+            .filter(Boolean)
+            .join("")
+            .slice(0, 2)
+            .toUpperCase(),
+        color: colores[i % colores.length],
+    }));
+    const testimoniosAMostrar =
+        testimoniosReales.length > 0 ? testimoniosReales : testimonials;
+
     return (
         <main className="ensamblia-site" id="top">
             <section className="hero-section">
@@ -195,12 +232,12 @@ export function HomePage() {
                         <h1>Conecta.<br /><em>Toca.</em><br />Crea.</h1>
                         <p>La red social donde los músicos encuentran su banda, comparten su pasión y hacen música juntos.</p>
                         <div className="hero-actions"><Link className="button button--dark" to="/register">Crear cuenta <ArrowUpRight size={17} /></Link><button className="button button--ghost" onClick={() => scrollToSection("how-it-works")}><Play size={15} fill="currentColor" /> Ver cómo funciona</button></div>
-                        <div className="hero-proof"><div className="avatar-stack"><span className="stack-avatar stack-avatar--one">L</span><span className="stack-avatar stack-avatar--two">M</span><span className="stack-avatar stack-avatar--three">J</span><span className="stack-avatar stack-avatar--four">+</span></div><span><b>+10.000</b> músicos ya están dentro</span></div>
+                        <div className="hero-proof"><div className="avatar-stack"><span className="stack-avatar stack-avatar--one">L</span><span className="stack-avatar stack-avatar--two">M</span><span className="stack-avatar stack-avatar--three">J</span><span className="stack-avatar stack-avatar--four">+</span></div><span><b>{`+${(stats?.usuarios_activos ?? 10000).toLocaleString("es-ES")}`}</b> músicos ya están dentro</span></div>
                     </div>
                     <div className="hero-art">
                         <div className="hero-image-wrap"><img src="https://images.pexels.com/photos/8198122/pexels-photo-8198122.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Dos músicos tocando juntos en un estudio" /><div className="hero-image-overlay" /><div className="hero-caption"><span className="caption-dot" /><span>Hacer música<br /><b>es encontrarse.</b></span></div></div>
                         <div className="hero-card hero-card--top"><Music2 size={17} /><span><b>Tu gente está aquí</b><small>Encuentra tu próximo match</small></span></div>
-                        <div className="hero-card hero-card--bottom"><span className="pulse-icon"><span /></span><span><b>Ahora mismo</b><small>2.431 músicos conectados</small></span></div>
+                        <div className="hero-card hero-card--bottom"><span className="pulse-icon"><span /></span><span><b>Ahora mismo</b><small>{`${(stats?.usuarios_online ?? 2431).toLocaleString("es-ES")} músicos conectados`}</small></span></div>
                         <div className="hero-scribble">✦</div>
                     </div>
                 </div>
@@ -230,10 +267,10 @@ export function HomePage() {
             </section>
 
             <section className="community-section section-pad" id="community" aria-labelledby="community-title">
-                <div className="container"><div className="section-heading section-heading--center"><SectionLabel tone="orange">VOCES DE LA COMUNIDAD</SectionLabel><h2 id="community-title">Una comunidad<br /><span>que crece.</span></h2><p>Músicos de todo tipo de géneros ya están encontrando su lugar, su gente y sus próximas canciones.</p></div><div className="testimonial-grid">{testimonials.map((testimonial) => <article className="testimonial-card" key={testimonial.name}><div className="quote-mark">“</div><blockquote>{testimonial.quote}</blockquote><div className="testimonial-person"><div className={`testimonial-avatar ${testimonial.color}`}>{testimonial.initials}</div><span><b>{testimonial.name}</b><small>{testimonial.role}</small></span><Heart size={17} /></div></article>)}</div></div>
+                <div className="container"><div className="section-heading section-heading--center"><SectionLabel tone="orange">VOCES DE LA COMUNIDAD</SectionLabel><h2 id="community-title">Una comunidad<br /><span>que crece.</span></h2><p>Músicos de todo tipo de géneros ya están encontrando su lugar, su gente y sus próximas canciones.</p></div><div className="testimonial-grid">{testimoniosAMostrar.map((testimonial) => <article className="testimonial-card" key={`${testimonial.name}-${testimonial.quote}`}><div className="quote-mark">“</div><blockquote>{testimonial.quote}</blockquote><div className="testimonial-person"><div className={`testimonial-avatar ${testimonial.color}`}>{testimonial.initials}</div><span><b>{testimonial.name}</b><small>{testimonial.role}</small></span><Heart size={17} /></div></article>)}</div></div>
             </section>
 
-            <section className="stats-section"><div className="container stats-grid"><div><strong>+10.000</strong><span>MÚSICOS ACTIVOS</span></div><div><strong>+2.500</strong><span>GRUPOS FORMADOS</span></div><div><strong>+800</strong><span>EVENTOS AL MES</span></div><div><strong>+15.000</strong><span>MATCHES MUSICALES</span></div></div></section>
+            <section className="stats-section"><div className="container stats-grid"><div><strong>{`+${(stats?.usuarios_activos ?? 10000).toLocaleString("es-ES")}`}</strong><span>MÚSICOS ACTIVOS</span></div><div><strong>{`+${(stats?.grupos_formados ?? 2500).toLocaleString("es-ES")}`}</strong><span>GRUPOS FORMADOS</span></div><div><strong>{`+${(stats?.anuncios_mes ?? 800).toLocaleString("es-ES")}`}</strong><span>ANUNCIOS AL MES</span></div><div><strong>{`+${(stats?.matches ?? 15000).toLocaleString("es-ES")}`}</strong><span>MATCHES MUSICALES</span></div></div></section>
 
             <section className="join-section" id="join"><div className="join-orbit join-orbit--one" /><div className="join-orbit join-orbit--two" /><div className="container join-inner"><div className="join-spark join-spark--left">✦</div><div className="join-spark join-spark--right">✦</div><SectionLabel tone="dark">TU PRÓXIMO PROYECTO EMPIEZA HOY</SectionLabel><h2>¿Listo para encontrar<br /><em>tu grupo?</em></h2><p>Únete a Ensamblia gratis y empieza a conectar con músicos que comparten tu pasión.</p><Link className="button button--dark button--large" to="/register">Crear mi cuenta <ArrowUpRight size={18} /></Link><small>Sin tarjeta. Sin ruido. Solo música.</small></div></section>
 

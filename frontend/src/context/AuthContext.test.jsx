@@ -1,6 +1,7 @@
 // src/context/AuthContext.test.jsx
 import React, { useContext } from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi} from 'vitest';
+import api from '@/api/axios';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthContext, AuthProvider } from './AuthContext';
@@ -123,4 +124,19 @@ describe('AuthContext — evento auth:unauthorized', () => {
     expect(localStorage.getItem('ensamblia_token')).toBeNull();
     expect(localStorage.getItem('ensamblia_usuario')).toBeNull();
   });
+});
+
+it('logout llama a /presence/offline/', async () => {
+  localStorage.setItem('ensamblia_token', 'tok.x');
+  localStorage.setItem('ensamblia_usuario', 'ana');
+
+  // Espía de api.post
+  const postSpy = vi.spyOn(api, 'post').mockResolvedValue({ data: {} });
+
+  const user = userEvent.setup();
+  render(<AuthProvider><Probe /></AuthProvider>);
+  await user.click(screen.getByText('logout'));
+
+  expect(postSpy).toHaveBeenCalledWith('/presence/offline/');
+  expect(localStorage.getItem('ensamblia_token')).toBeNull();
 });

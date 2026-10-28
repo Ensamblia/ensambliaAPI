@@ -20,3 +20,18 @@ class RegistroSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     usuario = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    
+
+class TestimonioSerializer(serializers.Serializer):
+    nombre = serializers.CharField()
+    rol = serializers.CharField()
+    quote = serializers.CharField()
+
+
+class StatsSerializer(serializers.Serializer):
+    usuarios_activos = serializers.IntegerField()
+    usuarios_online = serializers.IntegerField()
+    grupos_formados = serializers.IntegerField()
+    anuncios_mes = serializers.IntegerField()
+    matches = serializers.IntegerField()
+    testimonios = TestimonioSerializer(many=True)

@@ -1,11 +1,12 @@
 // src/pages/PerfilPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import api, { parseApiError } from '@/api/axios';
 import { FileUploader } from '@/components/multimedia/FileUploader';
 import { MediaGallery } from '@/components/multimedia/MediaGallery';
 import { MisAnuncios } from '@/components/anuncios/MisAnuncios';
-import { DatosLocalForm } from '@/components/locales/DatosLocalForm';
-import { ArtistasSugeridos } from '@/components/locales/ArtistasSugeridos';
+import { PerfilContext } from '@/context/PerfilContext';
+import { uploadFile } from '@/api/multimedia';
+
 import { Link } from 'react-router-dom';
 import {
   Button,
@@ -29,6 +30,7 @@ const emptyForm = {
   apellido: '',
   correo: '',
   descripcion: '',
+  testimonio: '',
   comarcaTexto: '',
   tipo: 'usuario',
 };
@@ -54,6 +56,8 @@ export function PerfilPage() {
   const [bibliotecaRefresh, setBibliotecaRefresh] = useState(0);
   const [anunciosRefresh] = useState(0);
   const [localRefresh, setLocalRefresh] = useState(0);
+
+  const { me, refresh: refreshMe } = useContext(PerfilContext);
 
   useEffect(() => {
     let cancelado = false;
@@ -89,6 +93,7 @@ export function PerfilPage() {
             apellido: perfil.apellido || '',
             correo: perfil.correo || '',
             descripcion: perfil.descripcion || '',
+            testimonio: perfil.testimonio || '',
             comarcaTexto: comarca ? comarca.nombre : '',
             tipo: perfil.tipo || 'usuario',
           });
@@ -132,6 +137,44 @@ export function PerfilPage() {
       cancelado = true;
     };
   }, []);
+  const handleFotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !perfilId) return;
+    try {
+      // 1. Presigned
+      const presignedRes = await api.post('/perfiles/presigned-avatar/', {
+        nombre: file.name,
+        content_type: file.type || 'application/octet-stream',
+        tamano_bytes: file.size,
+      });
+      const { upload_url, object_key } = presignedRes.data;
+
+      // 2. PUT a MinIO con x-amz-acl
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', upload_url, true);
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+        xhr.setRequestHeader('x-amz-acl', 'public-read');
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error(`Error al subir: ${xhr.status}`));
+        };
+        xhr.onerror = () => reject(new Error('Error de red al subir'));
+        xhr.send(file);
+      });
+
+      // 3. set-avatar
+      await api.post(`/perfiles/${perfilId}/set-avatar/`, { object_key });
+
+      // 4. Refrescar me
+      refreshMe();
+      setSuccessMsg('Foto actualizada.');
+    } catch (err) {
+      setErrorMsg('No se pudo subir la foto. Inténtalo de nuevo.');
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
 
   const toggleInstr = (id) => {
     setInstrSelected((prev) => {
@@ -193,6 +236,7 @@ export function PerfilPage() {
       apellido: conApellido ? form.apellido.trim() : '',
       correo: form.correo.trim(),
       descripcion: form.descripcion.trim(),
+      testimonio: form.testimonio.trim() || null,
       comarca_id,
     };
 
@@ -272,7 +316,23 @@ export function PerfilPage() {
         {/* ── Columna izquierda: cabecera + formulario ── */}
         <aside className={styles.sidebar}>
           <div className={styles.profileHeader}>
-            <div className={styles.avatar}>🎸</div>
+            {me?.foto_url ? (
+              <img src={me.foto_url} alt="Foto de perfil" className={styles.avatarImg} />) : (
+                <div className={styles.avatar}>🎸</div>
+              )}
+            <button
+              type="button"
+              className={styles.cambiarFotoBtn}
+              onClick={() => document.getElementById('foto-input')?.click()}>
+              Cambiar foto
+            </button>
+            <input
+              id="foto-input"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFotoChange}
+            />
             <div className={styles.profileInfo}>
               <p className={styles.profileName}>
                 {form.nombre || form.apellido
@@ -343,6 +403,16 @@ export function PerfilPage() {
                   value={form.descripcion}
                   onChange={handleChange('descripcion')}
                 />
+              </Field>
+
+              <Field
+                label="Tu testimonio sobre Ensamblia"
+                hint="Se muestra en el landing (opcional, mín. 40 caracteres).">
+                <Textarea
+                  placeholder="¿Qué te ha aportado Ensamblia?"
+                  value={form.testimonio}
+                  onChange={handleChange('testimonio')}
+                  maxLength={500}/>
               </Field>
 
 <Field label="Comarca" hint="Empieza a escribir para ver sugerencias">

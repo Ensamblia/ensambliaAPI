@@ -2,6 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 
+from apps.usuarios.presence import mark_online, mark_offline
 
 class ChatConsumer(AsyncWebsocketConsumer):
     """
@@ -43,6 +44,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        # Presencia global (para stats del landing)
+        await database_sync_to_async(mark_online)(self.perfil_id)
+
         online_list = await self._presence_add(self.chat_id, self.perfil_id)
         snapshot_sin_mi = [p for p in online_list if p != self.perfil_id]
         await self.send(text_data=json.dumps({
@@ -78,6 +82,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'status': 'offline',
                 },
             )
+            await database_sync_to_async(mark_offline)(self.perfil_id)
 
     async def receive(self, text_data):
         try:

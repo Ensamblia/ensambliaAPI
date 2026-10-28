@@ -8,6 +8,8 @@ from apps.usuarios.models import Usuario
 from apps.perfiles.models import Perfil, PerfilChat
 from apps.chats.models import Chat
 
+from django_redis import get_redis_connection
+from apps.usuarios.presence import PRESENCE_KEY, mark_online, count_online
 
 async def get_token(usuario):
     """Genera un token JWT para un usuario."""
@@ -286,3 +288,44 @@ async def test_ws_borrar_mensaje_borra_adjuntos():
     assert msg.esta_eliminado is True
 
     await communicator.disconnect()
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_ws_notificaciones_marca_online():
+    """El WS global de notificaciones marca online al conectar.
+    NO marca offline al desconectar (grace period de 5 min)."""
+
+    redis = get_redis_connection('default')
+    redis.delete(PRESENCE_KEY)
+
+    usuario, perfil = await crear_usuario_y_perfil('ws_presence')
+    token = await get_token(usuario)
+
+    assert await database_sync_to_async(count_online)() == 0
+
+    communicator = WebsocketCommunicator(
+        application, f'/ws/notifications/?token={token}'
+    )
+    connected, _ = await communicator.connect()
+    assert connected is True
+
+    # Online
+    assert await database_sync_to_async(count_online)() == 1
+
+    await communicator.disconnect()
+    # Grace period: sigue online (no se marca offline al desconectar)
+    assert await database_sync_to_async(count_online)() == 1
+
+@pytest.mark.django_db
+def test_presence_offline_endpoint(client_ana, perfil_ana):
+    """POST /api/presence/offline/ marca al perfil como offline."""
+
+    redis = get_redis_connection('default')
+    redis.delete(PRESENCE_KEY)
+
+    mark_online(perfil_ana.perfil_id)
+    assert count_online() == 1
+
+    response = client_ana.post('/api/presence/offline/')
+    assert response.status_code == 200
+    assert count_online() == 0

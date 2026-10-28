@@ -96,7 +96,7 @@ CHANNEL_LAYERS = {
         'CONFIG': {
             'hosts': [
                 {
-                    'address': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}",
+                    'address': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6380')}",
                     'socket_timeout': 30,
                     'socket_connect_timeout': 30,
                     'socket_keepalive': True,
@@ -113,11 +113,15 @@ CHANNEL_LAYERS = {
 # ============================================================
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}/1",
+        # Usamos django_redis (no el backend nativo de Django) porque expone
+        # el cliente redis-py subyacente vía `get_redis_connection('default')`,
+        # necesario para operaciones de SortedSet (presencia de usuarios).
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6380')}/1",
         'OPTIONS': {
-            'socket_timeout': 30,
-            'socket_connect_timeout': 30,
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_TIMEOUT': 30,
+            'SOCKET_CONNECT_TIMEOUT': 30,
         },
     },
 }

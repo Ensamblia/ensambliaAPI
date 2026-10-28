@@ -35,6 +35,9 @@ export function AutorNombre({ perfilId }) {
 
   return (
     <Link to={`/perfiles/${perfilId}`} className={styles.link}>
+      {perfil.foto_url && (
+        <img src={perfil.foto_url} alt="" className={styles.miniAvatar} />
+      )}
       {perfil.nombre} {perfil.apellido}
     </Link>
   );

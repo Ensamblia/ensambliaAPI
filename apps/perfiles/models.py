@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.files.storage import storages
 
 
 class Perfil(models.Model):
@@ -46,6 +47,20 @@ class Perfil(models.Model):
     )
     disponibilidad = models.BooleanField(default=True, db_column='disponibilidad')
     descripcion = models.CharField(max_length=300, db_column='descripcion')
+    foto = models.FileField(
+        upload_to='multimedia/avatars/%Y/%m/',
+        storage=storages['public_media'],
+        null=True, blank=True,
+        db_column='foto_url',
+        max_length=500,
+        help_text='Foto de perfil (pública).',
+    )
+    testimonio = models.CharField(
+        max_length=500,
+        null=True, blank=True,
+        db_column='testimonio',
+        help_text='Testimonio del usuario sobre Ensamblia (opcional, se muestra en el landing).',
+    )
     tipo = models.CharField(
         max_length=20,
         choices=TipoPerfil.choices,

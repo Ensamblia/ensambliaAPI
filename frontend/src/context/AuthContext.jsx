@@ -1,5 +1,5 @@
-// src/context/AuthContext.jsx
 import React, { createContext, useEffect, useState } from 'react';
+import api from '@/api/axios';
 
 export const AuthContext = createContext();
 
@@ -24,6 +24,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Marcar offline en el back (best-effort; si falla, no rompemos el logout).
+    api.post('/presence/offline/').catch(() => {});
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USUARIO_KEY);
     setUser(null);

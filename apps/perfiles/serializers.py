@@ -1,3 +1,4 @@
+# apps/perfiles/serializers.py
 from rest_framework import serializers
 from apps.catalogo.models import Comarca
 from .models import (
@@ -8,16 +9,29 @@ from .models import (
 class PerfilSerializer(serializers.ModelSerializer):
     comarca_id = serializers.IntegerField(read_only=True, allow_null=True)
     usuario_id = serializers.IntegerField(read_only=True, allow_null=True)
+    foto_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Perfil
         fields = [
             'perfil_id', 'nombre', 'apellido', 'correo', 'numero_telefono',
-            'edad', 'sexo', 'disponibilidad', 'descripcion', 'tipo',
+            'edad', 'sexo', 'disponibilidad', 'descripcion', 'testimonio', 'tipo', 
             'fecha_creacion', 'fecha_baja',
-            'comarca_id', 'usuario_id',
+            'comarca_id', 'usuario_id', 'foto_url',
         ]
         read_only_fields = ['perfil_id', 'fecha_creacion', 'fecha_baja']
+
+    def get_foto_url(self, obj):
+        if not obj.foto:
+            return None
+        request = self.context.get('request')
+        try:
+            url = obj.foto.url
+            if request and not url.startswith('http'):
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            return None
 
 
 class PerfilCreateSerializer(serializers.ModelSerializer):
@@ -74,7 +88,8 @@ class PerfilUpdateSerializer(serializers.ModelSerializer):
         model = Perfil
         fields = [
             'nombre', 'apellido', 'correo', 'numero_telefono',
-            'edad', 'sexo', 'disponibilidad', 'descripcion', 'comarca_id',
+            'edad', 'sexo', 'disponibilidad', 'descripcion', 'testimonio',
+            'comarca_id',
         ]
 
 
