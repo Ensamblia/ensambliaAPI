@@ -182,3 +182,16 @@ def test_lista_devuelve_generos_del_local(api_client, escenario, genero_rock, ge
     assert sorted(response.data['results'][0]['generos']) == sorted(
         [genero_rock.genero_musical_id, genero_jazz.genero_musical_id],
     )
+
+
+# La comarca de un local sale de su ciudad, aunque perfil.comarca se haya
+# sobrescrito después (p. ej. al guardar el formulario general de Mi perfil).
+@pytest.mark.django_db
+def test_afinidad_usa_comarca_de_la_ciudad_del_local(client_ana, perfil_ana, escenario, comarca):
+    perfil_ana.comarca = comarca
+    perfil_ana.save()
+    Perfil.objects.filter(pk=escenario['madrid_rock'].pk).update(comarca=None)
+
+    response = client_ana.get(URL)
+    fila = next(r for r in response.data['results'] if r['perfil_id'] == escenario['madrid_rock'].perfil_id)
+    assert fila['misma_comarca'] is True

@@ -83,3 +83,13 @@ def test_sugeridos_publico_sin_login(api_client, perfil_local_luis):
     response = api_client.get(url(perfil_local_luis))
     assert response.status_code == status.HTTP_200_OK
     assert response.data['count'] == 0
+
+
+@pytest.mark.django_db
+def test_sugeridos_usa_comarca_de_la_ciudad_del_local(api_client, local_madrid_rock, comarca):
+    cerca = crear_perfil('cercano', comarca=comarca)
+    Perfil.objects.filter(pk=local_madrid_rock.pk).update(comarca=None)
+
+    response = api_client.get(url(local_madrid_rock))
+    fila = next(r for r in response.data['results'] if r['perfil_id'] == cerca.perfil_id)
+    assert fila['misma_comarca'] is True

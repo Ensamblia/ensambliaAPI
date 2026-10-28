@@ -92,7 +92,7 @@ class LocalListView(APIView):
         if search:
             qs = qs.filter(Q(nombre__icontains=search) | Q(descripcion__icontains=search))
 
-        qs = anotar_afinidad(qs, perfil_de_referencia(request))
+        qs = anotar_afinidad(qs, perfil_de_referencia(request), 'local__ciudad__comarca_id')
         qs = qs.select_related('local__ciudad').annotate(
             generos_ids=ArrayAgg(
                 'perfil_generos__genero_id',
