@@ -28,6 +28,7 @@ urlpatterns = [
     # Perfiles
     path('api/perfiles/', include('apps.perfiles.urls')),
     path('api/locales/', include('apps.locales.urls')),
+    path('api/match/', include('apps.matching.urls')),
     path('api/perfil-chats/', include('apps.perfiles.urls_perfil_chat')),
     path('api/perfil-genero-musicales/', include('apps.perfiles.urls_perfil_genero_musical')),
     path('api/perfil-grupos/', include('apps.perfiles.urls_perfil_grupo')),
