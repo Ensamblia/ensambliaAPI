@@ -15,6 +15,7 @@ import {
 } from '@/components/ui';
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
 import { DatosLocalInfo } from '@/components/locales/DatosLocalInfo';
+import { ProximosEventos } from '@/components/eventos/ProximosEventos';
 import styles from './PerfilPublicoPage.module.css';
 
 export function PerfilPublicoPage() {
@@ -203,6 +204,8 @@ export function PerfilPublicoPage() {
         {perfil.tipo === 'local' && (
           <DatosLocalInfo perfilId={id} className={styles.section} />
         )}
+
+        <ProximosEventos perfilId={id} className={styles.section} />
 
         <div className={styles.section}>
           <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>

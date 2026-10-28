@@ -1,0 +1,45 @@
+/* CrearEventoPage.module.css — complementa a CrearAnuncioPage.module.css */
+.campos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+}
+
+.fila {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+}
+
+.estilos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2) var(--sp-4);
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.legend {
+    width: 100%;
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.estilo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .fila {
+        grid-template-columns: 1fr;
+    }
+}

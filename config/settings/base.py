@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.multimedia',
     'apps.locales',
     'apps.matching',
+    'apps.eventos',
 ]
 
 MIDDLEWARE = [

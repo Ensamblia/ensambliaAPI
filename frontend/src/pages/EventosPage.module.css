@@ -1,0 +1,68 @@
+/* EventosPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-7) 0 var(--sp-8);
+}
+
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: var(--sp-6);
+}
+
+.select {
+    flex: 0 1 200px;
+    min-width: 160px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    gap: var(--sp-6);
+    align-items: start;
+}
+
+.lista {
+    min-width: 0;
+}
+
+.eventos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stateBox {
+    display: flex;
+    justify-content: center;
+    padding: var(--sp-8) 0;
+}
+
+@media (max-width: 860px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .layout > :first-child {
+        width: 100%;
+        max-width: 420px;
+        justify-self: center;
+    }
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: calc(100% - 32px);
+    }
+
+    .select {
+        flex: 1 1 100%;
+    }
+}

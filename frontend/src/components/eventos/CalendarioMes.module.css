@@ -1,0 +1,111 @@
+/* CalendarioMes.module.css */
+.calendario {
+    padding: var(--sp-4);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--sp-3);
+}
+
+.mes {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-black);
+    color: var(--text-primary);
+    text-transform: capitalize;
+    letter-spacing: -0.02em;
+}
+
+.nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.nav:hover {
+    border-color: var(--border-strong);
+}
+
+.rejilla {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: var(--sp-1);
+}
+
+.diaSemana {
+    padding: var(--sp-1) 0;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+}
+
+.hueco {
+    aspect-ratio: 1;
+}
+
+.dia {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    aspect-ratio: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.dia:hover {
+    background: var(--paper);
+}
+
+.dia:focus-visible {
+    outline: none;
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.35);
+}
+
+.conEventos {
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+}
+
+.hoy {
+    border-color: var(--border-strong);
+}
+
+.seleccionado,
+.seleccionado:hover {
+    background: var(--ink);
+    color: var(--white);
+}
+
+.punto {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--coral-deep);
+}
+
+.seleccionado .punto {
+    background: var(--yellow);
+}

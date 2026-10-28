@@ -9,6 +9,9 @@ import { AnunciosPage } from '../pages/AnunciosPage';
 import { LocalesPage } from '../pages/LocalesPage';
 import { PreciosPage } from '../pages/PreciosPage';
 import { MatchPage } from '../pages/MatchPage';
+import { EventosPage } from '../pages/EventosPage';
+import { EventoDetailPage } from '../pages/EventoDetailPage';
+import { CrearEventoPage } from '../pages/CrearEventoPage';
 import { AnuncioDetailPage } from '../pages/AnuncioDetailPage';
 import { PerfilPage } from '../pages/PerfilPage';
 import { PerfilPublicoPage } from '../pages/PerfilPublicoPage';
@@ -30,6 +33,8 @@ export function AppRouter() {
             <Route path="/anuncios" element={<AnunciosPage />} />
             <Route path="/locales" element={<LocalesPage />} />
             <Route path="/precios" element={<PreciosPage />} />
+            <Route path="/eventos" element={<EventosPage />} />
+            <Route path="/eventos/:id" element={<EventoDetailPage />} />
             <Route path="/anuncios/:id" element={<AnuncioDetailPage />} />
             <Route path="/perfiles/:id" element={<PerfilPublicoPage />} />
             <Route
@@ -62,6 +67,7 @@ export function AppRouter() {
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/match" element={<MatchPage />} />
+            <Route path="/eventos/crear" element={<CrearEventoPage />} />
             <Route path="/anuncios/crear" element={<CrearAnuncioPage />} />
           </Route>
         </Routes>
