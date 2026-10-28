@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db import transaction
 from django.db.models import Q, Value
 from apps.perfiles.models import Perfil
 from apps.usuarios.pagination import StandardLimitOffsetPagination
@@ -88,7 +89,8 @@ class LocalListView(APIView):
             qs = qs.filter(
                 pk__in=Perfil.objects.filter(perfil_generos__genero_id__in=generos).values('pk'),
             )
-        search = params.get('search', '').strip()
+        # Postgres no admite el carácter NUL en textos
+        search = params.get('search', '').replace('\x00', '').strip()
         if search:
             qs = qs.filter(Q(nombre__icontains=search) | Q(descripcion__icontains=search))
 
@@ -139,10 +141,14 @@ class LocalDetailView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        existente = Local.objects.filter(perfil=perfil).first()
-        serializer = LocalWriteSerializer(existente, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(perfil=perfil)
+        # Atómico y con el perfil bloqueado: dos PUT simultáneos van en fila
+        # y no quedan datos a medias si falla la copia de la comarca al perfil
+        with transaction.atomic():
+            Perfil.objects.select_for_update().filter(pk=perfil.pk).first()
+            existente = Local.objects.filter(perfil=perfil).first()
+            serializer = LocalWriteSerializer(existente, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(perfil=perfil)
 
         perfil.refresh_from_db()
         return Response(LocalPerfilSerializer(perfil).data, status=status.HTTP_200_OK)
