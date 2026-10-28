@@ -1,9 +1,23 @@
 # Ensamblia
 
-Red social para músicos. API en Django + DRF + Channels, frontend en React + Vite.
+Plataforma para conectar músicos, grupos y locales: perfiles, anuncios, chat,
+búsqueda de locales, match con motivos y calendario de eventos.
+API en Django + DRF + Channels, frontend en React + Vite.
 
 Migrada desde Node.js/Express. El frontend se rediseñó completo en 2026
 siguiendo el design system del landing (amarillo/crema/ink + DM Mono).
+
+---
+
+## Qué hace
+
+- **Perfiles** de tipo músico, grupo o local. Un local añade ciudad, dirección, aforo y tipo (ensayo, sala, bar, teatro…).
+- **Anuncios** con comentarios y multimedia, y un bloque opcional **"¿Qué buscas?"** (tipo de perfil, instrumento, estilos).
+- **Chat** en tiempo real con adjuntos y notificaciones.
+- **Locales** (`/locales`): búsqueda por tipo (ensayar o tocar), ciudad, comarca, aforo y estilo, ordenada por afinidad.
+- **Match** (`/match`): músicos, grupos, locales de ensayo, locales para tocar y anuncios que encajan contigo, con el motivo de cada sugerencia (cercanía, estilos en común, instrumento).
+- **Eventos** (`/eventos`): calendario mensual de conciertos y actuaciones, con detalle y publicación.
+- **Precios** (`/precios`): planes Free, Basic y Premium. Todavía sin pasarela de pago (ver #64).
 
 ---
 
@@ -18,7 +32,7 @@ siguiendo el design system del landing (amarillo/crema/ink + DM Mono).
 - Redis 7 (Channels + cache de presencia)
 - MinIO (S3-compatible) para archivos
 - Daphne (ASGI, WebSockets)
-- pytest + pytest-django + pytest-asyncio (208 tests)
+- pytest + pytest-django + pytest-asyncio (330 tests)
 
 ### Front
 
@@ -26,7 +40,7 @@ siguiendo el design system del landing (amarillo/crema/ink + DM Mono).
 - Vite 8
 - React Router 7
 - CSS Modules (cero estilos inline)
-- Vitest 5 + Testing Library + MSW 3 + mock-socket (239 tests)
+- Vitest 5 + Testing Library + MSW 3 + mock-socket (317 tests)
 - lucide-react (iconos)
 
 ---
@@ -58,7 +72,8 @@ Debes ver:
 
 ### 2. Back
 
-    cd "Proyecto final - Ensamblia"
+Desde la raíz del repositorio:
+
     python -m venv .venv
     # Windows: .\.venv\Scripts\Activate.ps1
     # Linux/Mac: source .venv/bin/activate
@@ -86,6 +101,14 @@ Debes ver:
 
 - App: http://localhost:5173
 
+### Después de cada `git pull`
+
+Si han entrado migraciones nuevas (por ejemplo `locales`, `matching` o `eventos`), aplícalas antes de arrancar:
+
+    python manage.py migrate
+
+Si no, las páginas nuevas devolverán error 500 porque faltarán sus tablas.
+
 ### Credenciales del seed
 
 - `ana` / `ana123`
@@ -100,7 +123,12 @@ Debes ver:
 
     python -m pytest -q
 
-208 tests. Cubren:
+La primera vez después de que entren modelos nuevos, crea de nuevo la BD de test
+(`pytest.ini` la reutiliza y no ve las tablas nuevas):
+
+    python -m pytest -q --create-db
+
+330 tests. Cubren:
 
 - Auth (registro, login, tokens, 401/403)
 - Perfiles (CRUD, validaciones, N:M)
@@ -112,6 +140,9 @@ Debes ver:
 - WebSockets (conexión, mensajes, typing, edición, borrado, adjuntos)
 - Catálogo (permisos admin)
 - Multimedia (CRUD, presigned URL, contrato storage híbrido)
+- Locales (datos del local, búsqueda con filtros y afinidad, artistas sugeridos)
+- Match (sugerencias por tipo, motivos, "¿Qué buscas?" de anuncios, anuncios para mí, candidatos)
+- Eventos (crear, listar por fechas y filtros, editar y borrar solo el autor, no suplantar locales)
 
 ### Front
 
@@ -120,7 +151,11 @@ Debes ver:
     npm run test
     npm run test:coverage
 
-239 tests. Cubren:
+Lint (no hay script `npm run lint`):
+
+    npx oxlint src
+
+317 tests. Cubren:
 
 - `api/axios` (extractList, parseApiError, interceptor 401, barra final)
 - `AuthContext` (hidratación, login, logout, evento auth:unauthorized)
@@ -130,7 +165,8 @@ Debes ver:
 - Páginas (Login, Register, 404, Anuncios, Detalle, Crear, Perfil público)
 - Chat (ChatBox, ConversationItem, ChatHeader, MensajeBubble, MessageInput, DeleteMessageModal, AdjuntoPreview)
 - Multimedia (MultimediaPreview, FileUploader, MediaGallery, EditarMediosModal)
-- Anuncios (AnuncioCard, MisAnuncios, Comentarios, FiltrosAnuncios)
+- Anuncios (AnuncioCard, MisAnuncios, Comentarios, FiltrosAnuncios, "¿Qué buscas?")
+- Locales, Match, Eventos (calendario, crear, detalle) y Precios
 
 ---
 
@@ -168,6 +204,24 @@ El front usa CSS Modules en todas partes (cero estilos inline) y un design syste
 - Alias `@/` -> `src/` (configurado en `vite.config.js` y `jsconfig.json`).
 
 El landing (`/`) mantiene su propio `landing.css` (diseño original), y el resto de la app usa el design system.
+
+---
+
+## Endpoints añadidos en octubre de 2026
+
+La documentación completa está en Swagger (`/api/docs/`).
+
+| Método y ruta | Acceso | Para qué |
+|---|---|---|
+| `GET /api/locales/` | Público | Buscar locales (ciudad, comarca, aforo, tipo, estilo, texto). Con sesión, ordena por afinidad |
+| `GET` / `PUT /api/locales/<id>/` | Público / dueño | Datos de un local |
+| `GET /api/locales/<id>/artistas-sugeridos/` | Público | Músicos y grupos que encajan con un local |
+| `GET /api/match/?busco=musico\|grupo\|ensayo\|tocar\|anuncios` | Con sesión | Sugerencias con sus motivos |
+| `GET` / `PUT /api/match/anuncios/<id>/busqueda/` | Público / autor | "¿Qué buscas?" de un anuncio (si no lo tiene, se deduce del texto) |
+| `GET /api/match/anuncios/<id>/candidatos/` | Autor | Perfiles que encajan con su anuncio |
+| `GET` / `POST /api/eventos/` | Público / con sesión | Listar eventos (desde, hasta, ciudad, comarca, género, perfil) y publicar |
+| `GET` / `PUT` / `DELETE /api/eventos/<id>/` | Público / autor | Detalle, editar y borrar |
+| `GET /api/eventos/mis-perfiles/` | Con sesión | Perfiles con los que puedo publicar |
 
 ---
 
@@ -209,7 +263,10 @@ Reconexión: el front reintenta cada 2s si el WS se cae.
     │   ├── perfiles/
     │   ├── anuncios/
     │   ├── chats/
-    │   └── multimedia/
+    │   ├── multimedia/
+    │   ├── locales/      # datos de local y búsqueda con afinidad
+    │   ├── matching/     # match y "¿Qué buscas?" de anuncios
+    │   └── eventos/      # calendario de eventos
     ├── ensamblia DB/
     │   ├── docker-compose.yml
     │   └── .env
@@ -241,6 +298,8 @@ Cosas a vigilar:
 - URLs firmadas de `chat/*` caducan a los 300s. Si un usuario deja el chat abierto mucho tiempo, los adjuntos antiguos que se cargan al hacer scroll tendrán URLs caducadas. Pendiente: `onError` en AdjuntoPreview que re-firme.
 - Vídeos del chat: se muestran con controles nativos, sin lightbox. Los de multimedia (anuncios/perfil) sí se amplían. Decisión consciente.
 - WS de notificaciones en StrictMode: resuelto en G.3 (creación diferida del socket).
+- 2 tests de `apps/chats/tests/test_websocket.py` fallan por timeout (ver #65).
+- BDs locales creadas con el SQL antiguo de Node: a las tablas pivote les falta la columna `id` y algunos endpoints dan 500. Hay que recrear la BD con `migrate` (ver #66).
 
 ---
 
