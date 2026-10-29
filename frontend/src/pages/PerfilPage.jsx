@@ -6,6 +6,8 @@ import { MediaGallery } from '@/components/multimedia/MediaGallery';
 import { MisAnuncios } from '@/components/anuncios/MisAnuncios';
 import { PerfilContext } from '@/context/PerfilContext';
 import { uploadFile } from '@/api/multimedia';
+import { DatosLocalForm } from '@/components/locales/DatosLocalForm';
+import { ArtistasSugeridos } from '@/components/locales/ArtistasSugeridos';
 
 import { Link } from 'react-router-dom';
 import {
@@ -355,7 +357,14 @@ export function PerfilPage() {
               <SectionLabel tone="blue">INFORMACIÓN BÁSICA</SectionLabel>
 
               {!perfilId && (
-                <Field label="Tipo de perfil">
+                <Field
+                  label="Tipo de perfil"
+                  hint={
+                    form.tipo === 'local'
+                      ? 'Guarda el perfil y después podrás añadir los datos del local.'
+                      : ''
+                  }
+                >
                   <Select value={form.tipo} onChange={handleChange('tipo')}>
                     {TIPOS_PERFIL.map((t) => (
                       <option key={t.value} value={t.value}>
