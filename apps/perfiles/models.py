@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
-from django.core.files.storage import storages
 
+from apps.multimedia.models import public_media_storage
 
 class Perfil(models.Model):
     class TipoPerfil(models.TextChoices):
@@ -49,7 +49,7 @@ class Perfil(models.Model):
     descripcion = models.CharField(max_length=300, db_column='descripcion')
     foto = models.FileField(
         upload_to='multimedia/avatars/%Y/%m/',
-        storage=storages['public_media'],
+        storage=public_media_storage,
         null=True, blank=True,
         db_column='foto_url',
         max_length=500,
