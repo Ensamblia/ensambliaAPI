@@ -1,6 +1,11 @@
 from django.db import models
 from django.core.files.storage import storages
 
+
+def public_media_storage():
+    # Callable para que las migraciones guarden una referencia y no la config (con credenciales)
+    return storages['public_media']
+
 class Multimedia(models.Model):
     """
     Biblioteca de medios de un perfil.
@@ -16,7 +21,7 @@ class Multimedia(models.Model):
         null=True, blank=True,
         # La biblioteca de medios es pública: URLs estables sin firma.
         # El bucket policy permite GetObject anónimo solo en multimedia/*.
-        storage=storages['public_media'],
+        storage=public_media_storage,
     )
     tamano_bytes = models.BigIntegerField(null=True, blank=True, db_column='tamano_bytes')
     fecha_subida = models.DateTimeField(auto_now_add=True, db_column='fecha_subida')
