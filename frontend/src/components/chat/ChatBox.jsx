@@ -546,7 +546,8 @@ export function ChatBox() {
   }
 
   return (
-    <div className={styles.layout}>
+    // En móvil se ve la lista o la conversación, no las dos (ver ChatBox.module.css)
+    <div className={[styles.layout, active ? styles.layoutChatAbierto : ''].filter(Boolean).join(' ')}>
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
@@ -574,6 +575,7 @@ export function ChatBox() {
             nombre={active.nombre}
             wsConnected={wsConnected}
             otroOnline={otroOnline}
+            onBack={() => setActiveId(null)}
           />
 
           <div className={styles.messagesArea} ref={messagesAreaRef}>

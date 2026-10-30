@@ -2,6 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { NotificationsContext } from '@/context/NotificationsContext';
@@ -96,5 +97,36 @@ await waitFor(() => {
   // Aparece en la sidebar (ConversationItem) Y en la cabecera (ChatHeader).
   expect(screen.getAllByText('Luis Flotu').length).toBeGreaterThanOrEqual(1);
 });
+  });
+
+  it('el botón de volver cierra la conversación y deja ver la lista', async () => {
+    wsMock = installMockWebSocket('ws://localhost:8000');
+    server.use(
+      http.get(`${API}/perfiles/me/`, () =>
+        HttpResponse.json({ perfil_id: 1, nombre: 'Ana', apellido: 'García', usuario_id: 1 }),
+      ),
+      http.get(`${API}/perfil-chats/perfil/`, () => HttpResponse.json([{ perfil_id: 1, chat_id: 42 }])),
+      http.get(`${API}/perfil-chats/chat/`, () =>
+        HttpResponse.json([
+          { perfil_id: 1, chat_id: 42 },
+          { perfil_id: 2, chat_id: 42 },
+        ]),
+      ),
+      http.get(`${API}/perfiles/2/`, () =>
+        HttpResponse.json({ perfil_id: 2, nombre: 'Luis', apellido: 'Flotu', usuario_id: 2 }),
+      ),
+      http.get(`${API}/mensajes/chat/`, () => HttpResponse.json({ results: [], has_more: false })),
+    );
+    const { container } = renderChatBox({ route: '/chat?chat=42' });
+
+    const volver = await screen.findByRole('button', { name: /Volver a las conversaciones/i });
+    // Con un chat abierto, en móvil se oculta la lista (clase del layout)
+    expect(container.firstChild.className).toMatch(/layoutChatAbierto/);
+
+    await userEvent.click(volver);
+    expect(await screen.findByText('Selecciona una conversación')).toBeInTheDocument();
+    expect(container.firstChild.className).not.toMatch(/layoutChatAbierto/);
+    // La conversación sigue en la lista para volver a abrirla
+    expect(screen.getByText('Luis Flotu')).toBeInTheDocument();
   });
 });
