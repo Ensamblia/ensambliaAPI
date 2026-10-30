@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from channels.testing import WebsocketCommunicator
 from channels.db import database_sync_to_async
@@ -38,7 +40,9 @@ async def crear_usuario_y_perfil(nickname):
 async def test_ws_conectar_sin_token():
     """Sin token el WebSocket se rechaza."""
     communicator = WebsocketCommunicator(application, '/ws/chat/1/')
-    connected, _ = await communicator.connect()
+    # Es el primer test del archivo: la primera conexión carga la app ASGI y
+    # puede pasar del segundo que espera connect() por defecto (#65)
+    connected, _ = await communicator.connect(timeout=5)
     assert connected is False
     await communicator.disconnect()
 
@@ -263,16 +267,21 @@ async def test_ws_borrar_mensaje_borra_adjuntos():
     assert connected is True
     await communicator.receive_json_from()  # presence_snapshot
 
-    # Enviar borrar_mensaje
-    await communicator.send_json_to({
-        'tipo': 'borrar_mensaje',
-        'mensaje_id': mensaje_id,
-    })
+    # El borrado del archivo en MinIO se simula: si MinIO no está arrancado
+    # (o va lento), boto3 reintenta varios segundos y el test daba timeout (#65)
+    storage = MensajeAdjunto._meta.get_field('archivo').storage
+    with patch.object(storage, 'delete') as borrar_en_minio:
+        # Enviar borrar_mensaje
+        await communicator.send_json_to({
+            'tipo': 'borrar_mensaje',
+            'mensaje_id': mensaje_id,
+        })
 
-    # Recibir el evento mensaje_borrado
-    response = await communicator.receive_json_from()
+        # Recibir el evento mensaje_borrado
+        response = await communicator.receive_json_from(timeout=5)
     assert response['tipo'] == 'mensaje_borrado'
     assert response['mensaje_id'] == mensaje_id
+    borrar_en_minio.assert_called_once_with('chat/2026/10/test.jpg')
 
     # Verificar que el adjunto se ha borrado
     adjunto_existe = await database_sync_to_async(
