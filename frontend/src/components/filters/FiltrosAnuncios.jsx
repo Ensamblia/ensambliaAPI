@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import api, { extractList } from '@/api/axios';
 import { Button, Input, Select } from '@/components/ui';
+import { PanelFiltros } from './PanelFiltros';
 import styles from './FiltrosAnuncios.module.css';
 
 export function FiltrosAnuncios({ onFilter, initialValues = {} }) {
@@ -46,10 +47,9 @@ export function FiltrosAnuncios({ onFilter, initialValues = {} }) {
     setOrdering('-fecha_publicacion');
   };
 
-  const hayFiltrosActivos =
-    busqueda.trim() !== '' ||
-    tipoAnuncioId !== '' ||
-    ordering !== '-fecha_publicacion';
+  // Los que quedan dentro del panel plegable (la búsqueda siempre se ve)
+  const activosEnPanel = [tipoAnuncioId !== '', ordering !== '-fecha_publicacion'].filter(Boolean).length;
+  const hayFiltrosActivos = busqueda.trim() !== '' || activosEnPanel > 0;
 
   return (
     <div className={styles.wrapper}>
@@ -63,36 +63,38 @@ export function FiltrosAnuncios({ onFilter, initialValues = {} }) {
         />
       </div>
 
-      <div className={styles.select}>
-        <Select
-          value={tipoAnuncioId}
-          onChange={(e) => setTipoAnuncioId(e.target.value)}
-          disabled={loadingTipos}
-          aria-label="Filtrar por tipo de anuncio"
-        >
-          <option value="">
-            {loadingTipos ? 'Cargando…' : 'Todos los tipos'}
-          </option>
-          {tipos.map((t) => (
-            <option key={t.tipo_anuncio_id} value={t.tipo_anuncio_id}>
-              {t.tipo}
+      <PanelFiltros activos={activosEnPanel}>
+        <div className={styles.select}>
+          <Select
+            value={tipoAnuncioId}
+            onChange={(e) => setTipoAnuncioId(e.target.value)}
+            disabled={loadingTipos}
+            aria-label="Filtrar por tipo de anuncio"
+          >
+            <option value="">
+              {loadingTipos ? 'Cargando…' : 'Todos los tipos'}
             </option>
-          ))}
-        </Select>
-      </div>
+            {tipos.map((t) => (
+              <option key={t.tipo_anuncio_id} value={t.tipo_anuncio_id}>
+                {t.tipo}
+              </option>
+            ))}
+          </Select>
+        </div>
 
-      <div className={styles.select}>
-        <Select
-          value={ordering}
-          onChange={(e) => setOrdering(e.target.value)}
-          aria-label="Ordenar anuncios"
-        >
-          <option value="-fecha_publicacion">Más recientes</option>
-          <option value="fecha_publicacion">Más antiguos</option>
-          <option value="titulo">Título A→Z</option>
-          <option value="-titulo">Título Z→A</option>
-        </Select>
-      </div>
+        <div className={styles.select}>
+          <Select
+            value={ordering}
+            onChange={(e) => setOrdering(e.target.value)}
+            aria-label="Ordenar anuncios"
+          >
+            <option value="-fecha_publicacion">Más recientes</option>
+            <option value="fecha_publicacion">Más antiguos</option>
+            <option value="titulo">Título A→Z</option>
+            <option value="-titulo">Título Z→A</option>
+          </Select>
+        </div>
+      </PanelFiltros>
 
       {hayFiltrosActivos && (
         <Button
