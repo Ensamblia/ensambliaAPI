@@ -54,9 +54,10 @@ export function Navbar() {
   return (
     <nav className={styles.nav} aria-label="Navegación principal">
       <div className={styles.bar}>
-        <NavLink to="/" className={styles.brand}>
-          <span className={styles.brandDot} aria-hidden="true" />
-          ensamblia
+        {/* El mismo logo que LandingNavbar (.logo / .logo-mark de landing.css) */}
+        <NavLink to="/" className={styles.brand} aria-label="Volver al inicio">
+          <span className={styles.brandMark} aria-hidden="true">✦</span>
+          ENSAMBLIA
         </NavLink>
 
         <ul className={styles.links}>
