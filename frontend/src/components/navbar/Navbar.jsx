@@ -10,6 +10,7 @@ import styles from './Navbar.module.css';
 const LINKS = [
   { to: '/anuncios', label: 'Anuncios' },
   { to: '/locales', label: 'Locales' },
+  { to: '/usuarios', label: 'Usuarios', authOnly: true },
   { to: '/eventos', label: 'Eventos' },
   { to: '/precios', label: 'Precios' },
   { to: '/match', label: 'Match', authOnly: true },
