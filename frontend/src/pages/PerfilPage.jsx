@@ -10,6 +10,7 @@ import { DatosLocalForm } from '@/components/locales/DatosLocalForm';
 import { ArtistasSugeridos } from '@/components/locales/ArtistasSugeridos';
 
 import { Link } from 'react-router-dom';
+import { Camera, MapPin } from 'lucide-react';
 import {
   Button,
   Card,
@@ -303,8 +304,6 @@ export function PerfilPage() {
 
   return (
     <main className={styles.page}>
-      <SectionLabel tone="yellow">MI PERFIL</SectionLabel>
-
       {!perfilId && (
         <p className={styles.noticeBanner}>
           Aún no has creado tu perfil. Elige si eres músico, grupo o local,
@@ -314,34 +313,34 @@ export function PerfilPage() {
       {errorMsg && <p className={styles.errorBanner}>{errorMsg}</p>}
       {successMsg && <p className={styles.successBanner}>{successMsg}</p>}
 
-      <div className={styles.layout}>
-        {/* ── Columna izquierda: cabecera + formulario ── */}
-        <aside className={styles.sidebar}>
-          <div className={styles.profileHeader}>
+      <section className={styles.profileHeader}>
+        <div className={styles.banner} aria-hidden="true" />
+        <div className={styles.profileBody}>
+          <div className={styles.avatarWrap}>
             {me?.foto_url ? (
-              <img src={me.foto_url} alt="Foto de perfil" className={styles.avatarImg} />) : (
-                <div className={styles.avatar}>🎸</div>
-              )}
-            <button
-              type="button"
-              className={styles.cambiarFotoBtn}
-              onClick={() => document.getElementById('foto-input')?.click()}>
-              Cambiar foto
-            </button>
-            <input
-              id="foto-input"
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleFotoChange}
-            />
-            <div className={styles.profileInfo}>
-              <p className={styles.profileName}>
-                {form.nombre || form.apellido
-                  ? `${form.nombre} ${form.apellido}`.trim()
-                  : 'Nuevo perfil'}
-              </p>
+              <img src={me.foto_url} alt="Foto de perfil" className={styles.avatarImg} />
+            ) : (
+              <div className={styles.avatar}>
+                {`${form.nombre?.charAt(0) || ''}${form.apellido?.charAt(0) || ''}`.toUpperCase() || '🎸'}
+              </div>
+            )}
+          </div>
+          <input
+            id="foto-input"
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFotoChange}
+          />
+          <div className={styles.profileInfo}>
+            <h1 className={styles.profileName}>
+              {form.nombre || form.apellido
+                ? `${form.nombre} ${form.apellido}`.trim()
+                : 'Nuevo perfil'}
+            </h1>
+            <div className={styles.profileMeta}>
               <span className={styles.profileHandle}>
+                <MapPin size={15} aria-hidden="true" />
                 {form.comarcaTexto || 'Sin comarca'}
               </span>
               {perfilId && (
@@ -349,9 +348,34 @@ export function PerfilPage() {
                   {etiquetaTipoPerfil(form.tipo)}
                 </Tag>
               )}
+              {me?.disponibilidad && (
+                <Tag color="green" size="sm">
+                  Disponible para proyectos
+                </Tag>
+              )}
             </div>
           </div>
+          <div className={styles.profileActions}>
+            {perfilId && (
+              <Button to={`/perfiles/${perfilId}`} variant="secondary" size="sm">
+                Ver perfil público
+              </Button>
+            )}
+            <Button
+              variant="dark"
+              size="sm"
+              leftIcon={<Camera size={15} />}
+              onClick={() => document.getElementById('foto-input')?.click()}
+            >
+              Cambiar foto
+            </Button>
+          </div>
+        </div>
+      </section>
 
+      <div className={styles.layout}>
+        {/* ── Columna izquierda: cabecera + formulario ── */}
+        <aside className={styles.sidebar}>
           <Card className={styles.card} padding="none">
             <div className={styles.section}>
               <SectionLabel tone="blue">INFORMACIÓN BÁSICA</SectionLabel>

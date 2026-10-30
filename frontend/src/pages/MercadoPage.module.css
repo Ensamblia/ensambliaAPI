@@ -1,0 +1,221 @@
+/* MercadoPage.module.css */
+.page {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    padding: var(--sp-6) 0 var(--sp-8);
+}
+
+.filtros {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    padding: var(--sp-4);
+    margin-bottom: var(--sp-5);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+}
+
+.filtrosFila {
+    display: flex;
+    gap: var(--sp-3);
+}
+
+.buscador {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 0 var(--sp-4);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink);
+}
+
+.buscador:focus-within {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.35);
+}
+
+.buscador input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+}
+
+.orden {
+    width: 220px;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-1);
+}
+
+.sep {
+    width: 1px;
+    height: 24px;
+    margin: 0 var(--sp-2);
+    flex-shrink: 0;
+    background: var(--line);
+}
+
+.contador {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-bold);
+    color: var(--ink-soft);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--sp-4);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 rgba(32, 37, 31, 0.09);
+}
+
+.media {
+    position: relative;
+    display: grid;
+    height: 160px;
+    place-items: center;
+    overflow: hidden;
+    color: var(--ink);
+}
+
+/* Círculos de fondo, como en la landing */
+.media::before,
+.media::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(32, 37, 31, 0.12);
+}
+
+.media::before {
+    width: 150px;
+    height: 150px;
+    top: -60px;
+    right: -40px;
+}
+
+.media::after {
+    width: 120px;
+    height: 120px;
+    bottom: -60px;
+    left: -30px;
+    border-style: dashed;
+}
+
+.purple { background: var(--purple); }
+.yellow { background: var(--yellow-soft); }
+.blue { background: var(--blue); }
+.coral { background: var(--coral); }
+.green { background: var(--green); }
+
+.precio {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--white);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-black);
+    box-shadow: 3px 3px 0 var(--yellow);
+}
+
+.fav {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--white);
+    color: var(--ink);
+    transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.fav:hover {
+    transform: scale(1.08);
+}
+
+.favOn {
+    color: #D2483B;
+}
+
+.body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.titulo {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: var(--sp-2);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+}
+
+@media (max-width: 700px) {
+    .page {
+        width: calc(100% - 32px);
+        padding-top: var(--sp-5);
+    }
+
+    .filtrosFila {
+        flex-direction: column;
+    }
+
+    .orden {
+        width: 100%;
+    }
+
+    .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--sp-3);
+    }
+
+    .media {
+        height: 120px;
+    }
+}

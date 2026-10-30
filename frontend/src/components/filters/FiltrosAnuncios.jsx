@@ -56,7 +56,7 @@ export function FiltrosAnuncios({ onFilter, initialValues = {} }) {
       <div className={styles.search}>
         <Input
           type="search"
-          placeholder="Buscar por título o contenido…"
+          placeholder="Busca por título o texto…"
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           aria-label="Buscar anuncios"

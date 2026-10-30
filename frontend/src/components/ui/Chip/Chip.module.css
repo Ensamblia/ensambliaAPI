@@ -1,0 +1,42 @@
+/* Chip.module.css */
+.root {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    background: var(--white);
+    color: var(--ink);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    white-space: nowrap;
+    transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+
+.root:hover {
+    border-color: var(--line);
+}
+
+.root:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 220, 54, 0.45);
+}
+
+.active_ink,
+.active_ink:hover {
+    background: var(--ink);
+    color: var(--white);
+}
+
+.active_green,
+.active_green:hover {
+    background: var(--green-deep);
+    color: var(--white);
+}
+
+.active_yellow,
+.active_yellow:hover {
+    background: var(--yellow);
+    border-color: rgba(32, 37, 31, 0.15);
+}

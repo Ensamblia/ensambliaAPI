@@ -29,7 +29,7 @@ describe('AnunciosPage', () => {
     renderPage();
     expect(screen.getByRole('heading', { level: 1, name: 'Anuncios' })).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText('3 resultados')).toBeInTheDocument();
+      expect(screen.getByText('3 anuncios')).toBeInTheDocument();
     });
   });
 

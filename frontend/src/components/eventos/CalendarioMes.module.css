@@ -1,25 +1,28 @@
 /* CalendarioMes.module.css */
 .calendario {
-    padding: var(--sp-4);
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    padding: var(--sp-5);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
 }
 
 .cabecera {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: var(--sp-3);
+    margin-bottom: var(--sp-4);
 }
 
 .mes {
     margin: 0;
-    font-size: var(--fs-lg);
+    font-size: var(--fs-xl);
     font-weight: var(--fw-black);
     color: var(--text-primary);
-    text-transform: capitalize;
     letter-spacing: -0.02em;
+}
+
+.mes::first-letter {
+    text-transform: uppercase;
 }
 
 .nav {
@@ -29,14 +32,14 @@
     width: 32px;
     height: 32px;
     background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
     color: var(--text-primary);
     cursor: pointer;
 }
 
 .nav:hover {
-    border-color: var(--border-strong);
+    background: var(--paper);
 }
 
 .rejilla {
@@ -48,9 +51,9 @@
 .diaSemana {
     padding: var(--sp-1) 0;
     text-align: center;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--ink-soft);
 }
 
 .hueco {
@@ -66,11 +69,12 @@
     gap: 2px;
     aspect-ratio: 1;
     background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    border-radius: 10px;
     font-family: var(--font-sans);
     font-size: var(--fs-base);
-    color: var(--text-secondary);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
     cursor: pointer;
 }
 
@@ -85,12 +89,11 @@
 }
 
 .conEventos {
-    font-weight: var(--fw-bold);
-    color: var(--text-primary);
+    background: var(--cream);
 }
 
 .hoy {
-    border-color: var(--border-strong);
+    border-color: var(--yellow);
 }
 
 .seleccionado,
@@ -103,7 +106,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--coral-deep);
+    background: var(--green-deep);
 }
 
 .seleccionado .punto {

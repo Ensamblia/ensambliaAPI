@@ -7,7 +7,8 @@
     border-radius: 50%;
     font-family: var(--font-sans);
     font-weight: var(--fw-bold);
-    color: var(--white);
+    color: var(--ink);
+    border: 1px solid rgba(32, 37, 31, 0.08);
     overflow: hidden;
     user-select: none;
 }
@@ -32,31 +33,31 @@
 
 /* ── Colores deterministas ── */
 .tone1 {
-    background: #C77E57;
+    background: var(--blue);
 }
 
 .tone2 {
-    background: #6F92B2;
+    background: var(--green);
 }
 
 .tone3 {
-    background: #837C9F;
+    background: var(--purple);
 }
 
 .tone4 {
-    background: #7F9F75;
+    background: var(--coral);
 }
 
 .tone5 {
-    background: #A18CAD;
+    background: var(--yellow-soft);
 }
 
 .tone6 {
-    background: #D49779;
+    background: #E7E1D4;
 }
 
 .toneNeutral {
-    background: var(--ink);
+    background: var(--paper);
 }
 
 /* ── Imagen dentro del avatar ── */

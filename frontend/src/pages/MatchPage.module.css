@@ -2,34 +2,150 @@
 .page {
     width: min(1180px, calc(100% - 64px));
     margin: 0 auto;
-    padding: var(--sp-7) 0 var(--sp-8);
+    padding: var(--sp-6) 0 var(--sp-8);
+}
+
+/* ── Hero oscuro con órbitas ── */
+.hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 380px);
+    align-items: center;
+    gap: var(--sp-6);
+    margin-bottom: var(--sp-5);
+    padding: 40px;
+    overflow: hidden;
+    background: var(--navy);
+    border-radius: 20px;
+    color: var(--white);
+}
+
+.heroTexto h2 {
+    color: var(--white);
+    font-size: clamp(2.2rem, 4.6vw, 3.2rem);
+    letter-spacing: -0.06em;
+    line-height: 0.98;
+}
+
+.heroTexto p {
+    max-width: 440px;
+    margin-top: var(--sp-4);
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.heroTexto .heroMejor {
+    margin-top: var(--sp-5);
+    font-size: var(--fs-base);
+}
+
+.heroMejor strong {
+    color: var(--yellow);
+}
+
+.orbita {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1;
+    justify-self: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+}
+
+.anillo1,
+.anillo2 {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.anillo1 {
+    inset: 13%;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.anillo2 {
+    inset: 30%;
+    background: rgba(255, 220, 54, 0.14);
+}
+
+.yo {
+    position: absolute;
+    inset: 36%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 50%;
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-black);
+    box-shadow: 0 0 0 10px rgba(255, 220, 54, 0.18);
+}
+
+.satelite {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -50%);
+    animation: flotar 5s ease-in-out infinite;
+}
+
+.satelite:nth-of-type(even) {
+    animation-delay: -2.5s;
+}
+
+.porcentaje {
+    margin-top: -8px;
+    padding: 1px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-black);
+    white-space: nowrap;
+}
+
+@keyframes flotar {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .satelite {
+        animation: none;
+    }
 }
 
 .filtros {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: var(--sp-3);
-    padding: var(--sp-4) 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: var(--sp-6);
+    margin-bottom: var(--sp-5);
 }
 
 .opciones {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sp-2);
+    gap: 4px;
+    padding: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
 }
 
 .opcion {
-    padding: var(--sp-2) var(--sp-4);
-    background: var(--surface-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
     font-family: var(--font-sans);
-    font-size: var(--fs-base);
-    font-weight: var(--fw-semibold);
-    color: var(--text-secondary);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--ink-soft);
     cursor: pointer;
     transition: border-color var(--dur-base) var(--ease-out),
         background var(--dur-base) var(--ease-out);
@@ -47,9 +163,10 @@
 
 .opcionActiva,
 .opcionActiva:hover {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--white);
+    background: var(--white);
+    border-color: var(--line);
+    color: var(--ink);
+    box-shadow: 2px 2px 0 rgba(32, 37, 31, 0.08);
 }
 
 .select {
@@ -76,5 +193,14 @@
 
     .select {
         flex: 1 1 100%;
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        padding: var(--sp-6) var(--sp-5);
+    }
+
+    .orbita {
+        max-width: 240px;
     }
 }
