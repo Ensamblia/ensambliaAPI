@@ -67,6 +67,17 @@ def test_requiere_login(api_client, mundo):
 
 
 @pytest.mark.django_db
+def test_cuenta_que_solo_es_un_local_tambien_tiene_match(api_client, mundo, comarca, genero_rock):
+    """Una cuenta sin perfil personal usa su perfil de local como referencia."""
+    sala = crear('miSala', tipo='local', comarca=comarca, generos=[genero_rock])
+    api_client.force_authenticate(user=sala.usuario)
+    response = api_client.get(URL, {'busco': 'musico'})
+    assert response.status_code == status.HTTP_200_OK
+    assert ids(response)[0] == mundo['musico_cerca_rock'].perfil_id
+    assert sala.perfil_id not in ids(response)
+
+
+@pytest.mark.django_db
 def test_sin_perfil_personal_400(client_sin_perfil, mundo):
     response = client_sin_perfil.get(URL, {'busco': 'musico'})
     assert response.status_code == status.HTTP_400_BAD_REQUEST

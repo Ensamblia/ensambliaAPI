@@ -88,6 +88,13 @@ def mi_perfil_personal(request):
     ).first()
 
 
+def mi_perfil_para_match(request):
+    """El perfil personal; si no hay (p. ej. cuentas que solo son un local o un grupo), el primero que tenga."""
+    return mi_perfil_personal(request) or Perfil.objects.filter(
+        usuario_id=request.user.usuario_id,
+    ).order_by('perfil_id').first()
+
+
 def error(mensaje, codigo):
     return Response({'error': mensaje}, status=codigo)
 
@@ -112,7 +119,7 @@ class MatchView(APIView):
             except ValueError:
                 return error('Parámetro instrumento no válido', status.HTTP_400_BAD_REQUEST)
 
-        yo = mi_perfil_personal(request)
+        yo = mi_perfil_para_match(request)
         if not yo:
             return error('Crea tu perfil para ver tus matches', status.HTTP_400_BAD_REQUEST)
 
@@ -154,7 +161,7 @@ class MatchView(APIView):
         puntuados = []
         for a in anuncios:
             b = busqueda_de(a, catalogo)
-            if b['tipo_perfil'] not in (None, Perfil.TipoPerfil.USUARIO):
+            if b['tipo_perfil'] not in (None, yo.tipo):
                 continue
             if b['instrumento_id'] and b['instrumento_id'] not in mis_instrumentos:
                 continue
