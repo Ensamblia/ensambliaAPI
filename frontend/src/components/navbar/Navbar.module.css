@@ -6,10 +6,9 @@
     background: rgba(255, 253, 248, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
 }
 
-/* Fila de arriba: siempre 56px (ChatBox y PerfilPage cuentan con esa altura) */
+/* Fila de arriba: 56px con el borde incluido (ChatBox y PerfilPage cuentan con esa altura) */
 .bar {
     display: flex;
     align-items: center;
@@ -17,6 +16,7 @@
     gap: var(--sp-4);
     height: 56px;
     padding: 0 var(--sp-6);
+    border-bottom: 1px solid var(--border);
 }
 
 /* ── Brand ── */
@@ -138,7 +138,7 @@
     flex-direction: column;
     gap: var(--sp-4);
     padding: var(--sp-3) var(--sp-6) var(--sp-5);
-    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
     max-height: calc(100vh - 56px);
     overflow-y: auto;
 }
