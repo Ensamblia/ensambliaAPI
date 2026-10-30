@@ -70,6 +70,15 @@ Debes ver:
 - `ensamblia_minio` (MinIO, puertos 9000 API / 9001 consola)
 - `ensamblia_minio_init` (aplica la bucket policy y termina)
 
+Los datos de Postgres y MinIO se guardan en volúmenes de Docker (`ensamblia_postgres_data` y `ensamblia_minio_data`), no en carpetas del repo. La primera vez la BD está vacía: se crea con `python manage.py migrate` (paso 2).
+
+Copia de seguridad y restauración (desde cualquier carpeta):
+
+    docker exec ensamblia_db pg_dump -U root -d ENSAMBLIA_DB --no-owner > copia.sql
+    docker exec -i ensamblia_db psql -U root -d ENSAMBLIA_DB < copia.sql
+
+Para empezar de cero: `docker compose down -v` (borra los volúmenes) y `docker compose up -d`.
+
 ### 2. Back
 
 Desde la raíz del repositorio:
@@ -299,6 +308,7 @@ Cosas a vigilar:
 - Vídeos del chat: se muestran con controles nativos, sin lightbox. Los de multimedia (anuncios/perfil) sí se amplían. Decisión consciente.
 - WS de notificaciones en StrictMode: resuelto en G.3 (creación diferida del socket).
 - 2 tests de `apps/chats/tests/test_websocket.py` fallan por timeout (ver #65).
+- Hasta este cambio los datos de Postgres (`ensamblia DB/ensamblia_db/`) y MinIO estaban en git. Git no guarda carpetas vacías, así que al clonar Postgres no arrancaba (`could not open directory "pg_notify"`). Si vienes de esa versión: haz `pg_dump` **antes** de `git pull`, `docker compose down`, `git pull`, `docker compose up -d` y restaura la copia (o `migrate` si no la necesitas).
 - BDs locales creadas con el SQL antiguo de Node: a las tablas pivote les falta la columna `id` y algunos endpoints dan 500. Hay que recrear la BD con `migrate` (ver #66).
 
 ---

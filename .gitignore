@@ -57,6 +57,9 @@ frontend/.oxlintcache
 
 # ── Docker / Infra ──
 *.pid
+# Datos locales de Postgres y MinIO: ahora van en volúmenes de Docker
+ensamblia DB/ensamblia_db/
+ensamblia DB/postgres_data*/
 minio-data/
 ensamblia DB/minio-data/
 ensamblia DB/pgadmin/

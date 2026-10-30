@@ -10,7 +10,8 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./ensamblia_db:/var/lib/postgresql/data
+      # Volumen de Docker: los datos no viven en el repo (ni en iCloud/OneDrive)
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - ensamblia_net
 
@@ -52,7 +53,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - ./minio-data:/data
+      - minio_data:/data
     networks:
       - ensamblia_net
 
@@ -70,3 +71,9 @@ services:
 
 networks:
   ensamblia_net:
+
+volumes:
+  postgres_data:
+    name: ensamblia_postgres_data
+  minio_data:
+    name: ensamblia_minio_data
