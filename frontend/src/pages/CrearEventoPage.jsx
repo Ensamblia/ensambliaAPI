@@ -1,14 +1,18 @@
 // src/pages/CrearEventoPage.jsx
+// Publicar un evento (/eventos/crear) o editarlo (/eventos/:id/editar, solo el autor).
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api, { extractList, parseApiError } from '@/api/axios';
-import { crearEvento, misPerfiles } from '@/api/eventos';
-import { Button, Card, Field, Input, PageHeader, Select, Textarea } from '@/components/ui';
+import { crearEvento, editarEvento, getEvento, misPerfiles } from '@/api/eventos';
+import { Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner, Textarea } from '@/components/ui';
+import { fechaYHoraInputs } from '@/utils/eventos';
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
 import styles from './CrearAnuncioPage.module.css';
 import propios from './CrearEventoPage.module.css';
 
 export function CrearEventoPage() {
+  const { id } = useParams();
+  const editando = Boolean(id);
   const navigate = useNavigate();
   const [perfiles, setPerfiles] = useState([]);
   const [ciudades, setCiudades] = useState([]);
@@ -17,22 +21,53 @@ export function CrearEventoPage() {
     perfil_id: '', titulo: '', fecha: '', hora: '', local_id: '', lugar: '', ciudad_id: '',
     generos: [], precio: '', descripcion: '',
   });
+  // cargando | ok | no-autor | no-existe | error (los cuatro primeros, solo al editar)
+  const [estado, setEstado] = useState(editando ? 'cargando' : 'ok');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let cancelado = false;
     Promise.all([
       misPerfiles().catch(() => []),
       api.get('/ciudades/').then(extractList).catch(() => []),
       api.get('/genero_musical/').then(extractList).catch(() => []),
-    ]).then(([listaPerfiles, listaCiudades, listaGeneros]) => {
-      setPerfiles(listaPerfiles);
-      setCiudades(listaCiudades);
-      setGeneros(listaGeneros);
-      const porDefecto = listaPerfiles.find((p) => p.tipo === 'usuario') ?? listaPerfiles[0];
-      if (porDefecto) setForm((f) => ({ ...f, perfil_id: String(porDefecto.perfil_id) }));
-    });
-  }, []);
+      editando ? getEvento(id) : null,
+    ])
+      .then(([listaPerfiles, listaCiudades, listaGeneros, evento]) => {
+        if (cancelado) return;
+        setPerfiles(listaPerfiles);
+        setCiudades(listaCiudades);
+        setGeneros(listaGeneros);
+        if (!evento) {
+          const porDefecto = listaPerfiles.find((p) => p.tipo === 'usuario') ?? listaPerfiles[0];
+          if (porDefecto) setForm((f) => ({ ...f, perfil_id: String(porDefecto.perfil_id) }));
+          return;
+        }
+        if (!listaPerfiles.some((p) => p.perfil_id === evento.autor.perfil_id)) {
+          setEstado('no-autor');
+          return;
+        }
+        setForm({
+          perfil_id: String(evento.autor.perfil_id),
+          titulo: evento.titulo,
+          ...fechaYHoraInputs(evento.fecha_inicio),
+          local_id: evento.local ? String(evento.local.perfil_id) : '',
+          lugar: evento.lugar ?? '',
+          ciudad_id: evento.ciudad_id ? String(evento.ciudad_id) : '',
+          generos: evento.generos.map((g) => g.genero_musical_id),
+          precio: evento.precio ?? '',
+          descripcion: evento.descripcion ?? '',
+        });
+        setEstado('ok');
+      })
+      .catch((err) => {
+        if (!cancelado) setEstado(err.response?.status === 404 ? 'no-existe' : 'error');
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [editando, id]);
 
   // Solo se puede enlazar un local propio (el backend lo exige)
   const misLocales = perfiles.filter((p) => p.tipo === 'local');
@@ -58,34 +93,71 @@ export function CrearEventoPage() {
       precio: form.precio.trim(),
       descripcion: form.descripcion.trim(),
     };
-    if (form.perfil_id) payload.perfil_id = Number(form.perfil_id);
-    if (form.local_id) payload.local_id = Number(form.local_id);
-    else {
+    if (form.perfil_id && !editando) payload.perfil_id = Number(form.perfil_id);
+    if (form.local_id) {
+      payload.local_id = Number(form.local_id);
+      // Al editar, el PUT es parcial: si pasa a un local, se borra el lugar anterior
+      if (editando) payload.lugar = '';
+    } else {
+      if (editando) payload.local_id = null;
       payload.ciudad_id = Number(form.ciudad_id);
       payload.lugar = form.lugar.trim();
     }
 
     setSaving(true);
     try {
-      const evento = await crearEvento(payload);
-      navigate(`/eventos/${evento.evento_id}`);
+      if (editando) {
+        await editarEvento(id, payload);
+        navigate(`/eventos/${id}`);
+      } else {
+        const evento = await crearEvento(payload);
+        navigate(`/eventos/${evento.evento_id}`);
+      }
     } catch (err) {
-      setError(parseApiError(err, 'No se pudo publicar el evento.'));
+      setError(parseApiError(err, editando ? 'No se pudieron guardar los cambios.' : 'No se pudo publicar el evento.'));
     } finally {
       setSaving(false);
     }
   };
 
+  const volverA = editando ? `/eventos/${id}` : '/eventos';
+  const titulo = editando ? 'Editar evento' : 'Publicar evento';
+
+  if (estado === 'cargando') {
+    return (
+      <main className={styles.page}>
+        <PageHeader title={titulo} backTo={volverA} backLabel="Evento" />
+        <Spinner size="lg" aria-label="Cargando evento" />
+      </main>
+    );
+  }
+
+  if (estado !== 'ok') {
+    const mensajes = {
+      'no-autor': ['Solo quien publicó el evento puede editarlo', 'Entra con la cuenta que lo publicó.'],
+      'no-existe': ['Este evento no existe', 'Puede que se haya borrado o que la dirección no sea correcta.'],
+      error: ['No se pudo cargar el evento', 'Inténtalo de nuevo en un momento.'],
+    };
+    const [tituloVacio, descripcion] = mensajes[estado];
+    return (
+      <main className={styles.page}>
+        <PageHeader title={titulo} backTo={volverA} backLabel="Evento" />
+        <EmptyState icon="📅" title={tituloVacio} description={descripcion} />
+      </main>
+    );
+  }
+
   return (
     <main className={styles.page}>
-      <PageHeader title="Publicar evento" backTo="/eventos" backLabel="Eventos" />
+      <PageHeader title={titulo} backTo={volverA} backLabel={editando ? 'Evento' : 'Eventos'} />
 
       {error && <p className={styles.error}>{error}</p>}
 
       <Card className={styles.formCard} padding="none">
         <form onSubmit={handleSubmit}>
           <div className={propios.campos}>
-            {perfiles.length > 1 && (
+            {/* El autor no se puede cambiar al editar */}
+            {!editando && perfiles.length > 1 && (
               <Field label="Publicar como">
                 <Select value={form.perfil_id} onChange={set('perfil_id')}>
                   {perfiles.map((p) => (
@@ -167,11 +239,11 @@ export function CrearEventoPage() {
           </div>
 
           <div className={styles.actionsBar}>
-            <Button variant="secondary" size="md" onClick={() => navigate('/eventos')}>
+            <Button variant="secondary" size="md" onClick={() => navigate(volverA)}>
               Cancelar
             </Button>
             <Button type="submit" variant="primary" size="md" loading={saving}>
-              {saving ? 'Publicando…' : 'Publicar evento'}
+              {editando ? (saving ? 'Guardando…' : 'Guardar cambios') : saving ? 'Publicando…' : 'Publicar evento'}
             </Button>
           </div>
         </form>

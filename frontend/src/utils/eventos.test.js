@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { agruparPorDia, claveDia, rangoMes, semanasDelMes, nombreMes } from './eventos';
+import { agruparPorDia, claveDia, fechaYHoraInputs, rangoMes, semanasDelMes, nombreMes } from './eventos';
 
 describe('eventos (fechas)', () => {
   it('semanasDelMes empieza en lunes y rellena con null', () => {
@@ -31,5 +31,12 @@ describe('eventos (fechas)', () => {
 
   it('nombreMes en castellano', () => {
     expect(nombreMes(2026, 10)).toBe('noviembre de 2026');
+  });
+});
+
+describe('fechaYHoraInputs', () => {
+  it('devuelve la fecha y la hora locales para los inputs', () => {
+    const iso = new Date(2030, 0, 5, 9, 7).toISOString();
+    expect(fechaYHoraInputs(iso)).toEqual({ fecha: '2030-01-05', hora: '09:07' });
   });
 });
