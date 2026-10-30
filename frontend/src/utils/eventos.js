@@ -7,6 +7,12 @@ export function claveDia(fecha) {
   return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}`;
 }
 
+// Valores para los inputs date y time a partir de la fecha ISO del evento
+export function fechaYHoraInputs(iso) {
+  const d = new Date(iso);
+  return { fecha: claveDia(d), hora: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
+}
+
 // Semanas del mes (lunes a domingo) con el número de día o null en los huecos
 export function semanasDelMes(anio, mes) {
   const diasEnMes = new Date(anio, mes + 1, 0).getDate();
