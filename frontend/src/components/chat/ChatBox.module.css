@@ -2,6 +2,8 @@
 .layout {
     display: flex;
     height: calc(100vh - 56px);
+    /* En móvil 100vh incluye la barra del navegador: dvh es la altura que se ve */
+    height: calc(100dvh - 56px);
     overflow: hidden;
     background: var(--surface-elevated);
 }
@@ -145,13 +147,23 @@
 }
 
 /* ── Responsive ── */
+/* Móvil: la lista ocupa toda la pantalla y, al abrir un chat, lo sustituye */
 @media (max-width: 700px) {
     .sidebar {
-        width: 80px;
+        width: 100%;
+        border-right: 0;
     }
 
-    .sidebarTitle {
+    .emptyPane {
         display: none;
+    }
+
+    .layoutChatAbierto .sidebar {
+        display: none;
+    }
+
+    .messagesArea {
+        padding: var(--sp-3);
     }
 }
 

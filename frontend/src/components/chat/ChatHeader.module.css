@@ -9,6 +9,32 @@
     flex-shrink: 0;
 }
 
+/* Volver a la lista: solo en móvil, donde no se ven lista y chat a la vez */
+.backBtn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-left: calc(-1 * var(--sp-3));
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.backBtn:hover {
+    background: var(--paper);
+}
+
+.backBtn:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
 .info {
     flex: 1;
     min-width: 0;
@@ -51,4 +77,14 @@
 
 .connectionBadgeOnline {
     color: var(--success);
+}
+
+@media (max-width: 700px) {
+    .header {
+        padding: var(--sp-2) var(--sp-4);
+    }
+
+    .backBtn {
+        display: inline-flex;
+    }
 }
