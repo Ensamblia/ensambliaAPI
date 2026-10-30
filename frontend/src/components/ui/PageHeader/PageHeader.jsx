@@ -4,12 +4,15 @@ import { Link } from 'react-router-dom';
 import styles from './PageHeader.module.css';
 
 /**
- * Cabecera de página: back opcional + título + subtítulo + acciones.
+ * Cabecera de página: back opcional + icono de sección + título + subtítulo + acciones.
  *
  * @param {Object} props
  * @param {string} props.title
  * @param {string} [props.subtitle]
  * @param {React.ReactNode} [props.actions]
+ * @param {React.ReactNode} [props.icon]   - icono de la sección (cuadro de color)
+ * @param {'yellow'|'green'|'blue'|'purple'|'coral'|'navy'|'paper'} [props.tone='yellow']
+ * @param {React.ReactNode} [props.badge]  - etiqueta junto al título
  * @param {string} [props.backTo]
  * @param {string} [props.backLabel='Volver']
  * @param {string} [props.className]
@@ -18,6 +21,9 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  icon,
+  tone = 'yellow',
+  badge,
   backTo,
   backLabel = 'Volver',
   className = '',
@@ -30,9 +36,19 @@ export function PageHeader({
         </Link>
       )}
       <div className={styles.row}>
-        <div className={styles.textBlock}>
-          <h1 className={styles.title}>{title}</h1>
-          {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+        <div className={styles.lead}>
+          {icon && (
+            <span className={[styles.icon, styles[tone]].join(' ')} aria-hidden="true">
+              {icon}
+            </span>
+          )}
+          <div className={styles.textBlock}>
+            <div className={styles.titleRow}>
+              <h1 className={styles.title}>{title}</h1>
+              {badge}
+            </div>
+            {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+          </div>
         </div>
         {actions && <div className={styles.actions}>{actions}</div>}
       </div>

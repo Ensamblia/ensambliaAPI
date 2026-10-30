@@ -2,7 +2,7 @@
 .root {
     background: var(--surface-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
     overflow: hidden;
     transition:
         border-color var(--dur-base) var(--ease-out),
@@ -24,8 +24,8 @@
 
 .interactive:hover {
     border-color: var(--border-strong);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 rgba(32, 37, 31, 0.09);
+    transform: translate(-2px, -2px);
 }
 
 .interactive:focus-visible {

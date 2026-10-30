@@ -1,12 +1,67 @@
 // src/pages/MatchPage.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import api, { extractList, parseApiError } from '@/api/axios';
 import { getMatches } from '@/api/match';
 import { MatchCard } from '@/components/match/MatchCard';
 import { AnuncioMatchCard } from '@/components/match/AnuncioMatchCard';
-import { Button, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
-import { OPCIONES_BUSCO } from '@/utils/match';
+import { Sparkles } from 'lucide-react';
+import { PerfilContext } from '@/context/PerfilContext';
+import { Avatar, Button, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
+import { OPCIONES_BUSCO, puntuacionMatch } from '@/utils/match';
 import styles from './MatchPage.module.css';
+
+// Posiciones (en %) de las órbitas alrededor de "Tú"
+const ORBITAS = [
+  { top: 10, left: 72 },
+  { top: 26, left: 8 },
+  { top: 68, left: 86 },
+  { top: 86, left: 30 },
+];
+
+function HeroMatch({ matches }) {
+  const { me } = useContext(PerfilContext);
+  const mejores = [...matches].sort((a, b) => puntuacionMatch(b) - puntuacionMatch(a));
+  const top = mejores[0];
+  const yo = [me?.nombre, me?.apellido].filter(Boolean).join(' ');
+
+  return (
+    <section className={styles.hero}>
+      <div className={styles.heroTexto}>
+        <h2>
+          La química
+          <br />
+          también suena.
+        </h2>
+        <p>
+          Cruzamos tus estilos, tu zona y lo que tocas con el resto de la comunidad. Cuanto más completo tu
+          perfil, mejores sugerencias.
+        </p>
+        {top && (
+          <p className={styles.heroMejor}>
+            Mejor coincidencia ahora mismo:{' '}
+            <strong>
+              {top.nombre} · {puntuacionMatch(top)}%
+            </strong>
+          </p>
+        )}
+      </div>
+      <div className={styles.orbita} aria-hidden="true">
+        <span className={styles.anillo1} />
+        <span className={styles.anillo2} />
+        <span className={styles.yo}>
+          <Avatar name={yo} src={me?.foto_url} size="sm" />
+          Tú
+        </span>
+        {mejores.slice(0, ORBITAS.length).map((m, i) => (
+          <span key={m.perfil_id} className={styles.satelite} style={ORBITAS[i]}>
+            <Avatar name={[m.nombre, m.apellido].filter(Boolean).join(' ')} size="md" />
+            <span className={styles.porcentaje}>{puntuacionMatch(m)}%</span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export function MatchPage() {
   const [busco, setBusco] = useState('musico');
@@ -52,9 +107,13 @@ export function MatchPage() {
   return (
     <main className={styles.page}>
       <PageHeader
-        title="Match"
-        subtitle="Sugerencias por cercanía y estilos en común, con el motivo de cada una."
+        title="Match inteligente"
+        icon={<Sparkles size={22} />}
+        tone="navy"
+        subtitle="Personas con las que tienes más probabilidades de sonar bien, ordenadas por compatibilidad."
       />
+
+      <HeroMatch matches={busco === 'anuncios' ? [] : matches} />
 
       <div className={styles.filtros}>
         <div className={styles.opciones} role="group" aria-label="Qué buscas">

@@ -6,56 +6,26 @@
     padding: 3px 10px;
     border-radius: var(--radius-pill);
     font-family: var(--font-sans);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
     border: 1px solid transparent;
     white-space: nowrap;
 }
 
 .sm {
-    padding: 2px 8px;
-    font-size: 10px;
+    padding: 2px 9px;
+    font-size: var(--fs-xs);
 }
 
 .md {
     /* = base */
 }
 
-/* ── Colores (basados en landing) ── */
-.yellow {
-    background: var(--yellow-soft);
-    color: #796500;
-    border-color: #EAD56B;
-}
-
-.green {
-    background: #EBF7EE;
-    color: var(--green-deep);
-    border-color: #ACD3BC;
-}
-
-.blue {
-    background: #E8F3FC;
-    color: var(--blue-deep);
-    border-color: #ABC8DF;
-}
-
-.purple {
-    background: #EEEAF5;
-    color: var(--purple-deep);
-    border-color: #C9C3E0;
-}
-
-.coral {
-    background: #FFF0E8;
-    color: var(--coral-deep);
-    border-color: #EAB49E;
-}
-
-.neutral {
-    background: var(--grey-100);
-    color: var(--grey-700);
-    border-color: var(--border);
-}
+/* ── Colores (pasteles de la landing) ── */
+.yellow { background: var(--yellow-soft); color: var(--ink); }
+.green { background: var(--green); color: var(--ink); }
+.blue { background: var(--blue); color: var(--ink); }
+.purple { background: var(--purple); color: var(--ink); }
+.coral { background: var(--coral); color: var(--ink); }
+.neutral { background: var(--white); color: var(--ink); border-color: var(--line); }

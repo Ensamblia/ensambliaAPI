@@ -2,13 +2,20 @@
 .page {
     width: min(1180px, calc(100% - 64px));
     margin: 0 auto;
-    padding: var(--sp-7) 0 var(--sp-8);
+    padding: var(--sp-6) 0 var(--sp-8);
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--sp-4);
+}
+
+.contador {
+    margin: var(--sp-5) 0 var(--sp-4);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-bold);
+    color: var(--ink-soft);
 }
 
 .countBadge {

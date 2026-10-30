@@ -15,3 +15,5 @@ export { PageHeader } from './PageHeader/PageHeader';
 export { EmptyState } from './EmptyState/EmptyState';
 export { Modal } from './Modal/Modal';
 export { Lightbox } from './Lightbox/Lightbox';
+export { Chip } from './Chip/Chip';
+export { MuestraBadge } from './MuestraBadge/MuestraBadge';

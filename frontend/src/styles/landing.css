@@ -38,7 +38,9 @@ button {
   cursor: pointer;
 }
 
-:where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label) {
+/* Solo en la landing: aplicado a toda la app partía números cortos ("7 0 %"). */
+.ensamblia-site :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label),
+.site-header :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label) {
   overflow-wrap: anywhere;
 }
 
@@ -124,7 +126,7 @@ button {
 
 .desktop-nav a,
 .desktop-nav button,
-.mobile-nav button:not(.button) {
+.mobile-nav > button {
     padding: 0;
     color: #646a63;
     background: transparent;
@@ -136,7 +138,7 @@ button {
 
 .desktop-nav a:hover,
 .desktop-nav button:hover,
-.mobile-nav button:not(.button):hover {
+.mobile-nav > button:hover {
     color: var(--ink);
 }
 
@@ -2186,7 +2188,7 @@ button {
         border-top: 1px solid rgba(32, 37, 31, .08);
     }
 
-    .mobile-nav button:not(.button) {
+    .mobile-nav > button {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -2215,6 +2217,13 @@ button {
 
     .mobile-nav .button {
         margin-top: 14px;
+    }
+
+    .mobile-nav-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
     }
 
     .hero-section {

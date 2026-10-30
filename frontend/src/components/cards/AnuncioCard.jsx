@@ -50,6 +50,16 @@ function useTipos() {
   return tipos;
 }
 
+/* ── Color de la etiqueta según el tipo de anuncio ── */
+function colorTipo(tipo = '') {
+  const t = tipo.toLowerCase();
+  if (t.includes('vend') || t.includes('compr')) return 'purple';
+  if (t.includes('jam') || t.includes('evento') || t.includes('concierto')) return 'yellow';
+  if (t.includes('local') || t.includes('sala')) return 'blue';
+  if (t.includes('banda') || t.includes('grupo')) return 'coral';
+  return 'green';
+}
+
 /* ── Helpers de icono por MIME ── */
 function iconoParaMime(mime) {
   if (!mime) return '📎';
@@ -180,13 +190,12 @@ export function AnuncioCard({ anuncio }) {
       <Thumbnails multimedias={multimedias} onClick={irAlDetalle} />
 
       <div className={styles.body}>
-        {tipoLabel && <Tag color="yellow">{tipoLabel}</Tag>}
+        <div className={styles.top}>
+          {tipoLabel ? <Tag color={colorTipo(tipoLabel)}>{tipoLabel}</Tag> : <span />}
+          <span className={styles.dateText}>{fecha || '—'}</span>
+        </div>
 
         <h3 className={styles.title}>{anuncio?.titulo || 'Sin título'}</h3>
-
-        <p className={styles.porLine}>
-          por <AutorNombre perfilId={anuncio?.perfil_id} />
-        </p>
 
         <p className={styles.bodyText}>
           {contenido.length > 130 ? contenido.slice(0, 130) + '…' : contenido || 'Sin descripción.'}
@@ -195,7 +204,9 @@ export function AnuncioCard({ anuncio }) {
         {error && <p className={styles.error}>{error}</p>}
 
         <div className={styles.footer}>
-          <span className={styles.dateText}>{fecha || '—'}</span>
+          <p className={styles.porLine}>
+            <AutorNombre perfilId={anuncio?.perfil_id} />
+          </p>
           <div className={styles.footerActions}>
             <Button
               variant="ghost"

@@ -1,5 +1,6 @@
 // src/pages/EventosPage.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarDays, Plus } from 'lucide-react';
 import api, { extractList } from '@/api/axios';
 import { listarEventos } from '@/api/eventos';
 import { CalendarioMes } from '@/components/eventos/CalendarioMes';
@@ -65,10 +66,12 @@ export function EventosPage() {
     <main className={styles.page}>
       <PageHeader
         title="Eventos"
-        subtitle="Conciertos, jams y actuaciones cerca de ti."
+        icon={<CalendarDays size={22} />}
+        tone="green"
+        subtitle="Conciertos, jams y sesiones abiertas cerca de ti. Apúntate o añade el tuyo."
         actions={
-          <Button to="/eventos/crear" variant="primary" size="sm">
-            Publicar evento
+          <Button to="/eventos/crear" variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
+            Añadir evento
           </Button>
         }
       />
@@ -108,6 +111,11 @@ export function EventosPage() {
         />
 
         <section className={styles.lista}>
+          <h2 className={styles.listaTitulo}>
+            {diaSeleccionado
+              ? new Date(`${diaSeleccionado}T00:00`).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+              : 'Próximos eventos'}
+          </h2>
           {loading && (
             <div className={styles.stateBox}>
               <Spinner size="lg" aria-label="Cargando eventos" />

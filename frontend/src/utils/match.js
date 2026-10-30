@@ -53,3 +53,13 @@ export function payloadQueBuscas({ tipo_perfil, instrumento_id, generos }) {
     generos,
   };
 }
+
+// Puntuación aproximada (0-98) para pintar el anillo de compatibilidad.
+// El back no da un porcentaje: lo estimamos con los mismos motivos que mostramos.
+export function puntuacionMatch({ misma_comarca, generos_comunes, instrumentos, busca_mi_instrumento }) {
+  let p = 40;
+  if (misma_comarca) p += 25;
+  p += Math.min(3, generos_comunes?.length ?? 0) * 10;
+  if (instrumentos?.length || busca_mi_instrumento) p += 5;
+  return Math.min(98, p);
+}
