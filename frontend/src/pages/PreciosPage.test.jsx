@@ -50,11 +50,12 @@ describe('PreciosPage', () => {
     expect(screen.getByRole('button', { name: 'Anual' })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('los planes de pago aún no se pueden contratar', () => {
+  it('en beta abierta los planes de pago son gratis y no hay botones bloqueados', () => {
     renderPage();
+    expect(screen.getByText('Beta abierta')).toBeInTheDocument();
     for (const nombre of ['Basic', 'Premium']) {
-      const boton = within(tarjeta(nombre)).getByRole('button', { name: /Próximamente/i });
-      expect(boton).toBeDisabled();
+      expect(within(tarjeta(nombre)).getByText(/Gratis durante la beta/i)).toBeInTheDocument();
+      expect(within(tarjeta(nombre)).queryByRole('button')).not.toBeInTheDocument();
     }
   });
 

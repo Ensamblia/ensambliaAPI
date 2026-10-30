@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import api, { extractList, parseApiError } from '@/api/axios';
 import { getLocal, guardarLocal } from '@/api/locales';
-import { Button, Field, Input, Select, SectionLabel } from '@/components/ui';
+import { Button, Field, Input, SectionLabel } from '@/components/ui';
 import { TIPOS_LOCAL } from '@/utils/tipoLocal';
+import { CiudadPorComarca } from '@/components/filters/CiudadPorComarca';
 import styles from './DatosLocalForm.module.css';
 
 const VACIO = { ciudad_id: '', direccion: '', aforo: '', tipos: [] };
@@ -27,6 +28,7 @@ function mensajeError(err) {
 export function DatosLocalForm({ perfilId, onSaved }) {
   const [form, setForm] = useState(VACIO);
   const [ciudades, setCiudades] = useState([]);
+  const [comarcas, setComarcas] = useState([]);
   const [tieneDatos, setTieneDatos] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,9 +41,11 @@ export function DatosLocalForm({ perfilId, onSaved }) {
     Promise.all([
       getLocal(perfilId).catch(() => undefined),
       api.get('/ciudades/').then(extractList).catch(() => []),
-    ]).then(([perfilLocal, listaCiudades]) => {
+      api.get('/comarcas/').then(extractList).catch(() => []),
+    ]).then(([perfilLocal, listaCiudades, listaComarcas]) => {
       if (cancelado) return;
       setCiudades(listaCiudades);
+      setComarcas(listaComarcas);
       if (perfilLocal === undefined) {
         setErrorCarga('No se pudieron cargar los datos del local. Recarga la página para intentarlo de nuevo.');
         setLoading(false);
@@ -124,16 +128,13 @@ export function DatosLocalForm({ perfilId, onSaved }) {
         </p>
       )}
 
-      <Field label="Ciudad" required>
-        <Select value={form.ciudad_id} onChange={handleChange('ciudad_id')}>
-          <option value="">Elige una ciudad</option>
-          {ciudades.map((c) => (
-            <option key={c.ciudad_id} value={c.ciudad_id}>
-              {c.nombre}
-            </option>
-          ))}
-        </Select>
-      </Field>
+      <CiudadPorComarca
+        ciudades={ciudades}
+        comarcas={comarcas}
+        value={form.ciudad_id}
+        onChange={(ciudad_id) => setForm((f) => ({ ...f, ciudad_id }))}
+        required
+      />
 
       <Field label="Dirección" required>
         <Input value={form.direccion} onChange={handleChange('direccion')} maxLength={150} />

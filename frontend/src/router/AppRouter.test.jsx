@@ -2,7 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { RequireAuth, PublicOnly } from './guards';
 
@@ -193,4 +193,52 @@ describe('AppRouter — smoke', () => {
     // El layout tiene la clase del CSS module (hasheada). Comprobamos que existe un div raíz.
     expect(container.firstChild).toBeInTheDocument();
   });
+
+  it('con sesión y página de origen vuelve a ella (p. ej. /match)', () => {
+    setSession();
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={[{ pathname: '/login', state: { from: '/match' } }]}>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <PublicOnly>
+                  <Public />
+                </PublicOnly>
+              }
+            />
+            <Route path="/match" element={<p>pantalla de match</p>} />
+            <Route path="/perfil" element={<PerfilStub />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+
+    expect(screen.getByText('pantalla de match')).toBeInTheDocument();
+  });
 });
+
+describe('RequireAuth — recuerda a dónde ibas', () => {
+  it('sin sesión manda al login con la ruta de origen en state.from', () => {
+    localStorage.clear();
+    let from = null;
+    function LoginEspia() {
+      from = useLocation().state?.from;
+      return <p>pantalla de login</p>;
+    }
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/match?busco=grupo']}>
+          <Routes>
+            <Route path="/match" element={<RequireAuth><Private /></RequireAuth>} />
+            <Route path="/login" element={<LoginEspia />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+    expect(screen.getByText('pantalla de login')).toBeInTheDocument();
+    expect(from).toBe('/match?busco=grupo');
+  });
+});
+

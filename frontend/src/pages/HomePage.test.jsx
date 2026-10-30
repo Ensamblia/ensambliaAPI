@@ -66,13 +66,33 @@ describe('HomePage — stats del landing', () => {
         expect(screen.queryByText('EVENTOS AL MES')).not.toBeInTheDocument();
     });
 
-    it('fallback a testimonios hardcoded si el back devuelve []', async () => {
-        renderHome();
+    it('sin testimonios reales no enseña la sección de comunidad (nada inventado)', async () => {
+        const { container } = renderHome();
         await waitFor(() => {
-        expect(screen.getByText(/Carlos R\./)).toBeInTheDocument();
-        expect(screen.getByText(/Laura M\./)).toBeInTheDocument();
-        expect(screen.getByText(/Javier P\./)).toBeInTheDocument();
+        expect(container.querySelector('.stats-section')).toBeInTheDocument();
         });
+        expect(container.querySelector('.community-section')).not.toBeInTheDocument();
+        expect(screen.queryByText(/Carlos R\./)).not.toBeInTheDocument();
+    });
+
+    it('con cifras pequeñas no enseña cifras ni "músicos conectados"', async () => {
+        server.use(
+        http.get(`${API}/stats/`, () =>
+            HttpResponse.json({
+            usuarios_activos: 3, usuarios_online: 0, grupos_formados: 0,
+            anuncios_mes: 0, matches: 1, testimonios: [],
+            }),
+        ),
+        );
+        const { container } = renderHome();
+        await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+        });
+        // Damos tiempo a que llegue la respuesta del back
+        await new Promise((r) => setTimeout(r, 50));
+        expect(container.querySelector('.stats-section')).not.toBeInTheDocument();
+        expect(container.querySelector('.hero-proof')).not.toBeInTheDocument();
+        expect(container.querySelector('.hero-card--bottom')).not.toBeInTheDocument();
     });
 
     it('muestra testimonios reales si el back los devuelve', async () => {
@@ -112,3 +132,34 @@ describe('HomePage — stats del landing', () => {
         expect(bottomCard.textContent).toMatch(/5\.678|5678/);
     });
     });
+
+describe('HomePage — sin callejones sin salida', () => {
+    it('las tarjetas de funciones son enlaces a secciones reales y no hay marketplace', () => {
+        renderHome();
+        const destinos = ['Encuentra tu gente', 'Encuentra dónde ensayar y tocar', 'Planifica tus próximos directos', 'Habla y crea', 'Dale espacio a tu banda']
+            .map((t) => screen.getByText(t).closest('a')?.getAttribute('href'));
+        expect(destinos).toEqual(['/match', '/locales', '/eventos', '/chat', '/anuncios']);
+        expect(screen.queryByText(/marketplace/i)).not.toBeInTheDocument();
+    });
+
+    it('no promete apps en tiendas ni redes sociales que no existen', () => {
+        renderHome();
+        expect(screen.queryByText(/Próximamente/)).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Instagram')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Contacto' })).not.toBeInTheDocument();
+    });
+
+    it('con sesión iniciada no invita a crear cuenta', () => {
+        localStorage.setItem('ensamblia_token', 'tok');
+        localStorage.setItem('ensamblia_usuario', 'ana');
+        try {
+            renderHome();
+            expect(screen.getByRole('link', { name: /Ir a mi perfil/ })).toHaveAttribute('href', '/perfil');
+            expect(screen.queryByRole('link', { name: /Crear cuenta/ })).not.toBeInTheDocument();
+            expect(screen.queryByRole('link', { name: /Únete gratis/ })).not.toBeInTheDocument();
+        } finally {
+            localStorage.clear();
+        }
+    });
+});
+

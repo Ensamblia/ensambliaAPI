@@ -96,6 +96,9 @@ describe('PerfilPublicoPage', () => {
     });
     expect(screen.getByText('Perfil de local')).toBeInTheDocument();
     expect(await screen.findByText('C/ Mayor 1')).toBeInTheDocument();
+    // Un local no toca instrumentos
+    expect(screen.queryByText('INSTRUMENTOS')).not.toBeInTheDocument();
+    expect(screen.getByText('GÉNEROS MUSICALES')).toBeInTheDocument();
   });
 
   it('muestra EmptyState si el perfil no existe', async () => {

@@ -1,6 +1,6 @@
 // src/components/ui/PageHeader/PageHeader.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from './PageHeader.module.css';
 
 /**
@@ -12,6 +12,7 @@ import styles from './PageHeader.module.css';
  * @param {React.ReactNode} [props.actions]
  * @param {string} [props.backTo]
  * @param {string} [props.backLabel='Volver']
+ * @param {boolean} [props.backHistory] si hay historial en la app, vuelve a la página anterior en vez de a backTo
  * @param {string} [props.className]
  */
 export function PageHeader({
@@ -20,12 +21,22 @@ export function PageHeader({
   actions,
   backTo,
   backLabel = 'Volver',
+  backHistory = false,
   className = '',
 }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  // key 'default' = se entró directamente por URL: no hay página anterior propia
+  const volverAtras = backHistory && location.key !== 'default';
+
   return (
     <header className={[styles.root, className].filter(Boolean).join(' ')}>
       {backTo && (
-        <Link to={backTo} className={styles.back}>
+        <Link
+          to={backTo}
+          className={styles.back}
+          onClick={volverAtras ? (e) => { e.preventDefault(); navigate(-1); } : undefined}
+        >
           <span aria-hidden="true">←</span> {backLabel}
         </Link>
       )}

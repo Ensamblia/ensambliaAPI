@@ -106,12 +106,18 @@ export function AnunciosPage() {
     <main className={styles.page}>
       <PageHeader
         title="Anuncios"
+        subtitle="Gente que busca músicos, grupos, locales y bolos."
         actions={
-          mostrarContador ? (
-            <span className={styles.countBadge}>
-              {count} resultado{count !== 1 ? 's' : ''}
-            </span>
-          ) : null
+          <>
+            {mostrarContador && (
+              <span className={styles.countBadge}>
+                {count} resultado{count !== 1 ? 's' : ''}
+              </span>
+            )}
+            <Button to="/anuncios/crear" variant="primary" size="sm">
+              Publicar anuncio
+            </Button>
+          </>
         }
       />
 
@@ -136,6 +142,11 @@ export function AnunciosPage() {
           icon="🔍"
           title="Sin resultados"
           description="Prueba con otros filtros o publica tu propio anuncio."
+          action={
+            <Button to="/anuncios/crear" variant="primary" size="sm">
+              Publicar anuncio
+            </Button>
+          }
         />
       )}
 

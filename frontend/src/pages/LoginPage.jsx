@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api, { parseApiError } from '@/api/axios';
 import { AuthContext } from '@/context/AuthContext';
 import { Button, Field, Input, PageHeader } from '@/components/ui';
@@ -9,6 +9,8 @@ import styles from './LoginPage.module.css';
 export function LoginPage() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  // Página privada desde la que se llegó (la pone RequireAuth o un "Contactar" sin sesión)
+  const from = useLocation().state?.from;
 
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ export function LoginPage() {
     try {
       const res = await api.post('/auth/login', { usuario, password });
       login(usuario, res.data.token);
-      navigate('/perfil');
+      navigate(from || '/perfil', { replace: true });
     } catch (err) {
       if (err.response?.status === 401) {
         setError('Usuario o contraseña incorrectos.');
@@ -43,6 +45,13 @@ export function LoginPage() {
   return (
     <main className={styles.page}>
       <PageHeader title="Iniciar sesión" />
+
+      {from && (
+        <p className={styles.aviso}>
+          Para usar esta sección necesitas una cuenta. Entra o crea tu perfil gratis y
+          te llevamos de vuelta.
+        </p>
+      )}
 
       <form className={styles.form} onSubmit={handleSubmit}>
         <Field label="Usuario" required>
@@ -70,7 +79,7 @@ export function LoginPage() {
       </form>
 
       <p className={styles.footer}>
-        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+        ¿No tienes cuenta? <Link to="/register">Regístrate gratis</Link>
       </p>
     </main>
   );

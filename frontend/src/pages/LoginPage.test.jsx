@@ -7,13 +7,14 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { LoginPage } from './LoginPage';
 
-function renderLogin() {
+function renderLogin(entrada = '/login') {
   return render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/login']}>
+      <MemoryRouter initialEntries={[entrada]}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/perfil" element={<div>pantalla de perfil</div>} />
+          <Route path="/match" element={<div>pantalla de match</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -62,5 +63,20 @@ describe('LoginPage', () => {
       expect(screen.getByText(/Usuario o contraseña incorrectos/i)).toBeInTheDocument();
     });
     expect(localStorage.getItem('ensamblia_token')).toBeNull();
+  });
+
+  it('si viene de una página privada lo explica y vuelve a ella tras entrar', async () => {
+    const user = userEvent.setup();
+    renderLogin({ pathname: '/login', state: { from: '/match' } });
+    expect(screen.getByText(/Para usar esta sección necesitas una cuenta/i)).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/usuario/i), 'ana');
+    await user.type(screen.getByLabelText(/contraseña/i), 'ana123');
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+    expect(await screen.findByText('pantalla de match')).toBeInTheDocument();
+  });
+
+  it('sin página de origen no muestra el aviso', () => {
+    renderLogin();
+    expect(screen.queryByText(/Para usar esta sección/i)).not.toBeInTheDocument();
   });
 });

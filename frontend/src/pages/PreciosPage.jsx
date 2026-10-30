@@ -19,8 +19,16 @@ export function PreciosPage() {
     <main className={styles.page}>
       <PageHeader
         title="Planes y precios"
-        subtitle="Elige cómo quieres moverte en Ensamblia. Los planes de pago llegarán pronto."
+        subtitle="Así serán los planes de Ensamblia. Durante la beta abierta, todo es gratis."
       />
+
+      <p className={styles.beta}>
+        <Tag color="green" size="sm">Beta abierta</Tag>
+        <span>
+          Ahora mismo músicos, grupos y locales tienen <strong>todas las funciones gratis</strong>,
+          sin límites y sin tarjeta. Los planes de pago llegarán más adelante y te avisaremos antes.
+        </span>
+      </p>
 
       <div className={styles.periodos} role="group" aria-label="Periodo de facturación">
         {PERIODOS.map((p) => (
@@ -84,11 +92,7 @@ export function PreciosPage() {
                   </Button>
                 )}
                 {esFree && user && <span className={styles.planActual}>Tu plan actual</span>}
-                {!esFree && (
-                  <Button variant={plan.recomendado ? 'primary' : 'dark'} block disabled>
-                    Próximamente
-                  </Button>
-                )}
+                {!esFree && <span className={styles.planActual}>Gratis durante la beta</span>}
               </div>
             </Card>
           );
@@ -96,8 +100,8 @@ export function PreciosPage() {
       </div>
 
       <p className={styles.nota}>
-        Todavía no cobramos nada: estamos preparando los pagos. Mientras tanto, todas las
-        funciones siguen disponibles.
+        Todavía no cobramos nada. Cuando lleguen los planes de pago, las cuentas creadas en la
+        beta tendrán un aviso previo.
       </p>
     </main>
   );

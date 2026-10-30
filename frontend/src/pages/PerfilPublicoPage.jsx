@@ -16,6 +16,7 @@ import {
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
 import { DatosLocalInfo } from '@/components/locales/DatosLocalInfo';
 import { ProximosEventos } from '@/components/eventos/ProximosEventos';
+import { contactarPerfil } from '@/utils/contactar';
 import styles from './PerfilPublicoPage.module.css';
 
 export function PerfilPublicoPage() {
@@ -120,24 +121,8 @@ export function PerfilPublicoPage() {
   const handleContactar = async () => {
     setContactarError('');
     setContactando(true);
-    try {
-      const res = await api.post(`/chats/con/${id}`);
-      navigate(`/chat?chat=${res.data.chat_id}`);
-    } catch (err) {
-      if (err.response?.status === 401) {
-        navigate('/login');
-      } else if (err.response?.status === 403) {
-        setContactarError('Necesitas crear tu perfil antes de contactar.');
-      } else if (err.response?.status === 400) {
-        setContactarError(
-          err.response.data?.error || 'No puedes contactar contigo mismo.',
-        );
-      } else {
-        setContactarError('No se pudo iniciar la conversación.');
-      }
-    } finally {
-      setContactando(false);
-    }
+    setContactarError(await contactarPerfil(id, navigate));
+    setContactando(false);
   };
 
   if (loading) {
@@ -153,7 +138,7 @@ export function PerfilPublicoPage() {
   if (notFound) {
     return (
       <main className={styles.page}>
-        <PageHeader title="Perfil de músico" backTo="/anuncios" backLabel="Anuncios" />
+        <PageHeader title="Perfil" backTo="/anuncios" backLabel="Volver" backHistory />
         <EmptyState
           icon="🔍"
           title="Este perfil no existe"
@@ -172,7 +157,8 @@ export function PerfilPublicoPage() {
             : 'Perfil de músico'
         }
         backTo="/anuncios"
-        backLabel="Anuncios"
+        backLabel="Volver"
+        backHistory
       />
 
       {errorMsg && <p className={styles.errorBanner}>{errorMsg}</p>}
@@ -188,9 +174,7 @@ export function PerfilPublicoPage() {
           <p className={styles.profileName}>
             {perfil.nombre} {perfil.apellido}
           </p>
-          <span className={styles.profileHandle}>
-            {comarcaNombre || 'Sin comarca'}
-          </span>
+          {comarcaNombre && <span className={styles.profileHandle}>{comarcaNombre}</span>}
           <Tag color="coral" size="sm">
             {etiquetaTipoPerfil(perfil.tipo)}
           </Tag>
@@ -211,6 +195,7 @@ export function PerfilPublicoPage() {
 
         <ProximosEventos perfilId={id} className={styles.section} />
 
+        {perfil.tipo !== 'local' && (
         <div className={styles.section}>
           <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>
           <div className={styles.tagRow}>
@@ -224,6 +209,7 @@ export function PerfilPublicoPage() {
             ))}
           </div>
         </div>
+        )}
 
         <div className={`${styles.section} ${styles.sectionLast}`}>
           <SectionLabel tone="purple">GÉNEROS MUSICALES</SectionLabel>

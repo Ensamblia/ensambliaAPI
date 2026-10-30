@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api, { extractList } from '@/api/axios';
 import { AutorNombre } from '@/components/perfil/AutorNombre';
 import { Button, Card, Tag } from '@/components/ui';
+import { contactarPerfil } from '@/utils/contactar';
 import styles from './AnuncioCard.module.css';
 
 /* ── Caché global de tipos de anuncio (una sola carga por app) ── */
@@ -150,22 +151,8 @@ export function AnuncioCard({ anuncio }) {
     e.stopPropagation();
     setError('');
     setContactando(true);
-    try {
-      const res = await api.post(`/chats/con/${anuncio.perfil_id}`);
-      navigate(`/chat?chat=${res.data.chat_id}`);
-    } catch (err) {
-      if (err.response?.status === 401) {
-        navigate('/login');
-      } else if (err.response?.status === 403) {
-        setError('Necesitas crear tu perfil antes de contactar.');
-      } else if (err.response?.status === 400) {
-        setError(err.response.data?.error || 'No puedes contactar contigo mismo.');
-      } else {
-        setError('No se pudo iniciar la conversación.');
-      }
-    } finally {
-      setContactando(false);
-    }
+    setError(await contactarPerfil(anuncio.perfil_id, navigate));
+    setContactando(false);
   };
 
   const irAlDetalle = () => navigate(`/anuncios/${anuncio.anuncio_id}`);

@@ -1,12 +1,15 @@
 // src/pages/AnuncioDetailPage.jsx
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import api, { extractList } from '@/api/axios';
+import { misPerfiles } from '@/api/eventos';
+import { AuthContext } from '@/context/AuthContext';
+import { contactarPerfil } from '@/utils/contactar';
 import { AutorNombre } from '@/components/perfil/AutorNombre';
 import { AnuncioMultimediaGaleria } from '@/components/multimedia/AnuncioMultimediaGaleria';
 import { Comentarios } from '@/components/comentarios/Comentarios';
 import { BusquedaAnuncioInfo } from '@/components/match/BusquedaAnuncioInfo';
-import { EmptyState, PageHeader, Spinner, Tag } from '@/components/ui';
+import { Button, EmptyState, PageHeader, Spinner, Tag } from '@/components/ui';
 import styles from './AnuncioDetailPage.module.css';
 
 /* ── Caché de tipos (compartida con AnuncioCard) ── */
@@ -55,6 +58,11 @@ export function AnuncioDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const tipos = useTipos();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [esAutor, setEsAutor] = useState(false);
+  const [contactando, setContactando] = useState(false);
+  const [contactarError, setContactarError] = useState('');
 
   useEffect(() => {
     setLoading(true);
@@ -71,6 +79,23 @@ export function AnuncioDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!user || !anuncio) {
+      setEsAutor(false);
+      return;
+    }
+    misPerfiles()
+      .then((lista) => setEsAutor(lista.some((p) => p.perfil_id === anuncio.perfil_id)))
+      .catch(() => setEsAutor(false));
+  }, [user, anuncio]);
+
+  const contactar = async () => {
+    setContactarError('');
+    setContactando(true);
+    setContactarError(await contactarPerfil(anuncio.perfil_id, navigate));
+    setContactando(false);
+  };
 
   const fecha = anuncio?.fecha_publicacion
     ? new Date(anuncio.fecha_publicacion).toLocaleDateString('es-ES', {
@@ -129,7 +154,16 @@ export function AnuncioDetailPage() {
         }
         backTo="/anuncios"
         backLabel="Anuncios"
+        actions={
+          !esAutor && (
+            <Button variant="primary" size="sm" onClick={contactar} loading={contactando}>
+              Contactar con el autor
+            </Button>
+          )
+        }
       />
+
+      {contactarError && <p className={styles.error}>{contactarError}</p>}
 
       {tipoLabel && (
         <div className={styles.tagRow}>

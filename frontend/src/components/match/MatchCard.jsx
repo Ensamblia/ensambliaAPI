@@ -1,7 +1,7 @@
 // src/components/match/MatchCard.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { parseApiError } from '@/api/axios';
+import { contactarPerfil } from '@/utils/contactar';
 import { Button, Card, Tag } from '@/components/ui';
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
 import { motivosMatch } from '@/utils/match';
@@ -15,14 +15,8 @@ export function MatchCard({ match }) {
   const contactar = async () => {
     setError('');
     setContactando(true);
-    try {
-      const res = await api.post(`/chats/con/${match.perfil_id}`);
-      navigate(`/chat?chat=${res.data.chat_id}`);
-    } catch (err) {
-      setError(parseApiError(err, 'No se pudo iniciar la conversación.'));
-    } finally {
-      setContactando(false);
-    }
+    setError(await contactarPerfil(match.perfil_id, navigate));
+    setContactando(false);
   };
 
   return (

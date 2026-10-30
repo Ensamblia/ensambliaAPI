@@ -30,6 +30,17 @@ describe('QueBuscasFields', () => {
     expect(cambios[cambios.length - 1]).toEqual({ tipo_perfil: 'usuario', instrumento_id: '1', generos: [1] });
   });
 
+  it('si se busca un local no pide instrumento y lo vacía', async () => {
+    const cambios = [];
+    const user = userEvent.setup();
+    render(<Contenedor onCambio={(v) => cambios.push(v)} />);
+    await screen.findByRole('option', { name: 'Guitarra' });
+    await user.selectOptions(screen.getByLabelText(/Instrumento que buscas/i), '1');
+    await user.selectOptions(screen.getByLabelText(/Qué tipo de perfil buscas/i), 'local');
+    expect(screen.queryByLabelText(/Instrumento que buscas/i)).not.toBeInTheDocument();
+    expect(cambios[cambios.length - 1]).toMatchObject({ tipo_perfil: 'local', instrumento_id: '' });
+  });
+
   it('hayQueBuscas solo es cierto si se rellenó algo', () => {
     expect(hayQueBuscas(QUE_BUSCAS_VACIO)).toBe(false);
     expect(hayQueBuscas({ ...QUE_BUSCAS_VACIO, generos: [2] })).toBe(true);

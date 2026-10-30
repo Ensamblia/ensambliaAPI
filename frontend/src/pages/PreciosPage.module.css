@@ -166,6 +166,20 @@
     color: var(--text-secondary);
 }
 
+.beta {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    margin: 0 0 var(--sp-5);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
 .nota {
     margin: var(--sp-6) 0 0;
     text-align: center;

@@ -19,6 +19,15 @@
     white-space: pre-wrap;
 }
 
+.error {
+    margin: 0 0 var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+}
+
 .stateBox {
     display: flex;
     justify-content: center;

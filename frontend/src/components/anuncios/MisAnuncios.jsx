@@ -69,9 +69,7 @@ export function MisAnuncios({ perfilId, refreshKey = 0 }) {
         title="Aún no has publicado ningún anuncio"
         description="Crea el primero para que otros músicos te encuentren."
         action={
-          <Link to="/anuncios/crear">
-            <Button variant="primary" size="sm">Crear anuncio</Button>
-          </Link>
+          <Button to="/anuncios/crear" variant="primary" size="sm">Crear anuncio</Button>
         }
       />
     );

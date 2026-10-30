@@ -2,6 +2,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { server } from '@/test/msw/server';
@@ -134,5 +135,54 @@ describe('AnuncioDetailPage', () => {
     await screen.findByText('Busco batería para grupo de rock');
     await new Promise((r) => setTimeout(r, 100));
     expect(screen.queryByText(/Perfiles que encajan/i)).not.toBeInTheDocument();
+  });
+
+  it('con sesión, "Contactar con el autor" abre el chat con el autor', async () => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'luis');
+    let contactado = null;
+    server.use(
+      http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
+      http.get(`${API}/eventos/mis-perfiles/`, () => HttpResponse.json([{ perfil_id: 2, nombre: 'Luis' }])),
+      http.post(`${API}/chats/con/:perfilId/`, ({ params }) => {
+        contactado = Number(params.perfilId);
+        return HttpResponse.json({ chat_id: 99 }, { status: 201 });
+      }),
+    );
+    try {
+      render(
+        <AuthProvider>
+          <MemoryRouter initialEntries={['/anuncios/1']}>
+            <Routes>
+              <Route path="/anuncios/:id" element={<AnuncioDetailPage />} />
+              <Route path="/chat" element={<div>pantalla de chat</div>} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>,
+      );
+      await userEvent.click(await screen.findByRole('button', { name: /Contactar con el autor/i }));
+      expect(await screen.findByText('pantalla de chat')).toBeInTheDocument();
+      expect(contactado).toBe(1);
+    } finally {
+      localStorage.clear();
+    }
+  });
+
+  it('el autor no ve el botón de contactar en su propio anuncio', async () => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'ana');
+    server.use(
+      http.get(`${API}/anuncios/1/`, () => HttpResponse.json(anuncio)),
+      http.get(`${API}/eventos/mis-perfiles/`, () => HttpResponse.json([{ perfil_id: 1, nombre: 'Ana' }])),
+    );
+    try {
+      renderDetail(1);
+      await screen.findByText('Busco batería para grupo de rock');
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: /Contactar/i })).not.toBeInTheDocument(),
+      );
+    } finally {
+      localStorage.clear();
+    }
   });
 });

@@ -26,6 +26,13 @@ export function QueBuscasFields({ value, onChange }) {
   }, []);
 
   const set = (campo) => (e) => onChange({ ...value, [campo]: e.target.value });
+  // Un local no toca instrumentos: al buscar un local se quita el instrumento
+  const setTipoPerfil = (e) =>
+    onChange({
+      ...value,
+      tipo_perfil: e.target.value,
+      ...(e.target.value === 'local' ? { instrumento_id: '' } : {}),
+    });
 
   const toggleGenero = (id) =>
     onChange({
@@ -42,7 +49,7 @@ export function QueBuscasFields({ value, onChange }) {
 
       <div className={styles.fila}>
         <Field label="Qué tipo de perfil buscas">
-          <Select value={value.tipo_perfil} onChange={set('tipo_perfil')}>
+          <Select value={value.tipo_perfil} onChange={setTipoPerfil}>
             <option value="">Cualquiera</option>
             {TIPOS_PERFIL.map((t) => (
               <option key={t.value} value={t.value}>
@@ -52,6 +59,7 @@ export function QueBuscasFields({ value, onChange }) {
           </Select>
         </Field>
 
+        {value.tipo_perfil !== 'local' && (
         <Field label="Instrumento que buscas">
           <Select value={value.instrumento_id} onChange={set('instrumento_id')}>
             <option value="">Ninguno en concreto</option>
@@ -62,6 +70,7 @@ export function QueBuscasFields({ value, onChange }) {
             ))}
           </Select>
         </Field>
+        )}
       </div>
 
       {generos.length > 0 && (

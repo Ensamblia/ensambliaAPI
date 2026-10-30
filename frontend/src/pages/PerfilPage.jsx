@@ -255,8 +255,10 @@ export function PerfilPage() {
         setPerfilId(currentPerfilId);
       }
 
-      const instrAdded = [...instrSelected].filter((id) => !instrOriginal.has(id));
-      const instrRemoved = [...instrOriginal].filter((id) => !instrSelected.has(id));
+      // Un local no tiene instrumentos: no se tocan sus instrumentos al guardar
+      const esLocal = form.tipo === 'local';
+      const instrAdded = esLocal ? [] : [...instrSelected].filter((id) => !instrOriginal.has(id));
+      const instrRemoved = esLocal ? [] : [...instrOriginal].filter((id) => !instrSelected.has(id));
       const genAdded = [...genSelected].filter((id) => !genOriginal.has(id));
       const genRemoved = [...genOriginal].filter((id) => !genSelected.has(id));
 
@@ -439,6 +441,7 @@ export function PerfilPage() {
 </datalist>
             </div>
 
+            {form.tipo !== 'local' && (
             <div className={styles.section}>
               <SectionLabel tone="green">INSTRUMENTOS</SectionLabel>
               <div className={styles.tagRow}>
@@ -462,6 +465,7 @@ export function PerfilPage() {
                 })}
               </div>
             </div>
+            )}
 
             <div className={`${styles.section} ${styles.sectionLast}`}>
               <SectionLabel tone="purple">GÉNEROS MUSICALES</SectionLabel>
@@ -506,10 +510,10 @@ export function PerfilPage() {
           {perfilId && form.tipo === 'local' && (
             <>
               <Card className={styles.contentCard}>
-                <DatosLocalForm perfilId={perfilId} onSaved={() => setLocalRefresh((k) => k + 1)} />
+                <ArtistasSugeridos perfilId={perfilId} refreshKey={localRefresh} />
               </Card>
               <Card className={styles.contentCard}>
-                <ArtistasSugeridos perfilId={perfilId} refreshKey={localRefresh} />
+                <DatosLocalForm perfilId={perfilId} onSaved={() => setLocalRefresh((k) => k + 1)} />
               </Card>
             </>
           )}
