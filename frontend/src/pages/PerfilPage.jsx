@@ -25,6 +25,7 @@ import {
   etiquetaTipoPerfil,
   llevaApellido,
 } from '@/utils/tipoPerfil';
+import { mensajeErrorFoto } from '@/utils/fotoPerfil';
 import styles from './PerfilPage.module.css';
 
 const emptyForm = {
@@ -142,6 +143,9 @@ export function PerfilPage() {
   const handleFotoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !perfilId) return;
+    setErrorMsg('');
+    setSuccessMsg('');
+    let paso = 'preparar';
     try {
       // 1. Presigned
       const presignedRes = await api.post('/perfiles/presigned-avatar/', {
@@ -152,6 +156,7 @@ export function PerfilPage() {
       const { upload_url, object_key } = presignedRes.data;
 
       // 2. PUT a MinIO con x-amz-acl
+      paso = 'enviar';
       await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', upload_url, true);
@@ -159,20 +164,25 @@ export function PerfilPage() {
         xhr.setRequestHeader('x-amz-acl', 'public-read');
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else reject(new Error(`Error al subir: ${xhr.status}`));
+          // La respuesta de MinIO dice la causa (p. ej. InvalidAccessKeyId si las
+          // claves MINIO_* del .env no coinciden con las del contenedor)
+          else reject(new Error(`Error al subir: ${xhr.status} ${xhr.responseText}`));
         };
         xhr.onerror = () => reject(new Error('Error de red al subir'));
         xhr.send(file);
       });
 
       // 3. set-avatar
+      paso = 'guardar';
       await api.post(`/perfiles/${perfilId}/set-avatar/`, { object_key });
 
       // 4. Refrescar me
       refreshMe();
       setSuccessMsg('Foto actualizada.');
     } catch (err) {
-      setErrorMsg('No se pudo subir la foto. Inténtalo de nuevo.');
+      // El detalle técnico, en la consola para quien esté desarrollando
+      console.error(`No se pudo subir la foto (paso: ${paso})`, err);
+      setErrorMsg(mensajeErrorFoto(paso, err));
     } finally {
       if (e.target) e.target.value = '';
     }
