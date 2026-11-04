@@ -6,6 +6,7 @@ import { CalendarioMes } from '@/components/eventos/CalendarioMes';
 import { EventoCard } from '@/components/eventos/EventoCard';
 import { Button, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
 import { agruparPorDia, rangoMes } from '@/utils/eventos';
+import { PanelFiltros } from '@/components/filters/PanelFiltros';
 import styles from './EventosPage.module.css';
 
 export function EventosPage() {
@@ -74,26 +75,28 @@ export function EventosPage() {
       />
 
       <div className={styles.filtros}>
-        <div className={styles.select}>
-          <Select value={ciudad} onChange={(e) => setCiudad(e.target.value)} aria-label="Filtrar eventos por ciudad">
-            <option value="">Todas las ciudades</option>
-            {ciudades.map((c) => (
-              <option key={c.ciudad_id} value={c.ciudad_id}>
-                {c.nombre}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className={styles.select}>
-          <Select value={genero} onChange={(e) => setGenero(e.target.value)} aria-label="Filtrar eventos por estilo">
-            <option value="">Todos los estilos</option>
-            {generos.map((g) => (
-              <option key={g.genero_musical_id} value={g.genero_musical_id}>
-                {g.nombre}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <PanelFiltros activos={[ciudad, genero].filter(Boolean).length}>
+          <div className={styles.select}>
+            <Select value={ciudad} onChange={(e) => setCiudad(e.target.value)} aria-label="Filtrar eventos por ciudad">
+              <option value="">Todas las ciudades</option>
+              {ciudades.map((c) => (
+                <option key={c.ciudad_id} value={c.ciudad_id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className={styles.select}>
+            <Select value={genero} onChange={(e) => setGenero(e.target.value)} aria-label="Filtrar eventos por estilo">
+              <option value="">Todos los estilos</option>
+              {generos.map((g) => (
+                <option key={g.genero_musical_id} value={g.genero_musical_id}>
+                  {g.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </PanelFiltros>
       </div>
 
       <div className={styles.layout}>

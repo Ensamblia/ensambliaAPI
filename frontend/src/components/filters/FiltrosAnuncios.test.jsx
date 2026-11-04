@@ -92,4 +92,16 @@ describe('FiltrosAnuncios', () => {
       });
     });
   });
+
+  it('el botón Filtros cuenta los filtros del panel, no la búsqueda', async () => {
+    const user = userEvent.setup();
+    render(<FiltrosAnuncios onFilter={() => {}} />);
+    expect(screen.queryByLabelText(/activos/)).not.toBeInTheDocument();
+
+    await user.type(screen.getByRole('searchbox', { name: /Buscar anuncios/i }), 'batería');
+    expect(screen.queryByLabelText(/activos/)).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /Ordenar anuncios/i }), 'titulo');
+    expect(screen.getByLabelText('1 activos')).toBeInTheDocument();
+  });
 });

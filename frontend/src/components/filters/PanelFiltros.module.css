@@ -1,0 +1,68 @@
+/* PanelFiltros.module.css */
+
+/* Escritorio: el panel no existe para el layout y sus hijos se colocan
+   en la fila de filtros del padre como antes */
+.panel {
+    display: contents;
+}
+
+.toggle {
+    display: none;
+}
+
+/* ── Móvil: botón "Filtros" y panel plegable ── */
+@media (max-width: 700px) {
+    .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-2);
+        align-self: flex-start;
+        min-height: 44px;
+        padding: 0 var(--sp-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-elevated);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-semibold);
+        cursor: pointer;
+    }
+
+    .toggle:focus-visible {
+        outline: 2px solid var(--text-primary);
+        outline-offset: 2px;
+    }
+
+    .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background: var(--yellow);
+        color: var(--ink);
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-bold);
+    }
+
+    .chevron {
+        transition: transform var(--dur-fast) var(--ease-out);
+    }
+
+    .chevronAbierto {
+        transform: rotate(180deg);
+    }
+
+    .panel {
+        display: none;
+    }
+
+    .panelAbierto {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-2);
+    }
+}
