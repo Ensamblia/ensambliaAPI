@@ -7,7 +7,7 @@
     overflow: hidden;
     background: var(--surface-elevated);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
     cursor: pointer;
     transition:
         border-color var(--dur-base) var(--ease-out),
@@ -17,8 +17,8 @@
 
 .card:hover {
     border-color: var(--border-strong);
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
+    box-shadow: 6px 6px 0 rgba(32, 37, 31, 0.09);
+    transform: translate(-2px, -2px);
 }
 
 /* ── Thumbnails ── */
@@ -128,19 +128,28 @@
 
 /* ── Body ── */
 .body {
+    flex: 1;
     padding: var(--sp-5);
     display: flex;
     flex-direction: column;
-    gap: var(--sp-2);
+    gap: var(--sp-3);
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-1);
+    flex-shrink: 0;
 }
 
 .title {
     margin: 0;
     font-family: var(--font-sans);
     font-size: var(--fs-lg);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-black);
     color: var(--text-primary);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -154,8 +163,10 @@
     gap: var(--sp-1);
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
+    min-width: 0;
+    font-size: var(--fs-base);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
 }
 
 .bodyText {
@@ -184,19 +195,20 @@
     align-items: center;
     gap: var(--sp-3);
     padding-top: var(--sp-3);
-    border-top: 1px solid var(--border);
-    margin-top: var(--sp-1);
+    border-top: 1px solid var(--line);
+    margin-top: auto;
 }
 
 .dateText {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--text-muted);
-    letter-spacing: 0.02em;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--ink-soft);
+    white-space: nowrap;
 }
 
 .footerActions {
     display: flex;
     align-items: center;
-    gap: var(--sp-2);
+    gap: var(--sp-1);
+    flex-shrink: 0;
 }

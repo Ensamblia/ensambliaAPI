@@ -4,7 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import api, { parseApiError } from '@/api/axios';
 import { Button, Card, Tag } from '@/components/ui';
 import { etiquetaTipoPerfil } from '@/utils/tipoPerfil';
-import { motivosMatch } from '@/utils/match';
+import { MapPin } from 'lucide-react';
+import { motivosMatch, puntuacionMatch } from '@/utils/match';
+import { AnilloMatch } from './AnilloMatch';
 import styles from './MatchCard.module.css';
 
 export function MatchCard({ match }) {
@@ -28,13 +30,29 @@ export function MatchCard({ match }) {
   return (
     <Card as="article" padding="md" className={styles.card}>
       <div className={styles.cabecera}>
-        <Link to={`/perfiles/${match.perfil_id}`} className={styles.nombre}>
-          {[match.nombre, match.apellido].filter(Boolean).join(' ')}
-        </Link>
-        <Tag size="sm" color="coral">
+        <AnilloMatch valor={puntuacionMatch(match)} />
+        <div className={styles.cabeceraTexto}>
+          <Link to={`/perfiles/${match.perfil_id}`} className={styles.nombre}>
+            {[match.nombre, match.apellido].filter(Boolean).join(' ')}
+          </Link>
+          {match.zona && (
+            <span className={styles.zona}>
+              <MapPin size={14} aria-hidden="true" /> {match.zona}
+            </span>
+          )}
+        </div>
+        <Tag size="sm" color="coral" className={styles.tipo}>
           {etiquetaTipoPerfil(match.tipo)}
         </Tag>
       </div>
+
+      {match.instrumentos?.length > 0 && (
+        <div className={styles.instrumentos}>
+          {match.instrumentos.map((i) => (
+            <Tag key={i} size="sm">{i}</Tag>
+          ))}
+        </div>
+      )}
 
       <ul className={styles.motivos}>
         {motivosMatch(match).map((m) => (

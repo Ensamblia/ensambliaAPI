@@ -1,44 +1,124 @@
 /* EventoCard.module.css */
 .card {
     display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
+    gap: var(--sp-5);
+    padding: var(--sp-5);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 rgba(32, 37, 31, 0.09);
 }
 
 .fecha {
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--coral-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border: 1px solid rgba(45, 114, 88, 0.2);
+    border-radius: 12px;
+    background: var(--green);
+    color: var(--ink);
+    line-height: 1;
+}
+
+.dia {
+    font-size: 24px;
+    font-weight: var(--fw-black);
+    letter-spacing: -0.04em;
+}
+
+.mes {
+    margin-top: 4px;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
     text-transform: capitalize;
+}
+
+.cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.precio {
+    padding: 2px 9px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
 }
 
 .titulo {
     font-size: var(--fs-lg);
-    font-weight: var(--fw-bold);
-    color: var(--text-primary);
-    text-decoration: none;
+    font-weight: var(--fw-black);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1.3;
 }
 
 .titulo:hover {
+    opacity: 1;
     text-decoration: underline;
+    text-decoration-color: var(--yellow);
+    text-decoration-thickness: 3px;
 }
 
-.lugar {
-    font-size: var(--fs-base);
-    color: var(--text-secondary);
-}
-
-.pie {
+.meta {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sp-1);
-    margin-top: var(--sp-1);
+    gap: var(--sp-1) var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
 }
 
-.precio {
-    margin-left: auto;
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    color: var(--text-primary);
+.meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cap {
+    text-transform: capitalize;
+}
+
+.descripcion {
+    font-size: var(--fs-base);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (max-width: 520px) {
+    .card {
+        gap: var(--sp-3);
+        padding: var(--sp-4);
+    }
+
+    .fecha {
+        width: 52px;
+        height: 56px;
+    }
+
+    .dia {
+        font-size: 20px;
+    }
 }

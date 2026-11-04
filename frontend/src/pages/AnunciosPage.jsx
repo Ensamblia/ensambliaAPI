@@ -1,5 +1,7 @@
 // src/pages/AnunciosPage.jsx
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Megaphone, Plus } from 'lucide-react';
 import { AnuncioCard } from '@/components/cards/AnuncioCard';
 import { FiltrosAnuncios } from '@/components/filters/FiltrosAnuncios';
 import { Button, EmptyState, PageHeader, Spinner } from '@/components/ui';
@@ -15,9 +17,13 @@ export function AnunciosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // ?q= llega desde el buscador de la barra superior
+  const [searchParams] = useSearchParams();
+  const busquedaInicial = searchParams.get('q') || '';
+
   // Filtros actuales (los guarda FiltrosAnuncios)
   const [filtros, setFiltros] = useState({
-    busqueda: '',
+    busqueda: busquedaInicial,
     tipo_anuncio: '',
     ordering: '-fecha_publicacion',
   });
@@ -106,16 +112,27 @@ export function AnunciosPage() {
     <main className={styles.page}>
       <PageHeader
         title="Anuncios"
+        icon={<Megaphone size={22} />}
+        tone="yellow"
+        subtitle="Bandas que buscan músicos, músicos que buscan banda y todo lo que se cuece en tu zona."
         actions={
-          mostrarContador ? (
-            <span className={styles.countBadge}>
-              {count} resultado{count !== 1 ? 's' : ''}
-            </span>
-          ) : null
+          <Button to="/anuncios/crear" variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
+            Publicar anuncio
+          </Button>
         }
       />
 
-      <FiltrosAnuncios onFilter={handleFilter} />
+      <FiltrosAnuncios
+        key={busquedaInicial}
+        onFilter={handleFilter}
+        initialValues={{ busqueda: busquedaInicial }}
+      />
+
+      {mostrarContador && (
+        <p className={styles.contador}>
+          {count} anuncio{count !== 1 ? 's' : ''}
+        </p>
+      )}
 
       {loading && (
         <div className={styles.stateBox}>

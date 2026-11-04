@@ -2,16 +2,14 @@
 .page {
     width: min(1180px, calc(100% - 64px));
     margin: 0 auto;
-    padding: var(--sp-7) 0 var(--sp-8);
+    padding: var(--sp-6) 0 var(--sp-8);
 }
 
 .filtros {
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-2);
-    padding: var(--sp-4) 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: var(--sp-6);
+    margin-bottom: var(--sp-5);
 }
 
 .select {
@@ -21,13 +19,28 @@
 
 .layout {
     display: grid;
-    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
     gap: var(--sp-6);
     align-items: start;
 }
 
 .lista {
     min-width: 0;
+}
+
+.listaTitulo {
+    margin-bottom: var(--sp-4);
+    font-size: var(--fs-xl);
+    letter-spacing: -0.03em;
+}
+
+.listaTitulo::first-letter {
+    text-transform: uppercase;
+}
+
+.layout > :first-child {
+    position: sticky;
+    top: 96px;
 }
 
 .eventos {
@@ -51,6 +64,7 @@
     }
 
     .layout > :first-child {
+        position: static;
         width: 100%;
         max-width: 420px;
         justify-self: center;

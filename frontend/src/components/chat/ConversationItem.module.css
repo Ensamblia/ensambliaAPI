@@ -3,12 +3,13 @@
     display: flex;
     align-items: center;
     gap: var(--sp-3);
-    padding: var(--sp-3) var(--sp-4);
+    padding: var(--sp-3);
     cursor: pointer;
     background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    width: calc(100% - 16px);
+    margin: 4px 8px 0;
     text-align: left;
     font-family: inherit;
     transition: background var(--dur-fast) var(--ease-out);
@@ -18,8 +19,10 @@
     background: var(--paper);
 }
 
-.itemActive {
-    background: var(--paper);
+.itemActive,
+.itemActive:hover {
+    background: var(--purple);
+    border-color: rgba(66, 56, 154, 0.15);
 }
 
 .meta {

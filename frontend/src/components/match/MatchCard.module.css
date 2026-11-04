@@ -8,13 +8,38 @@
 .cabecera {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--sp-2);
+    gap: var(--sp-3);
+}
+
+.cabeceraTexto {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.zona {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--fs-sm);
+    color: var(--ink-soft);
+}
+
+.tipo {
+    align-self: flex-start;
+}
+
+.instrumentos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 .nombre {
     font-size: var(--fs-lg);
-    font-weight: var(--fw-bold);
+    font-weight: var(--fw-black);
+    letter-spacing: -0.03em;
     color: var(--text-primary);
     text-decoration: none;
 }
@@ -25,20 +50,30 @@
 
 .motivos {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-1);
+    flex-direction: column;
+    gap: 6px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 .motivo {
-    padding: 2px var(--sp-2);
-    background: var(--green);
-    border-radius: var(--radius-pill);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
     font-size: var(--fs-sm);
     font-weight: var(--fw-medium);
-    color: var(--green-deep);
+    color: var(--ink);
+}
+
+.motivo::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--purple-deep);
+    opacity: 0.6;
 }
 
 .descripcion {

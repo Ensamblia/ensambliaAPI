@@ -38,7 +38,9 @@ button {
   cursor: pointer;
 }
 
-:where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label) {
+/* Solo en la landing: aplicado a toda la app partía números cortos ("7 0 %"). */
+.ensamblia-site :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label),
+.site-header :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label) {
   overflow-wrap: anywhere;
 }
 
@@ -124,7 +126,7 @@ button {
 
 .desktop-nav a,
 .desktop-nav button,
-.mobile-nav button:not([class]) {
+.mobile-nav > button {
     padding: 0;
     white-space: nowrap;
     color: #646a63;
@@ -137,7 +139,7 @@ button {
 
 .desktop-nav a:hover,
 .desktop-nav button:hover,
-.mobile-nav button:not([class]):hover {
+.mobile-nav > button:hover {
     color: var(--ink);
 }
 
@@ -2221,6 +2223,62 @@ button {
 
     .header-inner {
         height: 66px;
+    }
+
+    .desktop-nav,
+    .header-actions {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 11px 19px 20px;
+        background: var(--cream);
+        border-top: 1px solid rgba(32, 37, 31, .08);
+    }
+
+    .mobile-nav > button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+    }
+
+    .mobile-nav a:not(.button) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        color: #646a63;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .mobile-nav a:not(.button):hover {
+        color: var(--ink);
+    }
+
+    .mobile-nav .button {
+        margin-top: 14px;
+    }
+
+    .mobile-nav-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 18px;
     }
 
     .hero-section {

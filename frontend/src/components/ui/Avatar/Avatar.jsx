@@ -20,7 +20,14 @@ export function Avatar({
   className = '',
   ...rest
 }) {
-  const initial = (name || '').trim().charAt(0).toUpperCase();
+  // Iniciales: primera letra de las dos primeras palabras ("Marga Ruiz" → "MR")
+  const initial = (name || '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0))
+    .join('')
+    .toUpperCase();
 
   // Color determinista a partir del nombre (consistente entre renders).
   const tone = (() => {

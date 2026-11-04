@@ -3,10 +3,11 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-2);
-    padding: var(--sp-4) 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: var(--sp-6);
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 16px;
 }
 
 .search {

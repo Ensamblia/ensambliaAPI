@@ -17,7 +17,7 @@ export function CalendarioMes({ anio, mes, eventosPorDia, diaSeleccionado, onSel
         <button type="button" className={styles.nav} onClick={onMesAnterior} aria-label="Mes anterior">
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <h2 className={styles.mes}>{mesTexto}</h2>
+        <h2 className={styles.mes}>{mesTexto.replace(' de ', ' ')}</h2>
         <button type="button" className={styles.nav} onClick={onMesSiguiente} aria-label="Mes siguiente">
           <ChevronRight size={18} aria-hidden="true" />
         </button>

@@ -10,8 +10,8 @@ describe('ConversationItem', () => {
     render(<ConversationItem nombre="Luis Flotu" preview="Hola" />);
     expect(screen.getByText('Luis Flotu')).toBeInTheDocument();
     expect(screen.getByText('Hola')).toBeInTheDocument();
-    // Avatar con inicial L
-    expect(screen.getByText('L')).toBeInTheDocument();
+    // Avatar con iniciales LF
+    expect(screen.getByText('LF')).toBeInTheDocument();
   });
 
   it('muestra badge si unread > 0', () => {

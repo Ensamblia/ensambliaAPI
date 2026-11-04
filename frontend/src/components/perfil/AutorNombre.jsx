@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getPerfilPublico } from '@/api/perfiles';
+import { Avatar } from '@/components/ui';
 import styles from './AutorNombre.module.css';
 
 export function AutorNombre({ perfilId }) {
@@ -35,10 +36,10 @@ export function AutorNombre({ perfilId }) {
 
   return (
     <Link to={`/perfiles/${perfilId}`} className={styles.link}>
-      {perfil.foto_url && (
-        <img src={perfil.foto_url} alt="" className={styles.miniAvatar} />
-      )}
-      {perfil.nombre} {perfil.apellido}
+      <Avatar name={perfil.nombre} src={perfil.foto_url} size="sm" aria-hidden="true" />
+      <span>
+        {perfil.nombre} {perfil.apellido}
+      </span>
     </Link>
   );
 }

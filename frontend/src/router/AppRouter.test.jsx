@@ -100,7 +100,7 @@ describe('PublicOnly', () => {
     expect(screen.queryByText('pantalla de perfil')).not.toBeInTheDocument();
   });
 
-  it('con sesión redirige a /perfil', () => {
+  it('con sesión redirige al Inicio', () => {
     setSession();
     render(
       <AuthProvider>
@@ -114,13 +114,13 @@ describe('PublicOnly', () => {
                 </PublicOnly>
               }
             />
-            <Route path="/perfil" element={<PerfilStub />} />
+            <Route path="/" element={<div>pantalla de inicio</div>} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>,
     );
 
-    expect(screen.getByText('pantalla de perfil')).toBeInTheDocument();
+    expect(screen.getByText('pantalla de inicio')).toBeInTheDocument();
     expect(screen.queryByText('contenido público')).not.toBeInTheDocument();
   });
 });
@@ -130,8 +130,8 @@ describe('PublicOnly', () => {
 vi.mock('../components/navbar/LandingNavbar', () => ({
   LandingNavbar: () => <div data-testid="landing-navbar">landing navbar</div>,
 }));
-vi.mock('../components/navbar/Navbar', () => ({
-  Navbar: () => <div data-testid="app-navbar">app navbar</div>,
+vi.mock('../components/shell/AppShell', () => ({
+  AppShell: ({ children }) => <div data-testid="app-shell">{children}</div>,
 }));
 
 // Import dinámico para que los mocks apliquen antes de cargar los layouts.
@@ -158,7 +158,7 @@ describe('PublicLayout', () => {
 });
 
 describe('AppLayout', () => {
-  it('renderiza Navbar + Outlet', () => {
+  it('renderiza AppShell + Outlet', () => {
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={['/perfil']}>
@@ -171,7 +171,7 @@ describe('AppLayout', () => {
       </AuthProvider>,
     );
 
-    expect(screen.getByTestId('app-navbar')).toBeInTheDocument();
+    expect(screen.getByTestId('app-shell')).toBeInTheDocument();
     expect(screen.getByText('perfil')).toBeInTheDocument();
   });
 });

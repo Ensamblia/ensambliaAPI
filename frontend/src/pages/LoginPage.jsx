@@ -1,6 +1,6 @@
 // src/pages/LoginPage.jsx
 import React, { useContext, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api, { parseApiError } from '@/api/axios';
 import { AuthContext } from '@/context/AuthContext';
 import { Button, Field, Input, PageHeader } from '@/components/ui';
@@ -9,6 +9,8 @@ import styles from './LoginPage.module.css';
 export function LoginPage() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  // Si llegaste aquí desde una sección bloqueada, volvemos a ella tras entrar
+  const destino = useLocation().state?.from || '/perfil';
 
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ export function LoginPage() {
     try {
       const res = await api.post('/auth/login', { usuario, password });
       login(usuario, res.data.token);
-      navigate('/perfil');
+      navigate(destino, { replace: true });
     } catch (err) {
       if (err.response?.status === 401) {
         setError('Usuario o contraseña incorrectos.');

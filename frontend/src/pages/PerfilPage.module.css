@@ -2,7 +2,7 @@
 .page {
     width: min(1180px, calc(100% - 64px));
     margin: 0 auto;
-    padding: var(--sp-7) 0 var(--sp-8);
+    padding: var(--sp-6) 0 var(--sp-8);
 }
 
 /* ── Layout 2 columnas en desktop ── */
@@ -30,8 +30,8 @@
 @media (min-width: 1024px) {
     .sidebar {
         position: sticky;
-        top: calc(56px + var(--sp-5));
-        /* Navbar 56px + margen */
+        top: calc(72px + var(--sp-5));
+        /* Barra superior 72px + margen */
         align-self: start;
         /* Sin max-height ni overflow: si el sidebar es más alto que la ventana,
        el sticky se desactiva al hacer scroll y el usuario ve el botón. */
@@ -46,51 +46,15 @@
 }
 
 /* ── Profile header ── */
-.profileHeader {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-4);
-    padding: var(--sp-5);
-    background: var(--paper);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-}
 
-.avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 72px;
-    height: 72px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--white);
-    font-size: 1.7rem;
-}
 
-.profileInfo {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
-    min-width: 0;
-}
 
-.profileName {
-    margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--fs-xl);
-    font-weight: var(--fw-black);
-    color: var(--text-primary);
-    letter-spacing: -0.03em;
-    line-height: 1.2;
-}
 
-.profileHandle {
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
-}
+
+
+
+
+
 
 /* ── Card con secciones (columna izquierda) ── */
 .card {
@@ -256,28 +220,125 @@
     }
 }
 
-.avatarImg {
-    width: 72px;
-    height: 72px;
+
+
+
+
+
+/* ── Cabecera tipo banner ── */
+.profileHeader {
+    margin-bottom: var(--sp-5);
+    overflow: hidden;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+}
+
+.banner {
+    position: relative;
+    height: 144px;
+    overflow: hidden;
+    background: var(--blue);
+}
+
+.banner::before,
+.banner::after {
+    content: '';
+    position: absolute;
     border-radius: 50%;
+}
+
+.banner::before {
+    width: 340px;
+    height: 340px;
+    left: 3%;
+    top: 30px;
+    background: rgba(32, 46, 45, 0.08);
+}
+
+.banner::after {
+    width: 300px;
+    height: 300px;
+    right: -40px;
+    top: -60px;
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.profileBody {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--sp-4) var(--sp-5);
+    padding: 0 var(--sp-6) var(--sp-5);
+}
+
+.avatarWrap {
+    margin-top: -48px;
+    position: relative;
+}
+
+.avatar,
+.avatarImg {
+    display: grid;
+    width: 96px;
+    height: 96px;
+    place-items: center;
+    border: 4px solid var(--white);
+    border-radius: 50%;
+    background: var(--blue);
+    color: var(--ink);
+    font-size: 1.6rem;
+    font-weight: var(--fw-black);
     object-fit: cover;
-    flex-shrink: 0;
+    box-shadow: 0 0 0 1px var(--line);
 }
 
-.cambiarFotoBtn {
-    margin-top: var(--sp-2);
-    padding: 4px 10px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-sans);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-semibold);
-    color: var(--text-muted);
-    cursor: pointer;
+.profileInfo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--sp-2);
+    min-width: 220px;
 }
 
-.cambiarFotoBtn:hover {
-    border-color: var(--border-strong);
-    color: var(--text-primary);
+.profileName {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    letter-spacing: -0.05em;
+}
+
+.profileMeta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-4);
+}
+
+.profileHandle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-base);
+    color: var(--ink-soft);
+}
+
+.profileActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+
+@media (max-width: 600px) {
+    .banner {
+        height: 100px;
+    }
+
+    .profileBody {
+        padding: 0 var(--sp-4) var(--sp-4);
+    }
+
+    .avatar,
+    .avatarImg {
+        width: 80px;
+        height: 80px;
+    }
 }
