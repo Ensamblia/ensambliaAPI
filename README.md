@@ -298,7 +298,6 @@ Cosas a vigilar:
 - URLs firmadas de `chat/*` caducan a los 300s. Si un usuario deja el chat abierto mucho tiempo, los adjuntos antiguos que se cargan al hacer scroll tendrán URLs caducadas. Pendiente: `onError` en AdjuntoPreview que re-firme.
 - Vídeos del chat: se muestran con controles nativos, sin lightbox. Los de multimedia (anuncios/perfil) sí se amplían. Decisión consciente.
 - WS de notificaciones en StrictMode: resuelto en G.3 (creación diferida del socket).
-- 2 tests de `apps/chats/tests/test_websocket.py` fallan por timeout (ver #65).
 - BDs locales creadas con el SQL antiguo de Node: a las tablas pivote les falta la columna `id` y algunos endpoints dan 500. Hay que recrear la BD con `migrate` (ver #66).
 
 ---
