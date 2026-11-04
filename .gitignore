@@ -59,6 +59,7 @@ frontend/.oxlintcache
 *.pid
 minio-data/
 ensamblia DB/minio-data/
+ensamblia DB/ensamblia_db/
 ensamblia DB/pgadmin/
 pgadmin/
 
