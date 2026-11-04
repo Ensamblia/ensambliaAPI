@@ -1,7 +1,8 @@
 // src/components/navbar/Navbar.test.jsx
 import React from 'react';
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../../context/AuthContext';
 import { NotificationsContext } from '../../context/NotificationsContext';
@@ -61,5 +62,71 @@ describe('Navbar', () => {
     renderNav({ route: '/perfil' });
     const link = screen.getByRole('link', { name: /Mi perfil/i });
     expect(link).toHaveAttribute('aria-current', 'page');
+  });
+
+  describe('menú desplegable (pantallas estrechas)', () => {
+    const abrir = () => userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }));
+
+    it('empieza cerrado y se abre con el botón', async () => {
+      localStorage.setItem(TOKEN_KEY, 'tok.x');
+      localStorage.setItem(USUARIO_KEY, 'ana');
+      renderNav();
+      const boton = screen.getByRole('button', { name: 'Abrir menú' });
+      expect(boton).toHaveAttribute('aria-expanded', 'false');
+      expect(document.getElementById('menu-movil')).toBeNull();
+
+      await abrir();
+      const menu = document.getElementById('menu-movil');
+      expect(screen.getByRole('button', { name: 'Cerrar menú' })).toHaveAttribute('aria-expanded', 'true');
+      for (const nombre of ['Anuncios', 'Locales', 'Eventos', 'Precios', 'Match', 'Mi perfil', 'Mensajes']) {
+        expect(within(menu).getByRole('link', { name: nombre })).toBeInTheDocument();
+      }
+      expect(within(menu).getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument();
+    });
+
+    it('sin sesión solo muestra los enlaces públicos e Iniciar sesión', async () => {
+      renderNav();
+      await abrir();
+      const menu = document.getElementById('menu-movil');
+      expect(within(menu).getByRole('link', { name: 'Anuncios' })).toBeInTheDocument();
+      expect(within(menu).queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument();
+      expect(within(menu).getByRole('link', { name: /Iniciar sesión/i })).toBeInTheDocument();
+    });
+
+    it('se cierra al ir a otra página', async () => {
+      localStorage.setItem(TOKEN_KEY, 'tok.x');
+      localStorage.setItem(USUARIO_KEY, 'ana');
+      renderNav({ route: '/anuncios' });
+      await abrir();
+      await userEvent.click(within(document.getElementById('menu-movil')).getByRole('link', { name: 'Eventos' }));
+      expect(document.getElementById('menu-movil')).toBeNull();
+      expect(screen.getByRole('button', { name: 'Abrir menú' })).toBeInTheDocument();
+    });
+
+    it('se cierra con Escape', async () => {
+      renderNav();
+      await abrir();
+      await userEvent.keyboard('{Escape}');
+      expect(document.getElementById('menu-movil')).toBeNull();
+    });
+
+    it('con el menú abierto, Cerrar sesión cierra la sesión', async () => {
+      localStorage.setItem(TOKEN_KEY, 'tok.x');
+      localStorage.setItem(USUARIO_KEY, 'ana');
+      renderNav();
+      await abrir();
+      await userEvent.click(within(document.getElementById('menu-movil')).getByRole('button', { name: 'Cerrar sesión' }));
+      expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
+      expect(document.getElementById('menu-movil')).toBeNull();
+    });
+
+    it('el contador de mensajes sin leer también sale dentro del menú', async () => {
+      localStorage.setItem(TOKEN_KEY, 'tok.x');
+      localStorage.setItem(USUARIO_KEY, 'ana');
+      renderNav({ totalUnread: 4 });
+      await abrir();
+      const mensajes = within(document.getElementById('menu-movil')).getByRole('link', { name: /Mensajes/ });
+      expect(within(mensajes).getByText('4')).toBeInTheDocument();
+    });
   });
 });

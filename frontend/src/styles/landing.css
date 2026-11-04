@@ -124,8 +124,9 @@ button {
 
 .desktop-nav a,
 .desktop-nav button,
-.mobile-nav button:not(.button) {
+.mobile-nav button:not([class]) {
     padding: 0;
+    white-space: nowrap;
     color: #646a63;
     background: transparent;
     font-size: 13px;
@@ -136,7 +137,7 @@ button {
 
 .desktop-nav a:hover,
 .desktop-nav button:hover,
-.mobile-nav button:not(.button):hover {
+.mobile-nav button:not([class]):hover {
     color: var(--ink);
 }
 
@@ -2122,6 +2123,60 @@ button {
     font-size: 8px;
 }
 
+/* Por debajo de 1200px los 8 enlaces y los botones no caben: menú desplegable */
+@media (max-width: 1200px) {
+    .desktop-nav,
+    .header-actions {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 11px 19px 20px;
+        background: var(--cream);
+        border-top: 1px solid rgba(32, 37, 31, .08);
+    }
+
+    .mobile-nav button:not([class]) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+    }
+
+    .mobile-nav a:not([class]) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+        color: #646a63;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .mobile-nav a:not([class]):hover {
+        color: var(--ink);
+    }
+
+    /* Botones de Mi perfil / Cerrar sesión (o Únete / Acceso) al final del menú */
+    .mobile-nav .button,
+    .mobile-nav button[class] {
+        margin-top: 14px;
+    }
+}
+
 @media (max-width: 1000px) {
     .desktop-nav {
         gap: 18px;
@@ -2166,55 +2221,6 @@ button {
 
     .header-inner {
         height: 66px;
-    }
-
-    .desktop-nav,
-    .header-actions {
-        display: none;
-    }
-
-    .menu-toggle {
-        display: block;
-    }
-
-    .mobile-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        padding: 11px 19px 20px;
-        background: var(--cream);
-        border-top: 1px solid rgba(32, 37, 31, .08);
-    }
-
-    .mobile-nav button:not(.button) {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--line);
-        text-align: left;
-    }
-
-    .mobile-nav a:not(.button) {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--line);
-        color: #646a63;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .mobile-nav a:not(.button):hover {
-        color: var(--ink);
-    }
-
-    .mobile-nav .button {
-        margin-top: 14px;
     }
 
     .hero-section {

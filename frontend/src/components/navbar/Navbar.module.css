@@ -3,37 +3,48 @@
     position: sticky;
     top: 0;
     z-index: 200;
+    background: rgba(255, 253, 248, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Fila de arriba: 56px con el borde incluido (ChatBox y PerfilPage cuentan con esa altura) */
+.bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--sp-4);
     height: 56px;
     padding: 0 var(--sp-6);
-    background: rgba(255, 253, 248, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
 }
 
-/* ── Brand ── */
+/* ── Brand: igual que el logo de LandingNavbar (.logo / .logo-mark) ── */
 .brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: var(--sp-2);
+    gap: 8px;
     font-family: var(--font-sans);
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-black);
-    letter-spacing: -0.04em;
-    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    color: var(--ink);
     text-decoration: none;
+    white-space: nowrap;
 }
 
-.brandDot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--yellow);
+.brandMark {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
     flex-shrink: 0;
+    border-radius: 7px 7px 7px 2px;
+    background: var(--yellow);
+    color: var(--ink);
+    font-size: 15px;
+    letter-spacing: 0;
+    line-height: 1;
 }
 
 /* ── Links ── */
@@ -57,6 +68,8 @@
     color: var(--text-muted);
     text-decoration: none;
     letter-spacing: -0.01em;
+    /* Nunca partir "Mi perfil" o "Mensajes" en varias líneas */
+    white-space: nowrap;
     transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 
@@ -76,6 +89,7 @@
     display: flex;
     align-items: center;
     gap: var(--sp-2);
+    white-space: nowrap;
 }
 
 .userName {
@@ -86,21 +100,126 @@
     margin-left: var(--sp-1);
 }
 
+/* ── Botón del menú (solo en pantallas estrechas) ── */
+.menuToggle {
+    position: relative;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: calc(-1 * var(--sp-2));
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.menuToggle:hover {
+    background: var(--paper);
+}
+
+.menuToggle:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+}
+
+/* Punto rojo cuando hay mensajes sin leer y el menú está cerrado */
+.toggleDot {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 2px var(--bg);
+}
+
+/* ── Menú desplegable ── */
+.mobileMenu {
+    display: none;
+    flex-direction: column;
+    gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-6) var(--sp-5);
+    border-bottom: 1px solid var(--border);
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+}
+
+.mobileUser {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0;
+}
+
+.mobileUserName {
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+}
+
+.mobileLinks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.mobileLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.mobileLink:hover,
+.mobileLinkActive {
+    color: var(--text-primary);
+}
+
+.mobileLinkActive {
+    font-weight: var(--fw-semibold);
+}
+
+.mobileLinkLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
 /* ── Responsive ── */
+/* Por debajo de 1100px los 7 enlaces + usuario no caben: menú desplegable */
+@media (max-width: 1100px) {
+    .links,
+    .cta {
+        display: none;
+    }
+
+    .menuToggle {
+        display: inline-flex;
+    }
+
+    .mobileMenu {
+        display: flex;
+    }
+}
+
 @media (max-width: 700px) {
-    .nav {
+    .bar {
         padding: 0 var(--sp-4);
     }
 
-    .links {
-        gap: 0;
-    }
-
-    .link {
-        padding: 6px 10px;
-    }
-
-    .userName {
-        display: none;
+    .mobileMenu {
+        padding: var(--sp-3) var(--sp-4) var(--sp-5);
     }
 }
