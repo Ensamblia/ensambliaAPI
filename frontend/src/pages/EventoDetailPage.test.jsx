@@ -70,6 +70,18 @@ describe('EventoDetailPage', () => {
     expect(navigateMock).toHaveBeenCalledWith('/eventos');
   });
 
+  it('el autor puede ir a editar el evento', async () => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'luis');
+    server.use(
+      http.get(`${API}/eventos/mis-perfiles/`, () => HttpResponse.json([{ perfil_id: 7, nombre: 'Sala Rock', tipo: 'local' }])),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: /Editar evento/i }));
+    expect(navigateMock).toHaveBeenCalledWith('/eventos/4/editar');
+  });
+
   it('quien no es el autor no ve el botón de borrar', async () => {
     localStorage.setItem('ensamblia_token', 'tok');
     localStorage.setItem('ensamblia_usuario', 'ana');
@@ -80,6 +92,7 @@ describe('EventoDetailPage', () => {
     await screen.findByRole('heading', { name: 'Concierto de otoño' });
     await new Promise((r) => setTimeout(r, 50));
     expect(screen.queryByRole('button', { name: /Borrar evento/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Editar evento/i })).not.toBeInTheDocument();
   });
 
   it('evento inexistente', async () => {

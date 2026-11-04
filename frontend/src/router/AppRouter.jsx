@@ -68,6 +68,7 @@ export function AppRouter() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/match" element={<MatchPage />} />
             <Route path="/eventos/crear" element={<CrearEventoPage />} />
+            <Route path="/eventos/:id/editar" element={<CrearEventoPage />} />
             <Route path="/anuncios/crear" element={<CrearAnuncioPage />} />
           </Route>
         </Routes>
