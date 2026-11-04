@@ -1,0 +1,48 @@
+.searchBox {
+    margin-bottom: var(--sp-5);
+}
+
+.search {
+    width: 100%;
+    max-width: 420px;
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    font: inherit;
+    color: inherit;
+}
+
+.search::placeholder {
+    color: var(--text-muted);
+}
+
+.search:focus-visible {
+    outline: 2px solid var(--text-muted);
+    outline-offset: 2px;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 12px);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-muted);
+}
+
+.name {
+    font-weight: var(--fw-medium);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

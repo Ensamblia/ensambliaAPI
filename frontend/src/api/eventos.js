@@ -18,6 +18,12 @@ export async function crearEvento(datos) {
   return res.data;
 }
 
+// PUT parcial: solo el autor. El perfil que lo publicó no se puede cambiar
+export async function editarEvento(id, datos) {
+  const res = await api.put(`/eventos/${id}/`, datos);
+  return res.data;
+}
+
 export async function borrarEvento(id) {
   await api.delete(`/eventos/${id}/`);
 }

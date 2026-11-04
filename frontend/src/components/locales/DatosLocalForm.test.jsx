@@ -85,7 +85,7 @@ describe('DatosLocalForm', () => {
     expect(enviado.tipos).toEqual(['bar']);
   });
 
-  it('muestra el error del backend si el guardado falla', async () => {
+  it('muestra el error del backend con el nombre del campo', async () => {
     mockLocal({ ciudad_id: 3, ciudad: 'Getafe', direccion: 'C/ Mayor 1', aforo: 200, tipos: ['bar'] });
     server.use(
       http.put(`${API}/locales/5/`, () =>
@@ -97,7 +97,41 @@ describe('DatosLocalForm', () => {
 
     await screen.findByDisplayValue('200');
     await user.click(screen.getByRole('button', { name: /Guardar datos del local/i }));
-    expect(await screen.findByText(/Indica al menos un tipo de local/i)).toBeInTheDocument();
+    expect(await screen.findByText('Tipo de local: Indica al menos un tipo de local')).toBeInTheDocument();
+  });
+
+  it('si el backend dice que falta la ciudad, lo dice con el campo', async () => {
+    mockLocal({ ciudad_id: 3, ciudad: 'Getafe', direccion: 'C/ Mayor 1', aforo: 200, tipos: ['bar'] });
+    server.use(
+      http.put(`${API}/locales/5/`, () =>
+        HttpResponse.json({ ciudad_id: ['Este campo no puede ser nulo.'] }, { status: 400 }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<DatosLocalForm perfilId={5} />);
+
+    await screen.findByDisplayValue('200');
+    await user.click(screen.getByRole('button', { name: /Guardar datos del local/i }));
+    expect(await screen.findByText('Ciudad: Este campo no puede ser nulo.')).toBeInTheDocument();
+  });
+
+  it('sin ciudad elegida avisa antes de enviar', async () => {
+    mockLocal(null);
+    let enviado = false;
+    server.use(
+      http.put(`${API}/locales/5/`, () => {
+        enviado = true;
+        return HttpResponse.json({});
+      }),
+    );
+    const user = userEvent.setup();
+    render(<DatosLocalForm perfilId={5} />);
+
+    await screen.findByRole('option', { name: 'Getafe' });
+    await user.type(screen.getByLabelText(/Dirección/i), 'C/ Mayor 1');
+    await user.click(screen.getByRole('button', { name: /Guardar datos del local/i }));
+    expect(await screen.findByText('Ciudad: elige la ciudad donde está el local.')).toBeInTheDocument();
+    expect(enviado).toBe(false);
   });
 
   it('si falla la carga muestra un error y no el aviso de completar datos', async () => {

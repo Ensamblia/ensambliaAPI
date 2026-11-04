@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
@@ -91,5 +91,69 @@ describe('PerfilPage — perfil de local guardado', () => {
     renderPerfil();
     expect(await screen.findByTestId('datos-local-form')).toBeInTheDocument();
     expect(screen.getByTestId('artistas-sugeridos')).toBeInTheDocument();
+  });
+});
+
+describe('PerfilPage — subir la foto de perfil', () => {
+  const MINIO = 'http://127.0.0.1:9000/ensamblia-media/multimedia/avatars/x.png';
+  const foto = () => new File(['png'], 'foto.png', { type: 'image/png' });
+  // MinIO está en otro origen: jsdom aplica CORS a la subida con XMLHttpRequest
+  const CORS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'PUT',
+    'Access-Control-Allow-Headers': 'Content-Type, x-amz-acl',
+  };
+
+  beforeEach(() => {
+    localStorage.setItem('ensamblia_token', 'tok');
+    localStorage.setItem('ensamblia_usuario', 'ana');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    server.use(
+      http.post(`${API}/perfiles/presigned-avatar/`, () =>
+        HttpResponse.json({ upload_url: MINIO, object_key: 'multimedia/avatars/x.png' }),
+      ),
+      http.options(MINIO, () => new HttpResponse(null, { status: 204, headers: CORS })),
+      http.put(MINIO, () => new HttpResponse(null, { status: 200, headers: CORS })),
+      http.post(`${API}/perfiles/1/set-avatar/`, () => HttpResponse.json({ perfil_id: 1 })),
+    );
+  });
+
+  async function subirFoto() {
+    const { container } = renderPerfil();
+    await screen.findByDisplayValue('Ana');
+    await userEvent.upload(container.querySelector('#foto-input'), foto());
+  }
+
+  it('si todo va bien avisa de que la foto se ha actualizado', async () => {
+    await subirFoto();
+    expect(await screen.findByText('Foto actualizada.')).toBeInTheDocument();
+  });
+
+  it('muestra el motivo del backend si no deja preparar la subida', async () => {
+    server.use(
+      http.post(`${API}/perfiles/presigned-avatar/`, () =>
+        HttpResponse.json({ error: 'Solo se aceptan imágenes para la foto de perfil' }, { status: 400 }),
+      ),
+    );
+    await subirFoto();
+    expect(await screen.findByText('Solo se aceptan imágenes para la foto de perfil')).toBeInTheDocument();
+  });
+
+  it('avisa si falla el envío de la imagen a MinIO', async () => {
+    server.use(http.put(MINIO, () => new HttpResponse('<Code>InvalidAccessKeyId</Code>', { status: 403, headers: CORS })));
+    await subirFoto();
+    expect(await screen.findByText(/No se pudo enviar la imagen al almacenamiento/i)).toBeInTheDocument();
+    expect(console.error).toHaveBeenCalledWith(
+      'No se pudo subir la foto (paso: enviar)',
+      expect.objectContaining({ message: expect.stringContaining('InvalidAccessKeyId') }),
+    );
+  });
+
+  it('avisa si la imagen se subió pero no se pudo guardar en el perfil', async () => {
+    server.use(
+      http.post(`${API}/perfiles/1/set-avatar/`, () => HttpResponse.json({}, { status: 500 })),
+    );
+    await subirFoto();
+    expect(await screen.findByText(/La imagen se subió, pero no se pudo guardar en tu perfil/i)).toBeInTheDocument();
   });
 });

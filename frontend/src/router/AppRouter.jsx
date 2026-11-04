@@ -11,6 +11,7 @@ import { MercadoPage } from '../pages/MercadoPage';
 import { MusicosPage } from '../pages/MusicosPage';
 import { BandasPage } from '../pages/BandasPage';
 import { AnunciosPage } from '../pages/AnunciosPage';
+import { UsuariosPage } from '../pages/UsuariosPage';
 import { LocalesPage } from '../pages/LocalesPage';
 import { PreciosPage } from '../pages/PreciosPage';
 import { MatchPage } from '../pages/MatchPage';
@@ -82,6 +83,7 @@ export function AppRouter() {
             <Route path="/musicos" element={<MusicosPage />} />
             <Route path="/bandas" element={<BandasPage />} />
             <Route path="/eventos/crear" element={<CrearEventoPage />} />
+            <Route path="/eventos/:id/editar" element={<CrearEventoPage />} />
             <Route path="/anuncios/crear" element={<CrearAnuncioPage />} />
           </Route>
         </Routes>

@@ -8,6 +8,22 @@ import styles from './DatosLocalForm.module.css';
 
 const VACIO = { ciudad_id: '', direccion: '', aforo: '', tipos: [] };
 
+// Nombre de cada campo para los errores de validación del backend
+const CAMPOS = { ciudad_id: 'Ciudad', direccion: 'Dirección', aforo: 'Aforo', tipos: 'Tipo de local' };
+
+// "Ciudad: Este campo no puede ser nulo." en vez de solo el mensaje sin el campo
+function mensajeError(err) {
+  const data = err.response?.data;
+  if (err.response?.status === 400 && data && typeof data === 'object') {
+    const campo = Object.keys(data).find((k) => CAMPOS[k]);
+    if (campo) {
+      const valor = data[campo];
+      return `${CAMPOS[campo]}: ${Array.isArray(valor) ? valor[0] : valor}`;
+    }
+  }
+  return parseApiError(err, 'No se pudieron guardar los datos del local.');
+}
+
 export function DatosLocalForm({ perfilId, onSaved }) {
   const [form, setForm] = useState(VACIO);
   const [ciudades, setCiudades] = useState([]);
@@ -63,6 +79,10 @@ export function DatosLocalForm({ perfilId, onSaved }) {
     e.preventDefault();
     setError('');
     setOk('');
+    if (form.ciudad_id === '') {
+      setError('Ciudad: elige la ciudad donde está el local.');
+      return;
+    }
     setSaving(true);
     try {
       // Mismo orden que TIPOS_LOCAL, da igual en qué orden se marcaron
@@ -77,7 +97,7 @@ export function DatosLocalForm({ perfilId, onSaved }) {
       setOk('Datos del local guardados');
       onSaved?.(data);
     } catch (err) {
-      setError(parseApiError(err, 'No se pudieron guardar los datos del local.'));
+      setError(mensajeError(err));
     } finally {
       setSaving(false);
     }

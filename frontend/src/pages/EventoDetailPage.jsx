@@ -145,9 +145,14 @@ export function EventoDetailPage() {
         {user && (
           <div className={styles.acciones}>
             {esAutor ? (
-              <Button variant="danger" size="sm" onClick={borrar} loading={procesando}>
-                Borrar evento
-              </Button>
+              <>
+                <Button variant="secondary" size="sm" onClick={() => navigate(`/eventos/${id}/editar`)}>
+                  Editar evento
+                </Button>
+                <Button variant="danger" size="sm" onClick={borrar} loading={procesando}>
+                  Borrar evento
+                </Button>
+              </>
             ) : (
               <Button variant="primary" size="sm" onClick={contactar} loading={procesando}>
                 Contactar con {autorNombre}
