@@ -55,6 +55,12 @@ export function EventosPage() {
 
   const eventosPorDia = useMemo(() => agruparPorDia(eventos), [eventos]);
   const visibles = diaSeleccionado ? eventosPorDia.get(diaSeleccionado) ?? [] : eventos;
+  const hayFiltros = Boolean(ciudad || genero);
+
+  const quitarFiltros = () => {
+  setCiudad('');
+  setGenero('');
+  };
 
   const moverMes = (delta) => {
     const fecha = new Date(anio, mes + delta, 1);
@@ -126,12 +132,41 @@ export function EventosPage() {
           )}
           {!loading && error && <EmptyState icon="⚠️" title="No se pudo cargar" description={error} />}
           {!loading && !error && visibles.length === 0 && (
-            <EmptyState
-              icon="📅"
-              title={diaSeleccionado ? 'No hay eventos este día' : 'No hay eventos este mes'}
-              description="Prueba otro mes o quita los filtros. ¿Organizas algo? Publícalo."
-            />
-          )}
+          diaSeleccionado ? (
+           <EmptyState
+           icon="📅"
+           title="No hay eventos este día"
+           description="Mira el resto del mes o elige otro día del calendario."
+           action={
+            <Button variant="secondary" onClick={() => setDiaSeleccionado(null)}>
+            Ver todo el mes
+            </Button>
+      }
+    />
+  ) : hayFiltros ? (
+    <EmptyState
+      icon="📅"
+      title="Ningún evento con estos filtros"
+      description="Prueba con otra ciudad u otro estilo, o mira otro mes."
+      action={
+        <Button variant="secondary" onClick={quitarFiltros}>
+          Quitar filtros
+        </Button>
+      }
+    />
+  ) : (
+    <EmptyState
+      icon="📅"
+      title="No hay eventos este mes"
+      description="Prueba otro mes. ¿Organizas algo? Publícalo."
+      action={
+        <Button to="/eventos/crear" variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
+          Añadir evento
+        </Button>
+      }
+    />
+  )
+)}
           {!loading && !error && visibles.length > 0 && (
             <ul className={styles.eventos} aria-label="Eventos">
               {visibles.map((e) => (
