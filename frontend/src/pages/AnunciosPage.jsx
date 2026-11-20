@@ -18,7 +18,7 @@ export function AnunciosPage() {
   const [error, setError] = useState(null);
 
   // ?q= llega desde el buscador de la barra superior
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const busquedaInicial = searchParams.get('q') || '';
 
   // Filtros actuales (los guarda FiltrosAnuncios)
@@ -107,6 +107,14 @@ export function AnunciosPage() {
   const totalPaginas = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
   const mostrarContador = !loading && !error;
+  const hayFiltros = Boolean(filtros.busqueda?.trim() || filtros.tipo_anuncio);
+  const [resetKey, setResetKey] = useState(0);
+
+const quitarFiltros = () => {
+  setSearchParams({});
+  setFiltros({ busqueda: '', tipo_anuncio: '', ordering: '-fecha_publicacion' });
+  setResetKey((k) => k + 1);
+};
 
   return (
     <main className={styles.page}>
@@ -123,7 +131,7 @@ export function AnunciosPage() {
       />
 
       <FiltrosAnuncios
-        key={busquedaInicial}
+        key={`${busquedaInicial}-${resetKey}`}
         onFilter={handleFilter}
         initialValues={{ busqueda: busquedaInicial }}
       />
@@ -149,12 +157,30 @@ export function AnunciosPage() {
       )}
 
       {!loading && !error && anuncios.length === 0 && (
-        <EmptyState
-          icon="🔍"
-          title="Sin resultados"
-          description="Prueba con otros filtros o publica tu propio anuncio."
-        />
-      )}
+        hayFiltros ? (
+          <EmptyState
+            icon="🔍"
+            title="Ningún anuncio con estos filtros"
+            description="Prueba a cambiar la búsqueda o el tipo de anuncio."
+            action={
+            <Button variant="secondary" onClick={quitarFiltros}>
+            Quitar filtros
+            </Button>
+  }
+          />
+        ) : (
+          <EmptyState
+            icon="📣"
+            title="Todavía no hay anuncios"
+            description="Sé la primera persona en publicar uno."
+            action={
+              <Button to="/anuncios/crear" variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
+                Publicar el primero
+              </Button>
+            }
+          />
+        )
+      )}      
 
       {!loading && !error && anuncios.length > 0 && (
         <>
