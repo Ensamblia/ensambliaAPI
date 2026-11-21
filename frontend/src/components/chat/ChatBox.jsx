@@ -553,8 +553,18 @@ export function ChatBox() {
         <div className={styles.sidebarTop}>
           <h2 className={styles.sidebarTitle}>Mensajes</h2>
         </div>
-        {convs.length === 0 && (
-          <p className={styles.emptySidebar}>No tienes conversaciones todavía.</p>
+                {convs.length === 0 && (
+          <EmptyState
+            compact
+            icon="💬"
+            title="No tienes conversaciones todavía"
+            description="Pulsa «Contactar» en un anuncio para escribir a alguien."
+            action={
+              <Button to="/anuncios" variant="secondary" size="sm">
+                Ver anuncios
+              </Button>
+            }
+          />
         )}
         {convs.map((c) => (
           <ConversationItem
