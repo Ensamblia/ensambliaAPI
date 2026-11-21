@@ -179,12 +179,30 @@ export function MatchPage() {
         <EmptyState icon="⚠️" title="No se pudo cargar" description={error} />
       )}
 
-      {!loading && !error && matches.length === 0 && (
-        <EmptyState
-          icon="🔍"
-          title="Todavía no hay matches para esta búsqueda"
-          description="Prueba otra opción o completa tu comarca y tus estilos en Mi perfil."
-        />
+            {!loading && !error && matches.length === 0 && (
+        busco === 'musico' && instrumento ? (
+          <EmptyState
+            icon="🔍"
+            title="Ningún músico con ese instrumento"
+            description="Prueba con otro instrumento o mira todos."
+            action={
+              <Button variant="secondary" size="sm" onClick={() => setInstrumento('')}>
+                Quitar instrumento
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon="🔍"
+            title="Todavía no hay matches para esta búsqueda"
+            description="Prueba otra opción o completa tu comarca y tus estilos en Mi perfil."
+            action={
+              <Button to="/perfil" variant="secondary" size="sm">
+                Completar mi perfil
+              </Button>
+            }
+          />
+        )
       )}
 
       {!loading && !error && matches.length > 0 && (
