@@ -9,11 +9,13 @@ import styles from './MisAnuncios.module.css';
 export function MisAnuncios({ perfilId, refreshKey = 0 }) {
   const [anuncios, setAnuncios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [editingAnuncio, setEditingAnuncio] = useState(null);
 
   const cargar = async () => {
     if (!perfilId) return;
     setLoading(true);
+      setError(false);
     try {
       const res = await api.get('/anuncios/', {
         params: { perfil: perfilId, limit: 100 },
@@ -23,6 +25,7 @@ export function MisAnuncios({ perfilId, refreshKey = 0 }) {
     } catch (err) {
       console.error('Error cargando mis anuncios:', err);
       setAnuncios([]);
+        setError(true);
     } finally {
       setLoading(false);
     }
@@ -60,8 +63,23 @@ export function MisAnuncios({ perfilId, refreshKey = 0 }) {
       </div>
     );
   }
-
+  if (error) {
+    return (
+      <EmptyState
+        compact
+        icon="⚠️"
+        title="No se pudieron cargar tus anuncios"
+        description="Comprueba tu conexión e inténtalo de nuevo."
+        action={
+          <Button variant="secondary" size="sm" onClick={cargar}>
+            Reintentar
+          </Button>
+        }
+      />
+    );
+  }
   if (anuncios.length === 0) {
+    
     return (
       <EmptyState
         compact
