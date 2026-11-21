@@ -595,6 +595,11 @@ export function ChatBox() {
             {!loadingMore && !hasMore[activeId] && active.mensajes.length >= 30 && (
               <div className={styles.startBanner}>Inicio de la conversación</div>
             )}
+                        {active.mensajes.length === 0 && (
+              <div className={styles.startBanner}>
+                Todavía no hay mensajes. Escribe el primero.
+              </div>
+            )}
             {active.mensajes.map((m) => {
               const esMio = m.perfil_id === miPerfilId;
               const leidoPorOtro = esMio
