@@ -91,7 +91,7 @@ describe('LocalesPage', () => {
       http.get(`${API}/locales/`, () => HttpResponse.json({ count: 0, results: [] })),
     );
     renderPage();
-    expect(await screen.findByText(/No hay locales con esos filtros/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Todavía no hay locales/i)).toBeInTheDocument();
   });
 
   it('si el servidor falla lo indica', async () => {
