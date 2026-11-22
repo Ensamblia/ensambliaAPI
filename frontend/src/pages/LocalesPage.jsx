@@ -3,7 +3,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { buscarLocales } from '@/api/locales';
 import { FiltrosLocales } from '@/components/locales/FiltrosLocales';
 import { LocalCard } from '@/components/locales/LocalCard';
-import { Button, EmptyState, PageHeader, Spinner } from '@/components/ui';
+import { LocalCardSkeleton } from '@/components/locales/LocalCardSkeleton';
+import { Button, EmptyState, PageHeader } from '@/components/ui';
 import { paramsDesdeFiltros } from '@/utils/tipoLocal';
 import styles from './LocalesPage.module.css';
 
@@ -83,8 +84,10 @@ export function LocalesPage() {
       <FiltrosLocales key={resetKey} onFilter={handleFilter} />
 
       {loading && (
-        <div className={styles.stateBox}>
-          <Spinner size="lg" aria-label="Cargando locales" />
+        <div className={styles.grid} aria-busy="true" aria-label="Cargando locales">
+          {Array.from({ length: 6 }, (_, i) => (
+            <LocalCardSkeleton key={i} />
+          ))}
         </div>
       )}
 
