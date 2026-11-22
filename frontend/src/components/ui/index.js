@@ -17,3 +17,4 @@ export { Modal } from './Modal/Modal';
 export { Lightbox } from './Lightbox/Lightbox';
 export { Chip } from './Chip/Chip';
 export { MuestraBadge } from './MuestraBadge/MuestraBadge';
+export { Skeleton } from './Skeleton/Skeleton';

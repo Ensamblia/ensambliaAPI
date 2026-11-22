@@ -3,8 +3,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Megaphone, Plus } from 'lucide-react';
 import { AnuncioCard } from '@/components/cards/AnuncioCard';
+import { AnuncioCardSkeleton } from '@/components/cards/AnuncioCardSkeleton';
 import { FiltrosAnuncios } from '@/components/filters/FiltrosAnuncios';
-import { Button, EmptyState, PageHeader, Spinner } from '@/components/ui';
+import { Button, EmptyState, PageHeader } from '@/components/ui';
 import api, { extractList } from '@/api/axios';
 import styles from './AnunciosPage.module.css';
 
@@ -143,9 +144,14 @@ const quitarFiltros = () => {
       )}
 
       {loading && (
-        <div className={styles.stateBox}>
-          <Spinner size="lg" aria-label="Cargando anuncios" />
-        </div>
+        <>
+          <p className={styles.contador} aria-hidden="true">&nbsp;</p>
+          <div className={styles.grid} aria-busy="true" aria-label="Cargando anuncios">
+            {Array.from({ length: 6 }, (_, i) => (
+              <AnuncioCardSkeleton key={i} />
+            ))}
+          </div>
+        </>
       )}
 
       {!loading && error && (
