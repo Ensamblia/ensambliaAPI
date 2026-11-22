@@ -5,7 +5,8 @@ import api, { extractList } from '@/api/axios';
 import { listarEventos } from '@/api/eventos';
 import { CalendarioMes } from '@/components/eventos/CalendarioMes';
 import { EventoCard } from '@/components/eventos/EventoCard';
-import { Button, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
+import { EventoCardSkeleton } from '@/components/eventos/EventoCardSkeleton';
+import { Button, EmptyState, PageHeader, Select } from '@/components/ui';
 import { agruparPorDia, rangoMes } from '@/utils/eventos';
 import { PanelFiltros } from '@/components/filters/PanelFiltros';
 import styles from './EventosPage.module.css';
@@ -126,9 +127,13 @@ export function EventosPage() {
               : 'Próximos eventos'}
           </h2>
           {loading && (
-            <div className={styles.stateBox}>
-              <Spinner size="lg" aria-label="Cargando eventos" />
-            </div>
+            <ul className={styles.eventos} aria-busy="true" aria-label="Cargando eventos">
+              {Array.from({ length: 4 }, (_, i) => (
+                <li key={i}>
+                  <EventoCardSkeleton />
+                </li>
+              ))}
+            </ul>
           )}
           {!loading && error && <EmptyState icon="⚠️" title="No se pudo cargar" description={error} />}
           {!loading && !error && visibles.length === 0 && (
