@@ -553,8 +553,18 @@ export function ChatBox() {
         <div className={styles.sidebarTop}>
           <h2 className={styles.sidebarTitle}>Mensajes</h2>
         </div>
-        {convs.length === 0 && (
-          <p className={styles.emptySidebar}>No tienes conversaciones todavía.</p>
+                {convs.length === 0 && (
+          <EmptyState
+            compact
+            icon="💬"
+            title="No tienes conversaciones todavía"
+            description="Pulsa «Contactar» en un anuncio para escribir a alguien."
+            action={
+              <Button to="/anuncios" variant="secondary" size="sm">
+                Ver anuncios
+              </Button>
+            }
+          />
         )}
         {convs.map((c) => (
           <ConversationItem
@@ -584,6 +594,11 @@ export function ChatBox() {
             )}
             {!loadingMore && !hasMore[activeId] && active.mensajes.length >= 30 && (
               <div className={styles.startBanner}>Inicio de la conversación</div>
+            )}
+                        {active.mensajes.length === 0 && (
+              <div className={styles.startBanner}>
+                Todavía no hay mensajes. Escribe el primero.
+              </div>
             )}
             {active.mensajes.map((m) => {
               const esMio = m.perfil_id === miPerfilId;

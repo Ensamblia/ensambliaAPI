@@ -61,7 +61,7 @@ describe('AnunciosPage', () => {
     );
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('Sin resultados')).toBeInTheDocument();
+      expect(screen.getByText('Todavía no hay anuncios')).toBeInTheDocument();
     });
   });
 });
