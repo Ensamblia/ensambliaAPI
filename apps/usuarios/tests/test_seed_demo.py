@@ -13,7 +13,7 @@ from apps.catalogo.municipios_catalunya import cargar_municipios
 from apps.chats.models import Chat, Mensaje
 from apps.eventos.models import Evento
 from apps.locales.models import Local
-from apps.perfiles.models import Perfil
+from apps.perfiles.models import Perfil, PerfilChat
 from apps.usuarios.models import Usuario
 
 pytestmark = pytest.mark.django_db
@@ -56,8 +56,9 @@ def test_crea_perfiles_de_los_tres_tipos_con_contenido():
 
 def test_cuentas_marcadas_como_ejemplo():
     call_command('seed_demo', password=DEMO_PASSWORD)
-    assert not Usuario.objects.exclude(nickname__startswith='demo_').exists()
-    assert not Perfil.objects.exclude(correo__endswith='@ejemplo.test').exists()
+    clasicas = ['ana', 'luis', 'marta']
+    assert not Usuario.objects.exclude(nickname__startswith='demo_').exclude(nickname__in=clasicas).exists()
+    assert not Perfil.objects.exclude(correo__endswith='@ejemplo.test').exclude(usuario__nickname__in=clasicas).exists()
     usuario = Usuario.objects.get(nickname='demo_nuria')
     assert usuario.check_password(DEMO_PASSWORD)
 
@@ -97,7 +98,7 @@ def test_borrar_quita_solo_lo_demo():
     assert Usuario.objects.filter(nickname='real_user').exists()
     assert Evento.objects.count() == 0
     assert Chat.objects.filter(pk=chat_real.pk).exists()
-    assert Chat.objects.count() == 1  # los chats demo no quedan huérfanos
+    assert Chat.objects.count() == 3  # el real + los 2 de ana/luis/marta; los chats demo no quedan huérfanos
 
 
 def test_se_niega_a_ejecutar_en_produccion(settings):
@@ -143,3 +144,30 @@ def test_password_desde_variable_de_entorno(monkeypatch):
     monkeypatch.setenv('DEMO_PASSWORD', DEMO_PASSWORD)
     call_command('seed_demo')
     assert Usuario.objects.get(nickname='demo_nuria').check_password(DEMO_PASSWORD)
+
+
+def test_seed_data_es_el_mismo_comando_y_crea_las_cuentas_clasicas():
+    call_command('seed_data', password=DEMO_PASSWORD)
+    for nick, clave in (('ana', 'ana123'), ('luis', 'luis123'), ('marta', 'marta123')):
+        assert Usuario.objects.get(nickname=nick).check_password(clave)
+    assert PerfilChat.objects.filter(perfil__usuario__nickname='ana').exists()
+    assert Anuncio.objects.filter(titulo='Vendo guitarra eléctrica').exists()
+
+
+def test_seed_data_no_borra_datos_existentes_ni_duplica():
+    real = Usuario.objects.create_user(nickname='ana', password='clave-real-1234')
+    otro = Usuario.objects.create_user(nickname='otra_persona', password='clave-real-1234')
+    call_command('seed_data', password=DEMO_PASSWORD)
+    primero = conteos()
+    call_command('seed_demo', password=DEMO_PASSWORD)
+    assert conteos() == primero
+    assert Usuario.objects.filter(pk=otro.pk).exists()
+    assert Usuario.objects.get(pk=real.pk).check_password('clave-real-1234')  # no se pisa
+    assert GeneroMusical.objects.count() > 30  # el catálogo de migraciones sigue intacto
+
+
+def test_borrar_no_toca_ana_luis_marta():
+    call_command('seed_data', password=DEMO_PASSWORD)
+    call_command('seed_data', '--borrar')
+    assert not Usuario.objects.filter(nickname__startswith='demo_').exists()
+    assert Usuario.objects.filter(nickname__in=['ana', 'luis', 'marta']).count() == 3
