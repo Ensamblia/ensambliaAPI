@@ -8,6 +8,7 @@ from django.db.models import ProtectedError
 from .models import (
     Comarca, Ciudad, Instrumento, GeneroMusical, Grupo, GrupoGenero, TipoArchivo,
 )
+from apps.perfiles.models import Perfil
 from .serializers import (
     ComarcaSerializer, CiudadSerializer, InstrumentoSerializer,
     GeneroMusicalSerializer, GrupoSerializer, GrupoGeneroSerializer,
@@ -188,7 +189,16 @@ class GrupoViewSet(BaseCRUDViewSet):
     search_fields = ['nombre', 'descripcion']
     ordering_fields = ['nombre']
     ordering = ['nombre']
-    
+
+    def _mi_perfil_id(self, request):
+        perfil = Perfil.objects.filter(usuario_id=request.user.usuario_id).first()
+        return perfil.perfil_id if perfil else None
+
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         if not queryset.exists():
@@ -196,9 +206,21 @@ class GrupoViewSet(BaseCRUDViewSet):
         return Response(self.get_serializer(queryset, many=True).data)
 
     def create(self, request, *args, **kwargs):
+        if not request.user or not request.user.is_authenticated:
+            return Response(
+                {'error': 'Necesitas iniciar sesión para crear un grupo'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        from apps.perfiles.models import Perfil
+        perfil = Perfil.objects.filter(usuario_id=request.user.usuario_id, tipo='usuario').first()
+        if not perfil:
+            return Response(
+                {'error': 'Necesitas crear tu perfil antes de crear un grupo'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         serializer = GrupoCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(creador_perfil=perfil)
         return Response(GrupoSerializer(obj).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -222,10 +244,32 @@ class GrupoViewSet(BaseCRUDViewSet):
         if 'descripcion' in payload and payload['descripcion'] is not None and not isinstance(payload['descripcion'], str):
             return Response({'error': 'descripcion debe ser un texto'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if obj.creador_perfil_id and obj.creador_perfil_id != self._mi_perfil_id(request):
+            return Response(
+                {'error': 'No puedes editar un grupo que no es tuyo'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = GrupoCreateSerializer(obj, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(GrupoSerializer(obj).data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            obj = self.get_object()
+        except Exception:
+            return Response({'error': 'Grupo not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if obj.creador_perfil_id and obj.creador_perfil_id != self._mi_perfil_id(request):
+            return Response(
+                {'error': 'No puedes borrar un grupo que no es tuyo'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        data = GrupoSerializer(obj).data
+        obj.delete()
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class TipoArchivoViewSet(BaseCRUDViewSet):

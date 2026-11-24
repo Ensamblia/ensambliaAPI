@@ -163,7 +163,7 @@ def test_crear_tipo_anuncio_admin(client_admin):
 
 
 # ==============================================================
-# GRUPOS
+# GRUPOS — crear (M.5.2)
 # ==============================================================
 
 @pytest.mark.django_db
@@ -173,12 +173,60 @@ def test_listar_grupos_publico(api_client, db):
 
 
 @pytest.mark.django_db
-def test_crear_grupo_sin_admin(client_ana):
+def test_crear_grupo_sin_auth(api_client):
+    """Sin token no se puede crear grupo."""
+    response = api_client.post('/api/grupos/', {'nombre': 'Test'})
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_crear_grupo_sin_perfil(client_ana):
+    """Un usuario autenticado sin perfil no puede crear grupo."""
     response = client_ana.post('/api/grupos/', {'nombre': 'Test'})
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
-def test_crear_grupo_admin(client_admin):
-    response = client_admin.post('/api/grupos/', {'nombre': 'Test'})
+def test_crear_grupo_ok(client_ana, perfil_ana):
+    """Un usuario autenticado con perfil SÍ puede crear grupo.
+    El creador se asigna automáticamente."""
+    response = client_ana.post('/api/grupos/', {
+        'nombre': 'Mi Banda',
+        'descripcion': 'Rock alternativo',
+    })
     assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['nombre'] == 'Mi Banda'
+    assert response.data['creador_perfil_id'] == perfil_ana.perfil_id
+
+
+@pytest.mark.django_db
+def test_editar_grupo_ajeno(client_ana, perfil_luis):
+    """No puedo editar un grupo creado por otro perfil."""
+    from apps.catalogo.models import Grupo
+    grupo = Grupo.objects.create(nombre='De Luis', creador_perfil=perfil_luis)
+    response = client_ana.put(f'/api/grupos/{grupo.grupo_id}/', {
+        'nombre': 'Hackeado',
+    })
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    grupo.refresh_from_db()
+    assert grupo.nombre == 'De Luis'
+
+
+@pytest.mark.django_db
+def test_borrar_grupo_ajeno(client_ana, perfil_luis):
+    """No puedo borrar un grupo creado por otro perfil."""
+    from apps.catalogo.models import Grupo
+    grupo = Grupo.objects.create(nombre='De Luis', creador_perfil=perfil_luis)
+    response = client_ana.delete(f'/api/grupos/{grupo.grupo_id}/')
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert Grupo.objects.filter(grupo_id=grupo.grupo_id).exists()
+
+
+@pytest.mark.django_db
+def test_borrar_mi_grupo(client_ana, perfil_ana):
+    """Puedo borrar un grupo que he creado."""
+    from apps.catalogo.models import Grupo
+    grupo = Grupo.objects.create(nombre='Mío', creador_perfil=perfil_ana)
+    response = client_ana.delete(f'/api/grupos/{grupo.grupo_id}/')
+    assert response.status_code == status.HTTP_200_OK
+    assert not Grupo.objects.filter(grupo_id=grupo.grupo_id).exists()

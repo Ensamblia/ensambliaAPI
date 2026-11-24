@@ -84,6 +84,13 @@ class Perfil(models.Model):
         db_column='usuario_id',
         related_name='perfiles',
     )
+    grupo_catalogo = models.OneToOneField(
+        'catalogo.Grupo',
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='perfil_grupo',
+        db_column='grupo_catalogo_id',
+    )
 
     class Meta:
         db_table = 'perfil'
@@ -213,3 +220,49 @@ class PerfilInstrumento(models.Model):
 
     def __str__(self):
         return f'{self.perfil_id} - {self.instrumento_id}'
+
+class SolicitudGrupo(models.Model):
+    """
+    Solicitud de un músico para unirse a un grupo.
+    El dueño del grupo (creador del Perfil del grupo) aprueba o rechaza.
+    """
+    class Estado(models.TextChoices):
+        PENDIENTE = 'pendiente', 'Pendiente'
+        ACEPTADA = 'aceptada', 'Aceptada'
+        RECHAZADA = 'rechazada', 'Rechazada'
+
+    solicitud_id = models.BigAutoField(primary_key=True, db_column='solicitud_id')
+    estado = models.CharField(
+        max_length=20,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE,
+        db_column='estado',
+    )
+    fecha_solicitud = models.DateTimeField(auto_now_add=True, db_column='fecha_solicitud')
+    fecha_resolucion = models.DateTimeField(null=True, blank=True, db_column='fecha_resolucion')
+
+    perfil = models.ForeignKey(
+        Perfil,
+        on_delete=models.CASCADE,
+        db_column='perfil_id',
+        related_name='solicitudes_grupo',
+        help_text='Perfil del músico que solicita unirse.',
+    )
+    grupo = models.ForeignKey(
+        'catalogo.Grupo',
+        on_delete=models.CASCADE,
+        db_column='grupo_id',
+        related_name='solicitudes',
+        help_text='Grupo al que se quiere unir.',
+    )
+
+    class Meta:
+        db_table = 'solicitud_grupo'
+        managed = True
+        unique_together = (('perfil', 'grupo'),)
+        ordering = ['-fecha_solicitud']
+        verbose_name = 'Solicitud de grupo'
+        verbose_name_plural = 'Solicitudes de grupo'
+
+    def __str__(self):
+        return f'{self.perfil_id} → {self.grupo_id} ({self.estado})'

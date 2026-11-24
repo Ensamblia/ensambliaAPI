@@ -1,14 +1,32 @@
 // src/pages/BandasPage.jsx
-// Maqueta: bandas de la comunidad (datos de ejemplo, sin back).
-import React, { useMemo, useState } from 'react';
-import { MapPin, Plus, Users } from 'lucide-react';
-import { Button, Chip, MuestraBadge, PageHeader, Tag } from '@/components/ui';
-import { BANDAS } from '@/data/maquetas';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { MapPin, Users } from 'lucide-react';
+import api, { extractList } from '@/api/axios';
+import { Button, Chip, EmptyState, PageHeader, Spinner, Tag } from '@/components/ui';
 import styles from './ComunidadPage.module.css';
 
 export function BandasPage() {
-  const [soloBuscan, setSoloBuscan] = useState(false);
-  const visibles = useMemo(() => BANDAS.filter((b) => !soloBuscan || b.buscan.length), [soloBuscan]);
+  const [bandas, setBandas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [soloDisponibles, setSoloDisponibles] = useState(false);
+
+  const cargar = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { tipo: 'grupo', limit: 60 };
+      if (soloDisponibles) params.disponibilidad = 'true';
+      const res = await api.get('/perfiles/', { params });
+      setBandas(res.data?.results ?? extractList(res));
+    } catch {
+      setError('No se pudieron cargar las bandas.');
+    } finally {
+      setLoading(false);
+    }
+  }, [soloDisponibles]);
+
+  useEffect(() => { cargar(); }, [cargar]);
 
   return (
     <main className={styles.page}>
@@ -16,59 +34,54 @@ export function BandasPage() {
         title="Bandas"
         icon={<Users size={22} />}
         tone="coral"
-        badge={<MuestraBadge />}
         subtitle="Crea tu banda o únete a una. Mira quién busca integrantes en tu zona."
-        actions={
-          <Button variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
-            Crear banda
-          </Button>
-        }
       />
 
       <div className={styles.chips}>
-        <Chip active={!soloBuscan} onClick={() => setSoloBuscan(false)}>
+        <Chip active={!soloDisponibles} onClick={() => setSoloDisponibles(false)}>
           Todas
         </Chip>
-        <Chip active={soloBuscan} onClick={() => setSoloBuscan(true)}>
+        <Chip active={soloDisponibles} onClick={() => setSoloDisponibles(true)}>
           Buscan integrantes
         </Chip>
       </div>
 
-      <div className={styles.grid}>
-        {visibles.map((b) => (
-          <article key={b.id} className={styles.card}>
-            <div className={[styles.banda, styles[b.tono]].join(' ')}>
-              <span className={styles.bandaInicial} aria-hidden="true">
-                {b.nombre.charAt(0)}
-              </span>
-              <span className={styles.bandaMiembros}>
-                <Users size={14} aria-hidden="true" /> {b.miembros} miembros
-              </span>
-            </div>
-            <h3 className={styles.nombre}>{b.nombre}</h3>
-            <p className={styles.meta}>
-              <MapPin size={14} aria-hidden="true" />
-              {b.zona}
-            </p>
-            <p className={styles.bio}>{b.bio}</p>
-            <div className={styles.tags}>
-              {b.estilos.map((e) => (
-                <Tag key={e} size="sm" color="purple">{e}</Tag>
-              ))}
-            </div>
-            {b.buscan.length > 0 && (
-              <p className={styles.buscan}>
-                <strong>Buscan:</strong> {b.buscan.join(', ')}
+      {loading && <Spinner size="lg" aria-label="Cargando bandas" />}
+      {!loading && error && <EmptyState icon="⚠️" title="No se pudo cargar" description={error} />}
+      {!loading && !error && bandas.length === 0 && (
+        <EmptyState icon="🎸" title="Todavía no hay bandas" description="Sé la primera persona en crear una." />
+      )}
+
+      {!loading && !error && bandas.length > 0 && (
+        <div className={styles.grid}>
+          {bandas.map((b) => (
+            <article key={b.perfil_id} className={styles.card}>
+              <div className={[styles.banda, styles.coral].join(' ')}>
+                <span className={styles.bandaInicial} aria-hidden="true">
+                  {b.nombre.charAt(0)}
+                </span>
+                <span className={styles.bandaMiembros}>
+                  <Users size={14} aria-hidden="true" /> Grupo
+                </span>
+              </div>
+              <h3 className={styles.nombre}>{b.nombre}</h3>
+              <p className={styles.meta}>
+                <MapPin size={14} aria-hidden="true" />
+                {b.comarca_id ? 'Comarca' : 'Sin comarca'}
               </p>
-            )}
-            <div className={styles.acciones}>
-              <Button variant={b.buscan.length ? 'primary' : 'secondary'} size="sm">
-                {b.buscan.length ? 'Quiero unirme' : 'Seguir'}
-              </Button>
-            </div>
-          </article>
-        ))}
-      </div>
+              <p className={styles.bio}>{b.descripcion || 'Sin descripción.'}</p>
+              <div className={styles.acciones}>
+                <Button variant="primary" size="sm" to={`/perfiles/${b.perfil_id}`}>
+                  Ver banda
+                </Button>
+                <Button variant="secondary" size="sm" to={`/grupos/${b.perfil_id}/solicitudes`}>
+                  Solicitudes
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

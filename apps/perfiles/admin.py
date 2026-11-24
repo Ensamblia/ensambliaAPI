@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento,
+    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento, SolicitudGrupo,
 )
 
 
@@ -28,3 +28,9 @@ class PerfilGrupoAdmin(admin.ModelAdmin):
 @admin.register(PerfilInstrumento)
 class PerfilInstrumentoAdmin(admin.ModelAdmin):
     list_display = ('perfil', 'instrumento')
+
+@admin.register(SolicitudGrupo)
+class SolicitudGrupoAdmin(admin.ModelAdmin):
+    list_display = ('solicitud_id', 'perfil', 'grupo', 'estado', 'fecha_solicitud')
+    list_filter = ('estado',)
+    search_fields = ('perfil__nombre', 'grupo__nombre')

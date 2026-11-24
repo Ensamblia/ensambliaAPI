@@ -2,13 +2,14 @@
 from rest_framework import serializers
 from apps.catalogo.models import Comarca
 from .models import (
-    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento,
+    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento, SolicitudGrupo, 
 )
 
 
 class PerfilSerializer(serializers.ModelSerializer):
     comarca_id = serializers.IntegerField(read_only=True, allow_null=True)
     usuario_id = serializers.IntegerField(read_only=True, allow_null=True)
+    grupo_catalogo_id = serializers.IntegerField(read_only=True, allow_null=True)
     foto_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -17,9 +18,8 @@ class PerfilSerializer(serializers.ModelSerializer):
             'perfil_id', 'nombre', 'apellido', 'correo', 'numero_telefono',
             'edad', 'sexo', 'disponibilidad', 'descripcion', 'testimonio', 'tipo', 
             'fecha_creacion', 'fecha_baja',
-            'comarca_id', 'usuario_id', 'foto_url',
+            'comarca_id', 'usuario_id', 'grupo_catalogo_id', 'foto_url',
         ]
-        read_only_fields = ['perfil_id', 'fecha_creacion', 'fecha_baja']
 
     def get_foto_url(self, obj):
         if not obj.foto:
@@ -115,3 +115,24 @@ class PerfilInstrumentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerfilInstrumento
         fields = ['perfil_id', 'instrumento_id']
+
+class SolicitudGrupoSerializer(serializers.ModelSerializer):
+    perfil_id = serializers.IntegerField(read_only=True, allow_null=True)
+    grupo_id = serializers.IntegerField(read_only=True, allow_null=True)
+    perfil_nombre = serializers.SerializerMethodField()
+    grupo_nombre = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SolicitudGrupo
+        fields = [
+            'solicitud_id', 'perfil_id', 'grupo_id', 'perfil_nombre', 'grupo_nombre',
+            'estado', 'fecha_solicitud', 'fecha_resolucion',
+        ]
+
+    def get_perfil_nombre(self, obj):
+        if not obj.perfil:
+            return None
+        return f'{obj.perfil.nombre} {obj.perfil.apellido}'.strip()
+
+    def get_grupo_nombre(self, obj):
+        return obj.grupo.nombre if obj.grupo else None
