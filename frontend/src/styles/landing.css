@@ -2557,3 +2557,9 @@ button {
         min-height: 390px !important;
     }
 }
+.community-empty {
+    text-align: center;
+    color: var(--muted, #6b6b6b);
+    margin: 8px auto 0;
+    max-width: 520px;
+}

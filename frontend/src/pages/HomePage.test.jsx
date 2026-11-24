@@ -66,13 +66,28 @@ describe('HomePage — stats del landing', () => {
         expect(screen.queryByText('EVENTOS AL MES')).not.toBeInTheDocument();
     });
 
-    it('fallback a testimonios hardcoded si el back devuelve []', async () => {
-        renderHome();
+    it('no inventa testimonios si el back no devuelve ninguno', async () => {
+        const { container } = renderHome();
         await waitFor(() => {
-        expect(screen.getByText(/Carlos R\./)).toBeInTheDocument();
-        expect(screen.getByText(/Laura M\./)).toBeInTheDocument();
-        expect(screen.getByText(/Javier P\./)).toBeInTheDocument();
+        expect(container.querySelector('.stats-section')).toBeInTheDocument();
         });
+        expect(screen.queryByText(/Carlos R\./)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Laura M\./)).not.toBeInTheDocument();
+        expect(screen.queryByText(/Javier P\./)).not.toBeInTheDocument();
+        expect(screen.getByText(/Estamos arrancando/)).toBeInTheDocument();
+    });
+
+    it('no muestra cifras inventadas si falla /stats/', async () => {
+        server.use(http.get(`${API}/stats/`, () => new HttpResponse(null, { status: 500 })));
+        const { container } = renderHome();
+        await waitFor(() => {
+        expect(screen.getByText(/Estamos arrancando/)).toBeInTheDocument();
+        });
+        expect(container.querySelector('.stats-section')).not.toBeInTheDocument();
+        const texto = container.textContent;
+        expect(texto).not.toMatch(/10\.?000/);
+        expect(texto).not.toMatch(/15\.?000/);
+        expect(texto).not.toMatch(/2\.?431/);
     });
 
     it('muestra testimonios reales si el back los devuelve', async () => {
