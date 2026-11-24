@@ -1,4 +1,3 @@
-// src/router/AppRouter.jsx
 import React, { useContext } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
@@ -27,6 +26,7 @@ import { RegisterPage } from '../pages/RegisterPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { CrearAnuncioPage } from '../pages/CrearAnuncioPage';
 import styles from './AppRouter.module.css';
+import { SolicitudesGrupoPage } from '../pages/SolicitudesGrupoPage';
 
 // Sin sesión, la landing; con sesión, el Inicio de la app.
 function Portada() {
@@ -82,6 +82,7 @@ export function AppRouter() {
             <Route path="/mercado" element={<MercadoPage />} />
             <Route path="/musicos" element={<MusicosPage />} />
             <Route path="/bandas" element={<BandasPage />} />
+            <Route path="/grupos/:id/solicitudes" element={<SolicitudesGrupoPage />} />
             <Route path="/eventos/crear" element={<CrearEventoPage />} />
             <Route path="/eventos/:id/editar" element={<CrearEventoPage />} />
             <Route path="/anuncios/crear" element={<CrearAnuncioPage />} />

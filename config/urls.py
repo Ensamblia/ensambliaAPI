@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/perfil-genero-musicales/', include('apps.perfiles.urls_perfil_genero_musical')),
     path('api/perfil-grupos/', include('apps.perfiles.urls_perfil_grupo')),
     path('api/perfil-instrumentos/', include('apps.perfiles.urls_perfil_instrumento')),
+    path('api/solicitudes-grupo/', include('apps.perfiles.urls_solicitudes_grupo')),
 
     # Anuncios
     path('api/tipo-anuncios/', include('apps.anuncios.urls_tipo_anuncio')),

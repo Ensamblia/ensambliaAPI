@@ -17,12 +17,12 @@ from apps.chats.utils import validar_archivo
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 from apps.usuarios.mixins import MiPerfilMixin
 from .models import (
-    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento,
+    Perfil, PerfilChat, PerfilGeneroMusical, PerfilGrupo, PerfilInstrumento, SolicitudGrupo,
 )
 from .serializers import (
     PerfilSerializer, PerfilCreateSerializer, PerfilUpdateSerializer,
     PerfilChatSerializer, PerfilGeneroMusicalSerializer,
-    PerfilGrupoSerializer, PerfilInstrumentoSerializer,
+    PerfilGrupoSerializer, PerfilInstrumentoSerializer, SolicitudGrupoSerializer,
 )
 from apps.usuarios.pagination import StandardLimitOffsetPagination
 
@@ -63,7 +63,7 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
     ordering = ['perfil_id']
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'get_by_usuario', 'get_by_comarca'):
+        if self.action in ('list', 'retrieve', 'get_by_usuario', 'get_by_comarca', 'stats'):
             return [AllowAny()]
         return [IsAuthenticated()]
 
@@ -299,6 +299,61 @@ class PerfilViewSet(viewsets.ModelViewSet, MiPerfilMixin):
         perfil.foto = None
         perfil.save(update_fields=['foto'])
         return Response({'ok': True}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='stats')
+    def stats(self, request, pk=None):
+        """
+        GET /api/perfiles/:id/stats/
+        Devuelve:
+        { "anuncios": N, "grupos": N, "es_miembro": bool, "solicitud_pendiente": bool }
+        - anuncios: cuántos anuncios ha publicado el perfil.
+        - grupos: cuántos grupos (Grupo) tiene como creador.
+        - es_miembro: si el perfil autenticado pertenece a algún grupo del que este perfil es dueño.
+        - solicitud_pendiente: si hay una SolicitudGrupo pendiente del perfil autenticado a algún grupo de este perfil.
+        """
+        from apps.anuncios.models import Anuncio
+        from apps.catalogo.models import Grupo
+        from .models import PerfilGrupo, SolicitudGrupo
+
+        try:
+            perfil = Perfil.objects.get(pk=pk)
+        except Perfil.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Stats públicas
+        anuncios = Anuncio.objects.filter(perfil_id=perfil.perfil_id).count()
+        grupos = Grupo.objects.filter(creador_perfil_id=perfil.perfil_id).count()
+
+        # Info para el perfil autenticado
+        es_miembro = False
+        solicitud_pendiente = False
+        if request.user and request.user.is_authenticated:
+            mi_perfil = Perfil.objects.filter(
+                usuario_id=request.user.usuario_id, tipo='usuario',
+            ).first()
+            if mi_perfil:
+                mis_grupos_ids = list(
+                    Grupo.objects.filter(creador_perfil_id=perfil.perfil_id)
+                    .values_list('grupo_id', flat=True)
+                )
+                if mis_grupos_ids:
+                    es_miembro = PerfilGrupo.objects.filter(
+                        perfil=mi_perfil, grupo_id__in=mis_grupos_ids,
+                    ).exists()
+                    solicitud_pendiente = SolicitudGrupo.objects.filter(
+                        perfil=mi_perfil,
+                        grupo_id__in=mis_grupos_ids,
+                        estado=SolicitudGrupo.Estado.PENDIENTE,
+                    ).exists()
+
+        return Response({
+            'anuncios': anuncios,
+            'grupos': grupos,
+            'es_miembro': es_miembro,
+            'solicitud_pendiente': solicitud_pendiente,
+        }, status=status.HTTP_200_OK)
+
+    
 class PerfilChatViewSet(viewsets.ViewSet, MiPerfilMixin):
     """
     Endpoints custom para la tabla pivote perfil_chat.
@@ -529,10 +584,13 @@ class PerfilGrupoViewSet(viewsets.ViewSet, MiPerfilMixin):
         return Response(PerfilGrupoSerializer(qs, many=True).data)
 
     def by_grupo(self, request):
-        grupo_id = request.query_params.get('grupo_id')
-        if not grupo_id:
-            return Response({'error': 'grupo_id es un parámetro requerido'}, status=status.HTTP_400_BAD_REQUEST)
-        qs = PerfilGrupo.objects.filter(grupo_id=grupo_id)
+        perfil_id = request.query_params.get('perfil_id')
+        if not perfil_id:
+            return Response({'error': 'perfil_id es un parámetro requerido'}, status=status.HTTP_400_BAD_REQUEST)
+        pg = Perfil.objects.filter(pk=perfil_id, tipo=Perfil.TipoPerfil.GRUPO).first()
+        if not pg or not pg.grupo_catalogo_id:
+            return Response([], status=status.HTTP_200_OK)
+        qs = PerfilGrupo.objects.filter(grupo=pg.grupo_catalogo)
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
         return Response(PerfilGrupoSerializer(qs, many=True).data)
@@ -542,7 +600,7 @@ class PerfilInstrumentoViewSet(viewsets.ViewSet, MiPerfilMixin):
     permission_classes = [AllowAny]
 
     def get_permissions(self):
-        if self.action in ('list', 'retrieve', 'get_by_perfil', 'get_by_instrumento'):
+        if self.action in ('list', 'retrieve', 'get_by_perfil', 'get_by_instrumento',):
             return [AllowAny()]
         return [IsAuthenticated()]
 
@@ -604,3 +662,131 @@ class PerfilInstrumentoViewSet(viewsets.ViewSet, MiPerfilMixin):
         if not qs.exists():
             return Response([], status=status.HTTP_200_OK)
         return Response(PerfilInstrumentoSerializer(qs, many=True).data)
+
+class SolicitudGrupoViewSet(viewsets.ViewSet, MiPerfilMixin):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        """GET /api/solicitudes-grupo/?perfil_id=X → solicitudes de ese grupo (solo su dueño)."""
+        mi = self.get_mi_perfil_id(request)
+        if not mi:
+            return Response([], status=status.HTTP_200_OK)
+
+        perfil_id = request.query_params.get('perfil_id')
+        if not perfil_id:
+            return Response([], status=status.HTTP_200_OK)
+
+        pg = Perfil.objects.filter(pk=perfil_id, tipo=Perfil.TipoPerfil.GRUPO).first()
+        if not pg or not pg.grupo_catalogo_id:
+            return Response([], status=status.HTTP_200_OK)
+
+        qs = SolicitudGrupo.objects.select_related('perfil', 'grupo').filter(grupo=pg.grupo_catalogo)
+        if pg.grupo_catalogo.creador_perfil_id != mi:
+            qs = qs.none()  # solo el dueño ve las solicitudes
+        return Response(SolicitudGrupoSerializer(qs.order_by('-fecha_solicitud'), many=True).data)
+
+    def create(self, request):
+        """POST /api/solicitudes-grupo/ { perfil_id }  (perfil_id = Perfil tipo grupo)"""
+        perfil_id = request.data.get('perfil_id')
+        if not perfil_id:
+            return Response({'error': 'perfil_id es obligatorio'}, status=status.HTTP_400_BAD_REQUEST)
+
+        pg = Perfil.objects.filter(pk=perfil_id, tipo=Perfil.TipoPerfil.GRUPO).first()
+        if not pg:
+            return Response({'error': 'Perfil de grupo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        if not pg.grupo_catalogo_id:
+            return Response({'error': 'Este grupo aún no está listo para recibir solicitudes'}, status=status.HTTP_400_BAD_REQUEST)
+        grupo = pg.grupo_catalogo
+
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if not mi_perfil_id:
+            return Response({'error': 'Necesitas crear tu perfil antes de solicitar unirte'}, status=status.HTTP_403_FORBIDDEN)
+
+        from .models import PerfilGrupo
+        if PerfilGrupo.objects.filter(perfil_id=mi_perfil_id, grupo=grupo).exists():
+            return Response({'error': 'Ya eres miembro de este grupo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj, created = SolicitudGrupo.objects.get_or_create(
+            perfil_id=mi_perfil_id, grupo=grupo,
+            defaults={'estado': SolicitudGrupo.Estado.PENDIENTE},
+        )
+        if not created:
+            if obj.estado == SolicitudGrupo.Estado.RECHAZADA:
+                obj.estado = SolicitudGrupo.Estado.PENDIENTE
+                obj.fecha_resolucion = None
+                obj.save()
+            else:
+                return Response({'error': 'Ya has solicitado unirte a este grupo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(SolicitudGrupoSerializer(obj).data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None):
+        """DELETE /api/solicitudes-grupo/:id/ — cancelar mi solicitud pendiente."""
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        try:
+            obj = SolicitudGrupo.objects.get(pk=pk)
+        except SolicitudGrupo.DoesNotExist:
+            return Response({'error': 'Solicitud no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        if obj.perfil_id != mi_perfil_id:
+            return Response(
+                {'error': 'No puedes cancelar la solicitud de otro perfil'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if obj.estado != SolicitudGrupo.Estado.PENDIENTE:
+            return Response(
+                {'error': 'Solo puedes cancelar solicitudes pendientes'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = SolicitudGrupoSerializer(obj).data
+        obj.delete()
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='aprobar')
+    def aprobar(self, request, pk=None):
+        return self._resolver(request, pk, aprobar=True)
+
+    @action(detail=True, methods=['post'], url_path='rechazar')
+    def rechazar(self, request, pk=None):
+        return self._resolver(request, pk, aprobar=False)
+
+    def _resolver(self, request, pk, aprobar):
+        """Aprobar/rechazar una solicitud (solo el dueño del grupo)."""
+        from apps.catalogo.models import Grupo
+        from .models import PerfilGrupo
+        from django.utils import timezone
+
+        try:
+            solicitud = SolicitudGrupo.objects.select_related('grupo', 'perfil').get(pk=pk)
+        except SolicitudGrupo.DoesNotExist:
+            return Response({'error': 'Solicitud no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        mi_perfil_id = self.get_mi_perfil_id(request)
+        if solicitud.grupo.creador_perfil_id != mi_perfil_id:
+            return Response(
+                {'error': 'Solo el dueño del grupo puede aprobar/rechazar solicitudes'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if solicitud.estado != SolicitudGrupo.Estado.PENDIENTE:
+            return Response(
+                {'error': 'Esta solicitud ya ha sido resuelta'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        solicitud.estado = (
+            SolicitudGrupo.Estado.ACEPTADA if aprobar else SolicitudGrupo.Estado.RECHAZADA
+        )
+        solicitud.fecha_resolucion = timezone.now()
+        solicitud.save()
+
+        if aprobar:
+            # Crear el PerfilGrupo si no existe
+            PerfilGrupo.objects.get_or_create(
+                perfil=solicitud.perfil,
+                grupo=solicitud.grupo,
+            )
+
+        return Response(SolicitudGrupoSerializer(solicitud).data, status=status.HTTP_200_OK)

@@ -280,3 +280,57 @@ def test_perfil_serializer_incluye_foto_url(client_ana, perfil_ana):
     response = client_ana.get(f'/api/perfiles/{perfil_ana.perfil_id}/')
     assert response.status_code == status.HTTP_200_OK
     assert 'foto_url' in response.data
+
+
+# ── Stats del perfil (M.5.2) ──
+
+@pytest.mark.django_db
+def test_stats_sin_auth(api_client, perfil_ana, anuncio_ana):
+    """Sin auth, stats devuelve anuncios y grupos, es_miembro y solicitud_pendiente false."""
+    response = api_client.get(f'/api/perfiles/{perfil_ana.perfil_id}/stats/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['anuncios'] == 1
+    assert response.data['grupos'] == 0
+    assert response.data['es_miembro'] is False
+    assert response.data['solicitud_pendiente'] is False
+
+
+@pytest.mark.django_db
+def test_stats_cuenta_grupos(client_ana, perfil_ana):
+    """Stats cuenta los grupos creados por el perfil."""
+    from apps.catalogo.models import Grupo
+    Grupo.objects.create(nombre='Mi Banda', creador_perfil=perfil_ana)
+    response = client_ana.get(f'/api/perfiles/{perfil_ana.perfil_id}/stats/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['grupos'] == 1
+
+
+@pytest.mark.django_db
+def test_stats_es_miembro(client_luis, perfil_ana, perfil_luis):
+    """Si el perfil autenticado pertenece a un grupo del perfil consultado, es_miembro=true."""
+    from apps.catalogo.models import Grupo
+    from apps.perfiles.models import PerfilGrupo
+    grupo = Grupo.objects.create(nombre='Banda de Ana', creador_perfil=perfil_ana)
+    PerfilGrupo.objects.create(perfil=perfil_luis, grupo=grupo)
+    response = client_luis.get(f'/api/perfiles/{perfil_ana.perfil_id}/stats/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['es_miembro'] is True
+
+
+@pytest.mark.django_db
+def test_stats_solicitud_pendiente(client_luis, perfil_ana, perfil_luis):
+    """Si hay una SolicitudGrupo pendiente, solicitud_pendiente=true."""
+    from apps.catalogo.models import Grupo
+    from apps.perfiles.models import SolicitudGrupo
+    grupo = Grupo.objects.create(nombre='Banda de Ana', creador_perfil=perfil_ana)
+    SolicitudGrupo.objects.create(perfil=perfil_luis, grupo=grupo)
+    response = client_luis.get(f'/api/perfiles/{perfil_ana.perfil_id}/stats/')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['solicitud_pendiente'] is True
+
+
+@pytest.mark.django_db
+def test_stats_perfil_inexistente(api_client):
+    """Perfil inexistente → 404."""
+    response = api_client.get('/api/perfiles/99999/stats/')
+    assert response.status_code == status.HTTP_404_NOT_FOUND

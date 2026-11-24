@@ -1,34 +1,65 @@
 // src/pages/MercadoPage.jsx
-// Maqueta: compraventa de equipo entre músicos (datos de ejemplo, sin back).
-import React, { useMemo, useState } from 'react';
-import { Drum, Guitar, Heart, MapPin, Music, Piano, Plus, Search, SlidersHorizontal, Speaker, Store } from 'lucide-react';
-import { Button, Chip, EmptyState, MuestraBadge, PageHeader, Select, Tag } from '@/components/ui';
-import { ARTICULOS_MERCADO, CATEGORIAS_MERCADO } from '@/data/maquetas';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Heart, MapPin, Plus, Search, Store } from 'lucide-react';
+import { getTiposMercadoIds, listarMercado } from '@/api/mercado';
+import { Button, Chip, EmptyState, PageHeader, Select, Spinner, Tag } from '@/components/ui';
 import styles from './MercadoPage.module.css';
 
-const ICONOS = { guitar: Guitar, piano: Piano, drum: Drum, music: Music, speaker: Speaker, sliders: SlidersHorizontal };
-const CATEGORIA = Object.fromEntries(CATEGORIAS_MERCADO.map((c) => [c.value, c]));
+const PAGE_SIZE = 12;
 
 const ORDENES = {
-  recientes: (a, b) => a.dias - b.dias,
-  barato: (a, b) => a.precio - b.precio,
-  caro: (a, b) => b.precio - a.precio,
+  recientes: '-fecha_publicacion',
+  antiguos: 'fecha_publicacion',
+  titulo: 'titulo',
 };
 
 export function MercadoPage() {
-  const [categoria, setCategoria] = useState('');
+  const [todos, setTodos] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState('recientes');
-  const [guardados, setGuardados] = useState(() => new Set([2]));
+  const [guardados, setGuardados] = useState(() => new Set());
   const [soloGuardados, setSoloGuardados] = useState(false);
+  const [tiposMercadoIds, setTiposMercadoIds] = useState(null); // null = cargando, [] = sin tipos
+  const debounceRef = useRef(null);
 
-  const visibles = useMemo(() => {
-    const q = busqueda.trim().toLowerCase();
-    return ARTICULOS_MERCADO.filter((a) => !categoria || a.categoria === categoria)
-      .filter((a) => !soloGuardados || guardados.has(a.id))
-      .filter((a) => !q || `${a.titulo} ${a.ciudad}`.toLowerCase().includes(q))
-      .sort(ORDENES[orden]);
-  }, [categoria, busqueda, orden, guardados, soloGuardados]);
+  // 1. Cargar IDs de tipos de compra/venta
+  useEffect(() => {
+    let cancelado = false;
+    getTiposMercadoIds().then((ids) => {
+      if (!cancelado) setTiposMercadoIds(ids);
+    });
+    return () => { cancelado = true; };
+  }, []);
+
+  // 2. Cargar artículos
+  const cargar = useCallback(async () => {
+    if (tiposMercadoIds === null) return; // esperando tipos
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { limit: 200, ordering: ORDENES[orden] };
+      if (busqueda.trim()) params.search = busqueda.trim();
+      const data = await listarMercado(params);
+      const lista = data.results ?? data ?? [];
+      // Filtro ESTRICTO: solo anuncios cuyo tipo esté en tiposMercadoIds
+      setTodos(lista.filter((a) => tiposMercadoIds.includes(a.tipo_anuncio_id)));
+      setOffset(0);
+    } catch {
+      setError('No se pudo cargar el mercado. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }, [tiposMercadoIds, busqueda, orden]);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(cargar, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [cargar]);
 
   const alternarGuardado = (id) => {
     setGuardados((prev) => {
@@ -39,16 +70,28 @@ export function MercadoPage() {
     });
   };
 
+  const base = useMemo(
+    () => (soloGuardados ? todos.filter((a) => guardados.has(a.anuncio_id)) : todos),
+    [todos, soloGuardados, guardados],
+  );
+  const count = base.length;
+  const visibles = useMemo(() => base.slice(offset, offset + PAGE_SIZE), [base, offset]);
+  const hayAnterior = offset > 0;
+  const haySiguiente = offset + PAGE_SIZE < count;
+  const paginaActual = Math.floor(offset / PAGE_SIZE) + 1;
+  const totalPaginas = Math.max(1, Math.ceil(count / PAGE_SIZE));
+
+  const sinTiposMercado = tiposMercadoIds !== null && tiposMercadoIds.length === 0;
+
   return (
     <main className={styles.page}>
       <PageHeader
         title="Mercado"
         icon={<Store size={22} />}
         tone="blue"
-        badge={<MuestraBadge />}
         subtitle="Compra y vende instrumentos y equipo entre músicos, con recogida en mano."
         actions={
-          <Button variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
+          <Button to="/anuncios/crear" variant="primary" leftIcon={<Plus size={16} strokeWidth={2.5} />}>
             Vender algo
           </Button>
         }
@@ -69,20 +112,13 @@ export function MercadoPage() {
           <div className={styles.orden}>
             <Select value={orden} onChange={(e) => setOrden(e.target.value)} aria-label="Ordenar">
               <option value="recientes">Más recientes</option>
-              <option value="barato">Precio: de menor a mayor</option>
-              <option value="caro">Precio: de mayor a menor</option>
+              <option value="antiguos">Más antiguos</option>
+              <option value="titulo">Título A→Z</option>
             </Select>
           </div>
         </div>
         <div className={styles.chips}>
-          <Chip active={!categoria && !soloGuardados} onClick={() => { setCategoria(''); setSoloGuardados(false); }}>
-            Todo
-          </Chip>
-          {CATEGORIAS_MERCADO.map((c) => (
-            <Chip key={c.value} active={categoria === c.value} onClick={() => setCategoria(c.value)}>
-              {c.label}
-            </Chip>
-          ))}
+          <Chip active={!soloGuardados} onClick={() => setSoloGuardados(false)}>Todo</Chip>
           <span className={styles.sep} aria-hidden="true" />
           <Chip active={soloGuardados} activeTone="yellow" onClick={() => setSoloGuardados((v) => !v)}>
             <Heart size={14} aria-hidden="true" /> Guardados
@@ -90,48 +126,84 @@ export function MercadoPage() {
         </div>
       </section>
 
-      <p className={styles.contador}>
-        {visibles.length} artículo{visibles.length !== 1 ? 's' : ''}
-      </p>
+      {sinTiposMercado && (
+        <EmptyState
+          icon="🛒"
+          title="El mercado aún no está configurado"
+          description="No hay tipos de anuncio de compra/venta en la base de datos. Ejecuta el seed para crearlos."
+        />
+      )}
 
-      {visibles.length === 0 ? (
-        <EmptyState icon="🎛️" title="Nada por aquí" description="Prueba otra categoría o quita la búsqueda." />
-      ) : (
-        <div className={styles.grid}>
-          {visibles.map((a) => {
-            const cat = CATEGORIA[a.categoria];
-            const Icono = ICONOS[cat.icono];
-            const guardado = guardados.has(a.id);
-            return (
-              <article key={a.id} className={styles.card}>
-                <div className={[styles.media, styles[cat.tono]].join(' ')}>
-                  <Icono size={52} strokeWidth={1.6} aria-hidden="true" />
-                  <span className={styles.precio}>{a.precio} €</span>
-                  <button
-                    type="button"
-                    className={[styles.fav, guardado ? styles.favOn : ''].join(' ')}
-                    onClick={() => alternarGuardado(a.id)}
-                    aria-pressed={guardado}
-                    aria-label={guardado ? 'Quitar de guardados' : 'Guardar'}
-                  >
-                    <Heart size={17} fill={guardado ? 'currentColor' : 'none'} />
-                  </button>
-                </div>
-                <div className={styles.body}>
-                  <div className={styles.tags}>
-                    <Tag size="sm" color="blue">{cat.label}</Tag>
-                    <Tag size="sm">{a.estado}</Tag>
-                  </div>
-                  <h3 className={styles.titulo}>{a.titulo}</h3>
-                  <p className={styles.meta}>
-                    <MapPin size={14} aria-hidden="true" />
-                    {a.ciudad} · {a.vendedor}
-                  </p>
-                </div>
-              </article>
-            );
-          })}
+      {!sinTiposMercado && loading && (
+        <div className={styles.stateBox}>
+          <Spinner size="lg" aria-label="Cargando mercado" />
         </div>
+      )}
+
+      {!sinTiposMercado && !loading && error && (
+        <EmptyState icon="⚠️" title="No se pudo cargar" description={error} />
+      )}
+
+      {!sinTiposMercado && !loading && !error && visibles.length === 0 && (
+        <EmptyState
+          icon="🎛️"
+          title="Nada por aquí"
+          description="Prueba otra búsqueda o publica tu propio anuncio de compra/venta."
+          action={<Button to="/anuncios/crear" variant="primary" size="sm">Publicar anuncio</Button>}
+        />
+      )}
+
+      {!sinTiposMercado && !loading && !error && visibles.length > 0 && (
+        <>
+          <div className={styles.grid}>
+            {visibles.map((a) => {
+              const guardado = guardados.has(a.anuncio_id);
+              const primeraImagen = (a.multimedias || []).find(
+                (m) => (m.tipo_mime || '').startsWith('image/'),
+              );
+              return (
+                <article key={a.anuncio_id} className={styles.card}>
+                  <div className={[styles.media, styles.blue].join(' ')}>
+                    {primeraImagen ? (
+                      <img src={primeraImagen.archivo_url} alt={a.titulo} className={styles.mediaImg} />
+                    ) : (
+                      <Store size={52} strokeWidth={1.6} aria-hidden="true" />
+                    )}
+                    <button
+                      type="button"
+                      className={[styles.fav, guardado ? styles.favOn : ''].join(' ')}
+                      onClick={() => alternarGuardado(a.anuncio_id)}
+                      aria-pressed={guardado}
+                      aria-label={guardado ? 'Quitar de guardados' : 'Guardar'}
+                    >
+                      <Heart size={17} fill={guardado ? 'currentColor' : 'none'} />
+                    </button>
+                  </div>
+                  <div className={styles.body}>
+                    <div className={styles.tags}>
+                      <Tag size="sm" color="blue">Instrumento</Tag>
+                    </div>
+                    <Link to={`/anuncios/${a.anuncio_id}`} className={styles.titulo}>{a.titulo}</Link>
+                    <p className={styles.meta}>
+                      <MapPin size={14} aria-hidden="true" />
+                      {new Date(a.fecha_publicacion).toLocaleDateString('es-ES')}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {totalPaginas > 1 && (
+            <div className={styles.paginationBar}>
+              <Button variant="secondary" size="sm" disabled={!hayAnterior}
+                onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>Anterior</Button>
+              <span className={styles.pageInfo}>{paginaActual} / {totalPaginas}</span>
+              <Button variant="secondary" size="sm" disabled={!haySiguiente}
+                onClick={() => setOffset(offset + PAGE_SIZE)}>Siguiente</Button>
+            </div>
+          )}
+        </>
       )}
     </main>
   );

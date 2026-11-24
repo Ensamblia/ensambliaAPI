@@ -29,4 +29,5 @@ urlpatterns = [
     path('<int:pk>/', PerfilViewSet.as_view({
         'get': 'retrieve', 'put': 'update', 'delete': 'destroy',
     }), name='perfil-detail'),
+    path('<int:pk>/stats/', PerfilViewSet.as_view({'get': 'stats'}), name='perfil-stats'),
 ]
